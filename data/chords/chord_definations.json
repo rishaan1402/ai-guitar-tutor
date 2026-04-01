@@ -1,0 +1,160 @@
+[
+    {
+      "chord": "C_major",
+      "display_name": "C",
+      "quality": "major",
+      "notes": ["C", "E", "G"],
+      "fingering": [
+        { "string": 6, "action": "mute" },
+        { "string": 5, "fret": 3, "finger": 3, "note": "C" },
+        { "string": 4, "fret": 2, "finger": 2, "note": "E" },
+        { "string": 3, "fret": 0, "finger": 0, "note": "G" },
+        { "string": 2, "fret": 1, "finger": 1, "note": "C" },
+        { "string": 1, "fret": 0, "finger": 0, "note": "E" }
+      ]
+    },
+    {
+      "chord": "A_major",
+      "display_name": "A",
+      "quality": "major",
+      "notes": ["A", "C#", "E"],
+      "fingering": [
+        { "string": 6, "action": "mute" },
+        { "string": 5, "fret": 0, "finger": 0, "note": "A" },
+        { "string": 4, "fret": 2, "finger": 1, "note": "E" },
+        { "string": 3, "fret": 2, "finger": 2, "note": "A" },
+        { "string": 2, "fret": 2, "finger": 3, "note": "C#" },
+        { "string": 1, "fret": 0, "finger": 0, "note": "E" }
+      ]
+    },
+    {
+      "chord": "G_major",
+      "display_name": "G",
+      "quality": "major",
+      "notes": ["G", "B", "D"],
+      "fingering": [
+        { "string": 6, "fret": 3, "finger": 2, "note": "G" },
+        { "string": 5, "fret": 2, "finger": 1, "note": "B" },
+        { "string": 4, "fret": 0, "finger": 0, "note": "D" },
+        { "string": 3, "fret": 0, "finger": 0, "note": "G" },
+        { "string": 2, "fret": 0, "finger": 0, "note": "B" },
+        { "string": 1, "fret": 3, "finger": 3, "note": "G" }
+      ]
+    },
+    {
+      "chord": "E_major",
+      "display_name": "E",
+      "quality": "major",
+      "notes": ["E", "G#", "B"],
+      "fingering": [
+        { "string": 6, "fret": 0, "finger": 0, "note": "E" },
+        { "string": 5, "fret": 2, "finger": 2, "note": "B" },
+        { "string": 4, "fret": 2, "finger": 3, "note": "E" },
+        { "string": 3, "fret": 1, "finger": 1, "note": "G#" },
+        { "string": 2, "fret": 0, "finger": 0, "note": "B" },
+        { "string": 1, "fret": 0, "finger": 0, "note": "E" }
+      ]
+    },
+    {
+      "chord": "D_major",
+      "display_name": "D",
+      "quality": "major",
+      "notes": ["D", "F#", "A"],
+      "fingering": [
+        { "string": 6, "action": "mute" },
+        { "string": 5, "action": "mute" },
+        { "string": 4, "fret": 0, "finger": 0, "note": "D" },
+        { "string": 3, "fret": 2, "finger": 1, "note": "A" },
+        { "string": 2, "fret": 3, "finger": 3, "note": "D" },
+        { "string": 1, "fret": 2, "finger": 2, "note": "F#" }
+      ]
+    }
+]
+[
+    {
+      "chord": "A_minor",
+      "display_name": "Am",
+      "quality": "minor",
+      "notes": ["A", "C", "E"],
+      "fingering": [
+        { "string": 6, "action": "mute" },
+        { "string": 5, "fret": 0, "finger": 0, "note": "A" },
+        { "string": 4, "fret": 2, "finger": 2, "note": "E" },
+        { "string": 3, "fret": 2, "finger": 3, "note": "A" },
+        { "string": 2, "fret": 1, "finger": 1, "note": "C" },
+        { "string": 1, "fret": 0, "finger": 0, "note": "E" }
+      ]
+    },
+    {
+      "chord": "E_minor",
+      "display_name": "Em",
+      "quality": "minor",
+      "notes": ["E", "G", "B"],
+      "fingering": [
+        { "string": 6, "fret": 0, "finger": 0, "note": "E" },
+        { "string": 5, "fret": 2, "finger": 2, "note": "B" },
+        { "string": 4, "fret": 2, "finger": 3, "note": "E" },
+        { "string": 3, "fret": 0, "finger": 0, "note": "G" },
+        { "string": 2, "fret": 0, "finger": 0, "note": "B" },
+        { "string": 1, "fret": 0, "finger": 0, "note": "E" }
+      ]
+    },
+    {
+      "chord": "D_minor",
+      "display_name": "Dm",
+      "quality": "minor",
+      "notes": ["D", "F", "A"],
+      "fingering": [
+        { "string": 6, "action": "mute" },
+        { "string": 5, "action": "mute" },
+        { "string": 4, "fret": 0, "finger": 0, "note": "D" },
+        { "string": 3, "fret": 2, "finger": 2, "note": "A" },
+        { "string": 2, "fret": 3, "finger": 3, "note": "D" },
+        { "string": 1, "fret": 1, "finger": 1, "note": "F" }
+      ]
+    }
+]
+[
+    {
+      "chord": "A7",
+      "display_name": "A7",
+      "quality": "dominant7",
+      "notes": ["A", "C#", "E", "G"],
+      "fingering": [
+        { "string": 6, "action": "mute" },
+        { "string": 5, "fret": 0, "finger": 0, "note": "A" },
+        { "string": 4, "fret": 2, "finger": 2, "note": "E" },
+        { "string": 3, "fret": 0, "finger": 0, "note": "G" },
+        { "string": 2, "fret": 2, "finger": 3, "note": "C#" },
+        { "string": 1, "fret": 0, "finger": 0, "note": "E" }
+      ]
+    },
+    {
+      "chord": "D7",
+      "display_name": "D7",
+      "quality": "dominant7",
+      "notes": ["D", "F#", "A", "C"],
+      "fingering": [
+        { "string": 6, "action": "mute" },
+        { "string": 5, "action": "mute" },
+        { "string": 4, "fret": 0, "finger": 0, "note": "D" },
+        { "string": 3, "fret": 2, "finger": 2, "note": "A" },
+        { "string": 2, "fret": 1, "finger": 1, "note": "C" },
+        { "string": 1, "fret": 2, "finger": 3, "note": "F#" }
+      ]
+    },
+    {
+      "chord": "E7",
+      "display_name": "E7",
+      "quality": "dominant7",
+      "notes": ["E", "G#", "B", "D"],
+      "fingering": [
+        { "string": 6, "fret": 0, "finger": 0, "note": "E" },
+        { "string": 5, "fret": 2, "finger": 2, "note": "B" },
+        { "string": 4, "fret": 2, "finger": 3, "note": "E" },
+        { "string": 3, "fret": 1, "finger": 1, "note": "G#" },
+        { "string": 2, "fret": 3, "finger": 4, "note": "D" },
+        { "string": 1, "fret": 0, "finger": 0, "note": "E" }
+      ]
+    }
+]
