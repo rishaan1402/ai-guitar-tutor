@@ -47,6 +47,8 @@ class TutorAgent:
         self._current_lesson: Optional[Lesson] = None
         self._attempt_count: int = 0
         self._last_evaluation: Optional[EvaluationResult] = None
+        self._score_history: list = []
+        self._fingering_positions: list = []
 
     @property
     def state(self) -> SessionState:
@@ -57,6 +59,10 @@ class TutorAgent:
         if self._current_lesson:
             return self._current_lesson.chord_name
         return None
+
+    def set_fingering_positions(self, positions: list) -> None:
+        """Provide fingering positions for richer feedback context."""
+        self._fingering_positions = positions or []
 
     def start_lesson(self, chord_name: str) -> Dict[str, Any]:
         """
@@ -77,6 +83,8 @@ class TutorAgent:
         self._current_lesson = lesson
         self._attempt_count = 0
         self._last_evaluation = None
+        self._score_history = []
+        self._fingering_positions = []
         self._state = SessionState.TEACHING
 
         logger.info("Started lesson for chord: %s", chord_name)
@@ -117,8 +125,15 @@ class TutorAgent:
         expected_notes = list(self._current_lesson.metadata.get("notes", []))
         evaluation = self._evaluator.evaluate(audio_path, expected_notes)
         self._last_evaluation = evaluation
+        self._score_history.append(evaluation.score)
 
-        feedback_text = self._feedback_generator.generate(evaluation.to_dict())
+        feedback_text = self._feedback_generator.generate(
+            evaluation.to_dict(),
+            chord_name=self._current_lesson.chord_name,
+            attempt=self._attempt_count,
+            score_history=list(self._score_history),
+            fingering_positions=list(self._fingering_positions),
+        )
 
         if evaluation.score >= 1.0:
             self._state = SessionState.COMPLETED

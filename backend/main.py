@@ -169,6 +169,9 @@ def learn_chord(
     result = agent.start_lesson(request.chord_name)
     if result["status"] == "error":
         raise HTTPException(status_code=404, detail=result["message"])
+    # Pass fingering positions so the feedback generator can reference specific fingers/strings
+    fingering_data = _fingerings_by_chord.get(request.chord_name, {})
+    agent.set_fingering_positions(fingering_data.get("positions", []))
     result["session_id"] = sid
     return result
 
