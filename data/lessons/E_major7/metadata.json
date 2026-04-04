@@ -1,0 +1,18 @@
+{
+  "chord": "E_major7",
+  "display_name": "Emaj7",
+  "root": "E",
+  "quality": "major7",
+  "notes": [
+    "E",
+    "G#",
+    "B",
+    "D#"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    156.0,
+    158.0
+  ]
+}

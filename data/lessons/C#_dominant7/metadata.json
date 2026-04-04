@@ -1,0 +1,18 @@
+{
+  "chord": "C#_dominant7",
+  "display_name": "C#7",
+  "root": "C#",
+  "quality": "dominant7",
+  "notes": [
+    "C#",
+    "F",
+    "G#",
+    "B"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    408.0,
+    410.0
+  ]
+}

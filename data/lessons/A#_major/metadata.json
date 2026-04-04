@@ -1,0 +1,17 @@
+{
+  "chord": "A#_major",
+  "display_name": "A#",
+  "root": "A#",
+  "quality": "major",
+  "notes": [
+    "A#",
+    "D",
+    "F"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    12.0,
+    14.0
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "chord": "F#_minor",
+  "display_name": "F#min",
+  "root": "F#",
+  "quality": "minor",
+  "notes": [
+    "F#",
+    "A",
+    "C#"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    82.0,
+    84.0
+  ]
+}

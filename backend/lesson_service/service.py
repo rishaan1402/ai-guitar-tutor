@@ -16,7 +16,7 @@ class Lesson:
     """
 
     chord_name: str
-    lesson_video_path: Path
+    lesson_video_path: Optional[Path]
     reference_audio_path: Path
     metadata: Mapping[str, Any]
 
@@ -28,7 +28,7 @@ class Lesson:
         """
         data = asdict(self)
         # Convert Path objects to strings for JSON serialization.
-        data["lesson_video_path"] = str(self.lesson_video_path)
+        data["lesson_video_path"] = str(self.lesson_video_path) if self.lesson_video_path else None
         data["reference_audio_path"] = str(self.reference_audio_path)
         return data
 
@@ -95,13 +95,18 @@ class LessonService:
             lesson_video_path = entry / "lesson.mp4"
             reference_audio_path = entry / "reference.wav"
 
-            if not lesson_video_path.is_file() or not reference_audio_path.is_file():
-                # Incomplete lesson directory; skip indexing it.
+            if not reference_audio_path.is_file() or reference_audio_path.stat().st_size == 0:
+                # No reference audio; skip this lesson.
                 continue
+
+            # Video is optional; only set if file exists with content.
+            video_path: Optional[Path] = None
+            if lesson_video_path.is_file() and lesson_video_path.stat().st_size > 0:
+                video_path = lesson_video_path.resolve()
 
             lesson = Lesson(
                 chord_name=chord_name,
-                lesson_video_path=lesson_video_path.resolve(),
+                lesson_video_path=video_path,
                 reference_audio_path=reference_audio_path.resolve(),
                 metadata=metadata,
             )

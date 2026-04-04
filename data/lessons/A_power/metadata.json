@@ -1,0 +1,16 @@
+{
+  "chord": "A_power",
+  "display_name": "A5",
+  "root": "A",
+  "quality": "power",
+  "notes": [
+    "A",
+    "E"
+  ],
+  "difficulty": "beginner",
+  "source": "synthesized_power_chord",
+  "time_range": [
+    326.0,
+    328.0
+  ]
+}

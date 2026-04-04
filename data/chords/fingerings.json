@@ -1,0 +1,3782 @@
+[
+  {
+    "chord": "A#_dominant7",
+    "display_name": "A#7",
+    "root": "A#",
+    "quality": "dominant7",
+    "notes": [
+      "A#",
+      "D",
+      "F",
+      "G#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 6,
+        "note": "A#"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "finger": 2,
+        "note": "F"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#"
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "finger": 1,
+        "note": "D"
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F"
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#"
+      }
+    ]
+  },
+  {
+    "chord": "A#_half_dim7",
+    "display_name": "A#hdim7",
+    "root": "A#",
+    "quality": "half_dim7",
+    "notes": [
+      "A#",
+      "C#",
+      "E",
+      "G#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 1,
+        "note": "A#"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "finger": 1,
+        "note": "E"
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "finger": 3,
+        "note": "A#"
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "finger": 2,
+        "note": "C#"
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "finger": 4,
+        "note": "F#"
+      }
+    ]
+  },
+  {
+    "chord": "A#_major",
+    "display_name": "A#",
+    "root": "A#",
+    "quality": "major",
+    "notes": [
+      "A#",
+      "D",
+      "F"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 6,
+        "note": "A#"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "finger": 2,
+        "note": "F"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "finger": 3,
+        "note": "A#"
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "finger": 1,
+        "note": "D"
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F"
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#"
+      }
+    ]
+  },
+  {
+    "chord": "A#_major7",
+    "display_name": "A#maj7",
+    "root": "A#",
+    "quality": "major7",
+    "notes": [
+      "A#",
+      "D",
+      "F",
+      "A"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 6,
+        "note": "A#"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "finger": 2,
+        "note": "F"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "finger": 1,
+        "note": "A"
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "finger": 1,
+        "note": "D"
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F"
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#"
+      }
+    ]
+  },
+  {
+    "chord": "A#_minor",
+    "display_name": "A#min",
+    "root": "A#",
+    "quality": "minor",
+    "notes": [
+      "A#",
+      "C#",
+      "F"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 6,
+        "note": "A#"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "finger": 2,
+        "note": "F"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "finger": 3,
+        "note": "A#"
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#"
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F"
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#"
+      }
+    ]
+  },
+  {
+    "chord": "A#_minor7",
+    "display_name": "A#min7",
+    "root": "A#",
+    "quality": "minor7",
+    "notes": [
+      "A#",
+      "C#",
+      "F",
+      "G#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 6,
+        "note": "A#"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "finger": 2,
+        "note": "F"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#"
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#"
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F"
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#"
+      }
+    ]
+  },
+  {
+    "chord": "A#_power",
+    "display_name": "A#5",
+    "root": "A#",
+    "quality": "power",
+    "notes": [
+      "A#",
+      "F"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 1,
+        "note": "A#"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "finger": 3,
+        "note": "F"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "A_dominant7",
+    "display_name": "A7",
+    "root": "A",
+    "quality": "dominant7",
+    "notes": [
+      "A",
+      "C#",
+      "E",
+      "G"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "finger": 2,
+        "note": "E"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G"
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "finger": 1,
+        "note": "C#"
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E"
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A"
+      }
+    ]
+  },
+  {
+    "chord": "A_half_dim7",
+    "display_name": "Ahdim7",
+    "root": "A",
+    "quality": "half_dim7",
+    "notes": [
+      "A",
+      "C",
+      "D#",
+      "G"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 0,
+        "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 1,
+        "finger": 1,
+        "note": "D#"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "finger": 3,
+        "note": "A"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "finger": 2,
+        "note": "C"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "finger": 4,
+        "note": "E"
+      }
+    ]
+  },
+  {
+    "chord": "A_major",
+    "display_name": "A",
+    "root": "A",
+    "quality": "major",
+    "notes": [
+      "A",
+      "C#",
+      "E"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "finger": 2,
+        "note": "E"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "finger": 3,
+        "note": "A"
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "finger": 1,
+        "note": "C#"
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E"
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A"
+      }
+    ]
+  },
+  {
+    "chord": "A_major7",
+    "display_name": "Amaj7",
+    "root": "A",
+    "quality": "major7",
+    "notes": [
+      "A",
+      "C#",
+      "E",
+      "G#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "finger": 2,
+        "note": "E"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "finger": 1,
+        "note": "G#"
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "finger": 1,
+        "note": "C#"
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E"
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A"
+      }
+    ]
+  },
+  {
+    "chord": "A_minor",
+    "display_name": "Amin",
+    "root": "A",
+    "quality": "minor",
+    "notes": [
+      "A",
+      "C",
+      "E"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "finger": 2,
+        "note": "E"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "finger": 3,
+        "note": "A"
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C"
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E"
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A"
+      }
+    ]
+  },
+  {
+    "chord": "A_minor7",
+    "display_name": "Amin7",
+    "root": "A",
+    "quality": "minor7",
+    "notes": [
+      "A",
+      "C",
+      "E",
+      "G"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "finger": 2,
+        "note": "E"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G"
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C"
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E"
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A"
+      }
+    ]
+  },
+  {
+    "chord": "A_power",
+    "display_name": "A5",
+    "root": "A",
+    "quality": "power",
+    "notes": [
+      "A",
+      "E"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 0,
+        "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "finger": 3,
+        "note": "E"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "B_dominant7",
+    "display_name": "B7",
+    "root": "B",
+    "quality": "dominant7",
+    "notes": [
+      "B",
+      "D#",
+      "F#",
+      "A"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 7,
+        "note": "B"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "finger": 2,
+        "note": "F#"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A"
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "finger": 1,
+        "note": "D#"
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#"
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B"
+      }
+    ]
+  },
+  {
+    "chord": "B_half_dim7",
+    "display_name": "Bhdim7",
+    "root": "B",
+    "quality": "half_dim7",
+    "notes": [
+      "B",
+      "D",
+      "F",
+      "A"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "finger": 1,
+        "note": "F"
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "finger": 3,
+        "note": "B"
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "finger": 2,
+        "note": "D"
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "finger": 4,
+        "note": "G"
+      }
+    ]
+  },
+  {
+    "chord": "B_major",
+    "display_name": "B",
+    "root": "B",
+    "quality": "major",
+    "notes": [
+      "B",
+      "D#",
+      "F#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 7,
+        "note": "B"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "finger": 2,
+        "note": "F#"
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "finger": 3,
+        "note": "B"
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "finger": 1,
+        "note": "D#"
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#"
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B"
+      }
+    ]
+  },
+  {
+    "chord": "B_major7",
+    "display_name": "Bmaj7",
+    "root": "B",
+    "quality": "major7",
+    "notes": [
+      "B",
+      "D#",
+      "F#",
+      "A#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 7,
+        "note": "B"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "finger": 2,
+        "note": "F#"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "finger": 1,
+        "note": "A#"
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "finger": 1,
+        "note": "D#"
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#"
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B"
+      }
+    ]
+  },
+  {
+    "chord": "B_minor",
+    "display_name": "Bmin",
+    "root": "B",
+    "quality": "minor",
+    "notes": [
+      "B",
+      "D",
+      "F#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 7,
+        "note": "B"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "finger": 2,
+        "note": "F#"
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "finger": 3,
+        "note": "B"
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D"
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#"
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B"
+      }
+    ]
+  },
+  {
+    "chord": "B_minor7",
+    "display_name": "Bmin7",
+    "root": "B",
+    "quality": "minor7",
+    "notes": [
+      "B",
+      "D",
+      "F#",
+      "A"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 7,
+        "note": "B"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "finger": 2,
+        "note": "F#"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A"
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D"
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#"
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B"
+      }
+    ]
+  },
+  {
+    "chord": "B_power",
+    "display_name": "B5",
+    "root": "B",
+    "quality": "power",
+    "notes": [
+      "B",
+      "F#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "finger": 3,
+        "note": "F#"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "C#_dominant7",
+    "display_name": "C#7",
+    "root": "C#",
+    "quality": "dominant7",
+    "notes": [
+      "C#",
+      "F",
+      "G#",
+      "B"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 9,
+        "note": "C#"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "finger": 2,
+        "note": "G#"
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B"
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "finger": 1,
+        "note": "F"
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#"
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#"
+      }
+    ]
+  },
+  {
+    "chord": "C#_half_dim7",
+    "display_name": "C#hdim7",
+    "root": "C#",
+    "quality": "half_dim7",
+    "notes": [
+      "C#",
+      "E",
+      "G",
+      "B"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "finger": 1,
+        "note": "G"
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "finger": 3,
+        "note": "C#"
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "finger": 2,
+        "note": "E"
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "finger": 4,
+        "note": "A"
+      }
+    ]
+  },
+  {
+    "chord": "C#_major",
+    "display_name": "C#",
+    "root": "C#",
+    "quality": "major",
+    "notes": [
+      "C#",
+      "F",
+      "G#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 9,
+        "note": "C#"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "finger": 2,
+        "note": "G#"
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "finger": 3,
+        "note": "C#"
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "finger": 1,
+        "note": "F"
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#"
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#"
+      }
+    ]
+  },
+  {
+    "chord": "C#_major7",
+    "display_name": "C#maj7",
+    "root": "C#",
+    "quality": "major7",
+    "notes": [
+      "C#",
+      "F",
+      "G#",
+      "C"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 9,
+        "note": "C#"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "finger": 2,
+        "note": "G#"
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "finger": 1,
+        "note": "C"
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "finger": 1,
+        "note": "F"
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#"
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#"
+      }
+    ]
+  },
+  {
+    "chord": "C#_minor",
+    "display_name": "C#min",
+    "root": "C#",
+    "quality": "minor",
+    "notes": [
+      "C#",
+      "E",
+      "G#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 9,
+        "note": "C#"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "finger": 2,
+        "note": "G#"
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "finger": 3,
+        "note": "C#"
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "note": "E"
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#"
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#"
+      }
+    ]
+  },
+  {
+    "chord": "C#_minor7",
+    "display_name": "C#min7",
+    "root": "C#",
+    "quality": "minor7",
+    "notes": [
+      "C#",
+      "E",
+      "G#",
+      "B"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 9,
+        "note": "C#"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "finger": 2,
+        "note": "G#"
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B"
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "note": "E"
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#"
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#"
+      }
+    ]
+  },
+  {
+    "chord": "C#_power",
+    "display_name": "C#5",
+    "root": "C#",
+    "quality": "power",
+    "notes": [
+      "C#",
+      "G#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "finger": 3,
+        "note": "G#"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "C_dominant7",
+    "display_name": "C7",
+    "root": "C",
+    "quality": "dominant7",
+    "notes": [
+      "C",
+      "E",
+      "G",
+      "A#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 8,
+        "note": "C"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "finger": 2,
+        "note": "G"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#"
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "finger": 1,
+        "note": "E"
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G"
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C"
+      }
+    ]
+  },
+  {
+    "chord": "C_half_dim7",
+    "display_name": "Chdim7",
+    "root": "C",
+    "quality": "half_dim7",
+    "notes": [
+      "C",
+      "D#",
+      "F#",
+      "A#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "finger": 1,
+        "note": "F#"
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "finger": 3,
+        "note": "C"
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "finger": 2,
+        "note": "D#"
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "finger": 4,
+        "note": "G#"
+      }
+    ]
+  },
+  {
+    "chord": "C_major",
+    "display_name": "C",
+    "root": "C",
+    "quality": "major",
+    "notes": [
+      "C",
+      "E",
+      "G"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 8,
+        "note": "C"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "finger": 2,
+        "note": "G"
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "finger": 3,
+        "note": "C"
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "finger": 1,
+        "note": "E"
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G"
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C"
+      }
+    ]
+  },
+  {
+    "chord": "C_major7",
+    "display_name": "Cmaj7",
+    "root": "C",
+    "quality": "major7",
+    "notes": [
+      "C",
+      "E",
+      "G",
+      "B"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 8,
+        "note": "C"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "finger": 2,
+        "note": "G"
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "finger": 1,
+        "note": "B"
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "finger": 1,
+        "note": "E"
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G"
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C"
+      }
+    ]
+  },
+  {
+    "chord": "C_minor",
+    "display_name": "Cmin",
+    "root": "C",
+    "quality": "minor",
+    "notes": [
+      "C",
+      "D#",
+      "G"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 8,
+        "note": "C"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "finger": 2,
+        "note": "G"
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "finger": 3,
+        "note": "C"
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#"
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G"
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C"
+      }
+    ]
+  },
+  {
+    "chord": "C_minor7",
+    "display_name": "Cmin7",
+    "root": "C",
+    "quality": "minor7",
+    "notes": [
+      "C",
+      "D#",
+      "G",
+      "A#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 8,
+        "note": "C"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "finger": 2,
+        "note": "G"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#"
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#"
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G"
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C"
+      }
+    ]
+  },
+  {
+    "chord": "C_power",
+    "display_name": "C5",
+    "root": "C",
+    "quality": "power",
+    "notes": [
+      "C",
+      "G"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "finger": 3,
+        "note": "G"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "D#_dominant7",
+    "display_name": "D#7",
+    "root": "D#",
+    "quality": "dominant7",
+    "notes": [
+      "D#",
+      "G",
+      "A#",
+      "C#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 11,
+        "note": "D#"
+      },
+      {
+        "string": 5,
+        "fret": 13,
+        "finger": 2,
+        "note": "A#"
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#"
+      },
+      {
+        "string": 3,
+        "fret": 12,
+        "finger": 1,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#"
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#"
+      }
+    ]
+  },
+  {
+    "chord": "D#_half_dim7",
+    "display_name": "D#hdim7",
+    "root": "D#",
+    "quality": "half_dim7",
+    "notes": [
+      "D#",
+      "F#",
+      "A",
+      "C#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "finger": 1,
+        "note": "A"
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "finger": 3,
+        "note": "D#"
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "finger": 2,
+        "note": "F#"
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "finger": 4,
+        "note": "B"
+      }
+    ]
+  },
+  {
+    "chord": "D#_major",
+    "display_name": "D#",
+    "root": "D#",
+    "quality": "major",
+    "notes": [
+      "D#",
+      "G",
+      "A#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 11,
+        "note": "D#"
+      },
+      {
+        "string": 5,
+        "fret": 13,
+        "finger": 2,
+        "note": "A#"
+      },
+      {
+        "string": 4,
+        "fret": 13,
+        "finger": 3,
+        "note": "D#"
+      },
+      {
+        "string": 3,
+        "fret": 12,
+        "finger": 1,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#"
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#"
+      }
+    ]
+  },
+  {
+    "chord": "D#_major7",
+    "display_name": "D#maj7",
+    "root": "D#",
+    "quality": "major7",
+    "notes": [
+      "D#",
+      "G",
+      "A#",
+      "D"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 11,
+        "note": "D#"
+      },
+      {
+        "string": 5,
+        "fret": 13,
+        "finger": 2,
+        "note": "A#"
+      },
+      {
+        "string": 4,
+        "fret": 12,
+        "finger": 1,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 12,
+        "finger": 1,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#"
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#"
+      }
+    ]
+  },
+  {
+    "chord": "D#_minor",
+    "display_name": "D#min",
+    "root": "D#",
+    "quality": "minor",
+    "notes": [
+      "D#",
+      "F#",
+      "A#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 11,
+        "note": "D#"
+      },
+      {
+        "string": 5,
+        "fret": 13,
+        "finger": 2,
+        "note": "A#"
+      },
+      {
+        "string": 4,
+        "fret": 13,
+        "finger": 3,
+        "note": "D#"
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "note": "F#"
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#"
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#"
+      }
+    ]
+  },
+  {
+    "chord": "D#_minor7",
+    "display_name": "D#min7",
+    "root": "D#",
+    "quality": "minor7",
+    "notes": [
+      "D#",
+      "F#",
+      "A#",
+      "C#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 11,
+        "note": "D#"
+      },
+      {
+        "string": 5,
+        "fret": 13,
+        "finger": 2,
+        "note": "A#"
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#"
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "note": "F#"
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#"
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#"
+      }
+    ]
+  },
+  {
+    "chord": "D#_power",
+    "display_name": "D#5",
+    "root": "D#",
+    "quality": "power",
+    "notes": [
+      "D#",
+      "A#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "finger": 3,
+        "note": "A#"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "D_dominant7",
+    "display_name": "D7",
+    "root": "D",
+    "quality": "dominant7",
+    "notes": [
+      "D",
+      "F#",
+      "A",
+      "C"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 10,
+        "note": "D"
+      },
+      {
+        "string": 5,
+        "fret": 12,
+        "finger": 2,
+        "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "note": "C"
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "finger": 1,
+        "note": "F#"
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A"
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D"
+      }
+    ]
+  },
+  {
+    "chord": "D_half_dim7",
+    "display_name": "Dhdim7",
+    "root": "D",
+    "quality": "half_dim7",
+    "notes": [
+      "D",
+      "F",
+      "G#",
+      "C"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "finger": 1,
+        "note": "G#"
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "finger": 3,
+        "note": "D"
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "finger": 2,
+        "note": "F"
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "finger": 4,
+        "note": "A#"
+      }
+    ]
+  },
+  {
+    "chord": "D_major",
+    "display_name": "D",
+    "root": "D",
+    "quality": "major",
+    "notes": [
+      "D",
+      "F#",
+      "A"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 10,
+        "note": "D"
+      },
+      {
+        "string": 5,
+        "fret": 12,
+        "finger": 2,
+        "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 12,
+        "finger": 3,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "finger": 1,
+        "note": "F#"
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A"
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D"
+      }
+    ]
+  },
+  {
+    "chord": "D_major7",
+    "display_name": "Dmaj7",
+    "root": "D",
+    "quality": "major7",
+    "notes": [
+      "D",
+      "F#",
+      "A",
+      "C#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 10,
+        "note": "D"
+      },
+      {
+        "string": 5,
+        "fret": 12,
+        "finger": 2,
+        "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "finger": 1,
+        "note": "C#"
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "finger": 1,
+        "note": "F#"
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A"
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D"
+      }
+    ]
+  },
+  {
+    "chord": "D_minor",
+    "display_name": "Dmin",
+    "root": "D",
+    "quality": "minor",
+    "notes": [
+      "D",
+      "F",
+      "A"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 10,
+        "note": "D"
+      },
+      {
+        "string": 5,
+        "fret": 12,
+        "finger": 2,
+        "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 12,
+        "finger": 3,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "note": "F"
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A"
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D"
+      }
+    ]
+  },
+  {
+    "chord": "D_minor7",
+    "display_name": "Dmin7",
+    "root": "D",
+    "quality": "minor7",
+    "notes": [
+      "D",
+      "F",
+      "A",
+      "C"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 10,
+        "note": "D"
+      },
+      {
+        "string": 5,
+        "fret": 12,
+        "finger": 2,
+        "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "note": "C"
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "note": "F"
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A"
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D"
+      }
+    ]
+  },
+  {
+    "chord": "D_power",
+    "display_name": "D5",
+    "root": "D",
+    "quality": "power",
+    "notes": [
+      "D",
+      "A"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "finger": 3,
+        "note": "A"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "E_dominant7",
+    "display_name": "E7",
+    "root": "E",
+    "quality": "dominant7",
+    "notes": [
+      "E",
+      "G#",
+      "B",
+      "D"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 0,
+        "note": "E"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "finger": 2,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "fret": 0,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "finger": 1,
+        "note": "G#"
+      },
+      {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ]
+  },
+  {
+    "chord": "E_half_dim7",
+    "display_name": "Ehdim7",
+    "root": "E",
+    "quality": "half_dim7",
+    "notes": [
+      "E",
+      "G",
+      "A#",
+      "D"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "note": "E"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "finger": 1,
+        "note": "A#"
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "finger": 3,
+        "note": "E"
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "finger": 2,
+        "note": "G"
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "finger": 4,
+        "note": "C"
+      }
+    ]
+  },
+  {
+    "chord": "E_major",
+    "display_name": "E",
+    "root": "E",
+    "quality": "major",
+    "notes": [
+      "E",
+      "G#",
+      "B"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 0,
+        "note": "E"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "finger": 2,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "finger": 3,
+        "note": "E"
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "finger": 1,
+        "note": "G#"
+      },
+      {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ]
+  },
+  {
+    "chord": "E_major7",
+    "display_name": "Emaj7",
+    "root": "E",
+    "quality": "major7",
+    "notes": [
+      "E",
+      "G#",
+      "B",
+      "D#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 0,
+        "note": "E"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "finger": 2,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "fret": 1,
+        "finger": 1,
+        "note": "D#"
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "finger": 1,
+        "note": "G#"
+      },
+      {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ]
+  },
+  {
+    "chord": "E_minor",
+    "display_name": "Emin",
+    "root": "E",
+    "quality": "minor",
+    "notes": [
+      "E",
+      "G",
+      "B"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 0,
+        "note": "E"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "finger": 2,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "finger": 3,
+        "note": "E"
+      },
+      {
+        "string": 3,
+        "fret": 0,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ]
+  },
+  {
+    "chord": "E_minor7",
+    "display_name": "Emin7",
+    "root": "E",
+    "quality": "minor7",
+    "notes": [
+      "E",
+      "G",
+      "B",
+      "D"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 0,
+        "note": "E"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "finger": 2,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "fret": 0,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 0,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ]
+  },
+  {
+    "chord": "E_power",
+    "display_name": "E5",
+    "root": "E",
+    "quality": "power",
+    "notes": [
+      "E",
+      "B"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 0,
+        "note": "E"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "finger": 3,
+        "note": "B"
+      },
+      {
+        "string": 4,
+        "action": "mute"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "F#_dominant7",
+    "display_name": "F#7",
+    "root": "F#",
+    "quality": "dominant7",
+    "notes": [
+      "F#",
+      "A#",
+      "C#",
+      "E"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 2,
+        "note": "F#"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "finger": 2,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E"
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "finger": 1,
+        "note": "A#"
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#"
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#"
+      }
+    ]
+  },
+  {
+    "chord": "F#_half_dim7",
+    "display_name": "F#hdim7",
+    "root": "F#",
+    "quality": "half_dim7",
+    "notes": [
+      "F#",
+      "A",
+      "C",
+      "E"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "note": "F#"
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "finger": 1,
+        "note": "C"
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "finger": 3,
+        "note": "F#"
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "finger": 2,
+        "note": "A"
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "finger": 4,
+        "note": "D"
+      }
+    ]
+  },
+  {
+    "chord": "F#_major",
+    "display_name": "F#",
+    "root": "F#",
+    "quality": "major",
+    "notes": [
+      "F#",
+      "A#",
+      "C#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 2,
+        "note": "F#"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "finger": 2,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "finger": 3,
+        "note": "F#"
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "finger": 1,
+        "note": "A#"
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#"
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#"
+      }
+    ]
+  },
+  {
+    "chord": "F#_major7",
+    "display_name": "F#maj7",
+    "root": "F#",
+    "quality": "major7",
+    "notes": [
+      "F#",
+      "A#",
+      "C#",
+      "F"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 2,
+        "note": "F#"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "finger": 2,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "finger": 1,
+        "note": "F"
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "finger": 1,
+        "note": "A#"
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#"
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#"
+      }
+    ]
+  },
+  {
+    "chord": "F#_minor",
+    "display_name": "F#min",
+    "root": "F#",
+    "quality": "minor",
+    "notes": [
+      "F#",
+      "A",
+      "C#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 2,
+        "note": "F#"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "finger": 2,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "finger": 3,
+        "note": "F#"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A"
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#"
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#"
+      }
+    ]
+  },
+  {
+    "chord": "F#_minor7",
+    "display_name": "F#min7",
+    "root": "F#",
+    "quality": "minor7",
+    "notes": [
+      "F#",
+      "A",
+      "C#",
+      "E"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 2,
+        "note": "F#"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "finger": 2,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A"
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#"
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#"
+      }
+    ]
+  },
+  {
+    "chord": "F#_power",
+    "display_name": "F#5",
+    "root": "F#",
+    "quality": "power",
+    "notes": [
+      "F#",
+      "C#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 2,
+        "note": "F#"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "finger": 3,
+        "note": "C#"
+      },
+      {
+        "string": 4,
+        "action": "mute"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "F_dominant7",
+    "display_name": "F7",
+    "root": "F",
+    "quality": "dominant7",
+    "notes": [
+      "F",
+      "A",
+      "C",
+      "D#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 1,
+        "note": "F"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "finger": 2,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "fret": 1,
+        "note": "D#"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "finger": 1,
+        "note": "A"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F"
+      }
+    ]
+  },
+  {
+    "chord": "F_half_dim7",
+    "display_name": "Fhdim7",
+    "root": "F",
+    "quality": "half_dim7",
+    "notes": [
+      "F",
+      "G#",
+      "B",
+      "D#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "note": "F"
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "finger": 1,
+        "note": "B"
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "finger": 3,
+        "note": "F"
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "finger": 2,
+        "note": "G#"
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "finger": 4,
+        "note": "C#"
+      }
+    ]
+  },
+  {
+    "chord": "F_major",
+    "display_name": "F",
+    "root": "F",
+    "quality": "major",
+    "notes": [
+      "F",
+      "A",
+      "C"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 1,
+        "note": "F"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "finger": 2,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "finger": 3,
+        "note": "F"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "finger": 1,
+        "note": "A"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F"
+      }
+    ]
+  },
+  {
+    "chord": "F_major7",
+    "display_name": "Fmaj7",
+    "root": "F",
+    "quality": "major7",
+    "notes": [
+      "F",
+      "A",
+      "C",
+      "E"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 1,
+        "note": "F"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "finger": 2,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "finger": 1,
+        "note": "E"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "finger": 1,
+        "note": "A"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F"
+      }
+    ]
+  },
+  {
+    "chord": "F_minor",
+    "display_name": "Fmin",
+    "root": "F",
+    "quality": "minor",
+    "notes": [
+      "F",
+      "G#",
+      "C"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 1,
+        "note": "F"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "finger": 2,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "finger": 3,
+        "note": "F"
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "note": "G#"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F"
+      }
+    ]
+  },
+  {
+    "chord": "F_minor7",
+    "display_name": "Fmin7",
+    "root": "F",
+    "quality": "minor7",
+    "notes": [
+      "F",
+      "G#",
+      "C",
+      "D#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 1,
+        "note": "F"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "finger": 2,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "fret": 1,
+        "note": "D#"
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "note": "G#"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F"
+      }
+    ]
+  },
+  {
+    "chord": "F_power",
+    "display_name": "F5",
+    "root": "F",
+    "quality": "power",
+    "notes": [
+      "F",
+      "C"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 1,
+        "note": "F"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "finger": 3,
+        "note": "C"
+      },
+      {
+        "string": 4,
+        "action": "mute"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "G#_dominant7",
+    "display_name": "G#7",
+    "root": "G#",
+    "quality": "dominant7",
+    "notes": [
+      "G#",
+      "C",
+      "D#",
+      "F#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 4,
+        "note": "G#"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "finger": 2,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#"
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "finger": 1,
+        "note": "C"
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#"
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#"
+      }
+    ]
+  },
+  {
+    "chord": "G#_half_dim7",
+    "display_name": "G#hdim7",
+    "root": "G#",
+    "quality": "half_dim7",
+    "notes": [
+      "G#",
+      "B",
+      "D",
+      "F#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "note": "G#"
+      },
+      {
+        "string": 4,
+        "fret": 12,
+        "finger": 1,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 13,
+        "finger": 3,
+        "note": "G#"
+      },
+      {
+        "string": 2,
+        "fret": 12,
+        "finger": 2,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 12,
+        "finger": 4,
+        "note": "E"
+      }
+    ]
+  },
+  {
+    "chord": "G#_major",
+    "display_name": "G#",
+    "root": "G#",
+    "quality": "major",
+    "notes": [
+      "G#",
+      "C",
+      "D#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 4,
+        "note": "G#"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "finger": 2,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "finger": 3,
+        "note": "G#"
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "finger": 1,
+        "note": "C"
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#"
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#"
+      }
+    ]
+  },
+  {
+    "chord": "G#_major7",
+    "display_name": "G#maj7",
+    "root": "G#",
+    "quality": "major7",
+    "notes": [
+      "G#",
+      "C",
+      "D#",
+      "G"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 4,
+        "note": "G#"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "finger": 2,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "finger": 1,
+        "note": "G"
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "finger": 1,
+        "note": "C"
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#"
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#"
+      }
+    ]
+  },
+  {
+    "chord": "G#_minor",
+    "display_name": "G#min",
+    "root": "G#",
+    "quality": "minor",
+    "notes": [
+      "G#",
+      "B",
+      "D#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 4,
+        "note": "G#"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "finger": 2,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "finger": 3,
+        "note": "G#"
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B"
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#"
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#"
+      }
+    ]
+  },
+  {
+    "chord": "G#_minor7",
+    "display_name": "G#min7",
+    "root": "G#",
+    "quality": "minor7",
+    "notes": [
+      "G#",
+      "B",
+      "D#",
+      "F#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 4,
+        "note": "G#"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "finger": 2,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#"
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B"
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#"
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#"
+      }
+    ]
+  },
+  {
+    "chord": "G#_power",
+    "display_name": "G#5",
+    "root": "G#",
+    "quality": "power",
+    "notes": [
+      "G#",
+      "D#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 4,
+        "note": "G#"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "finger": 3,
+        "note": "D#"
+      },
+      {
+        "string": 4,
+        "action": "mute"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  },
+  {
+    "chord": "G_dominant7",
+    "display_name": "G7",
+    "root": "G",
+    "quality": "dominant7",
+    "notes": [
+      "G",
+      "B",
+      "D",
+      "F"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "finger": 2,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F"
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "finger": 1,
+        "note": "B"
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D"
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G"
+      }
+    ]
+  },
+  {
+    "chord": "G_half_dim7",
+    "display_name": "Ghdim7",
+    "root": "G",
+    "quality": "half_dim7",
+    "notes": [
+      "G",
+      "A#",
+      "C#",
+      "F"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "note": "G"
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "finger": 1,
+        "note": "C#"
+      },
+      {
+        "string": 3,
+        "fret": 12,
+        "finger": 3,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "finger": 2,
+        "note": "A#"
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "finger": 4,
+        "note": "D#"
+      }
+    ]
+  },
+  {
+    "chord": "G_major",
+    "display_name": "G",
+    "root": "G",
+    "quality": "major",
+    "notes": [
+      "G",
+      "B",
+      "D"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "finger": 2,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "finger": 3,
+        "note": "G"
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "finger": 1,
+        "note": "B"
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D"
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G"
+      }
+    ]
+  },
+  {
+    "chord": "G_major7",
+    "display_name": "Gmaj7",
+    "root": "G",
+    "quality": "major7",
+    "notes": [
+      "G",
+      "B",
+      "D",
+      "F#"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "finger": 2,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "finger": 1,
+        "note": "F#"
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "finger": 1,
+        "note": "B"
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D"
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G"
+      }
+    ]
+  },
+  {
+    "chord": "G_minor",
+    "display_name": "Gmin",
+    "root": "G",
+    "quality": "minor",
+    "notes": [
+      "G",
+      "A#",
+      "D"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "finger": 2,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "finger": 3,
+        "note": "G"
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#"
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D"
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G"
+      }
+    ]
+  },
+  {
+    "chord": "G_minor7",
+    "display_name": "Gmin7",
+    "root": "G",
+    "quality": "minor7",
+    "notes": [
+      "G",
+      "A#",
+      "D",
+      "F"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "finger": 2,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F"
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#"
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D"
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G"
+      }
+    ]
+  },
+  {
+    "chord": "G_power",
+    "display_name": "G5",
+    "root": "G",
+    "quality": "power",
+    "notes": [
+      "G",
+      "D"
+    ],
+    "positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "finger": 3,
+        "note": "D"
+      },
+      {
+        "string": 4,
+        "action": "mute"
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "chord": "C#_power",
+  "display_name": "C#5",
+  "root": "C#",
+  "quality": "power",
+  "notes": [
+    "C#",
+    "G#"
+  ],
+  "difficulty": "beginner",
+  "source": "synthesized_power_chord",
+  "time_range": [
+    334.0,
+    336.0
+  ]
+}

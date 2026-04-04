@@ -1,0 +1,18 @@
+{
+  "chord": "B_minor7",
+  "display_name": "Bmin7",
+  "root": "B",
+  "quality": "minor7",
+  "notes": [
+    "B",
+    "D",
+    "F#",
+    "A"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    248.0,
+    250.0
+  ]
+}

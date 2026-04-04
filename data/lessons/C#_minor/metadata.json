@@ -1,0 +1,17 @@
+{
+  "chord": "C#_minor",
+  "display_name": "C#min",
+  "root": "C#",
+  "quality": "minor",
+  "notes": [
+    "C#",
+    "E",
+    "G#"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    96.0,
+    98.0
+  ]
+}

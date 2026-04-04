@@ -1,0 +1,18 @@
+{
+  "chord": "E_half_dim7",
+  "display_name": "Ehdim7",
+  "root": "E",
+  "quality": "half_dim7",
+  "notes": [
+    "E",
+    "G",
+    "A#",
+    "D"
+  ],
+  "difficulty": "advanced",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    482.0,
+    484.0
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "chord": "C_minor",
+  "display_name": "Cmin",
+  "root": "C",
+  "quality": "minor",
+  "notes": [
+    "C",
+    "D#",
+    "G"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    94.0,
+    96.0
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "chord": "E_dominant7",
+  "display_name": "E7",
+  "root": "E",
+  "quality": "dominant7",
+  "notes": [
+    "E",
+    "G#",
+    "B",
+    "D"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    390.0,
+    392.0
+  ]
+}

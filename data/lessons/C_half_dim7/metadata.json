@@ -1,0 +1,18 @@
+{
+  "chord": "C_half_dim7",
+  "display_name": "Chdim7",
+  "root": "C",
+  "quality": "half_dim7",
+  "notes": [
+    "C",
+    "D#",
+    "F#",
+    "A#"
+  ],
+  "difficulty": "advanced",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    474.0,
+    476.0
+  ]
+}
