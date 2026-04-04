@@ -1,0 +1,18 @@
+{
+  "chord": "F_minor7",
+  "display_name": "Fmin7",
+  "root": "F",
+  "quality": "minor7",
+  "notes": [
+    "F",
+    "G#",
+    "C",
+    "D#"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    236.0,
+    238.0
+  ]
+}

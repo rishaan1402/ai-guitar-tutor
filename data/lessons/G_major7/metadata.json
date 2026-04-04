@@ -1,0 +1,18 @@
+{
+  "chord": "G_major7",
+  "display_name": "Gmaj7",
+  "root": "G",
+  "quality": "major7",
+  "notes": [
+    "G",
+    "B",
+    "D",
+    "F#"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    162.0,
+    164.0
+  ]
+}

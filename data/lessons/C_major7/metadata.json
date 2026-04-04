@@ -1,0 +1,18 @@
+{
+  "chord": "C_major7",
+  "display_name": "Cmaj7",
+  "root": "C",
+  "quality": "major7",
+  "notes": [
+    "C",
+    "E",
+    "G",
+    "B"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    172.0,
+    174.0
+  ]
+}

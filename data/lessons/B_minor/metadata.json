@@ -1,0 +1,17 @@
+{
+  "chord": "B_minor",
+  "display_name": "Bmin",
+  "root": "B",
+  "quality": "minor",
+  "notes": [
+    "B",
+    "D",
+    "F#"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    92.0,
+    94.0
+  ]
+}

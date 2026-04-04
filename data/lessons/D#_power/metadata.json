@@ -1,0 +1,16 @@
+{
+  "chord": "D#_power",
+  "display_name": "D#5",
+  "root": "D#",
+  "quality": "power",
+  "notes": [
+    "D#",
+    "A#"
+  ],
+  "difficulty": "beginner",
+  "source": "synthesized_power_chord",
+  "time_range": [
+    314.0,
+    316.0
+  ]
+}

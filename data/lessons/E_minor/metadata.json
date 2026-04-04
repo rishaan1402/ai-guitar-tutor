@@ -1,0 +1,17 @@
+{
+  "chord": "E_minor",
+  "display_name": "Emin",
+  "root": "E",
+  "quality": "minor",
+  "notes": [
+    "E",
+    "G",
+    "B"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    78.0,
+    80.0
+  ]
+}

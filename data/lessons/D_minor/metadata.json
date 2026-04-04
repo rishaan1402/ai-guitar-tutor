@@ -1,0 +1,17 @@
+{
+  "chord": "D_minor",
+  "display_name": "Dmin",
+  "root": "D",
+  "quality": "minor",
+  "notes": [
+    "D",
+    "F",
+    "A"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    98.0,
+    100.0
+  ]
+}

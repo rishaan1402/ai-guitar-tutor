@@ -1,0 +1,17 @@
+{
+  "chord": "F_major",
+  "display_name": "F",
+  "root": "F",
+  "quality": "major",
+  "notes": [
+    "F",
+    "A",
+    "C"
+  ],
+  "difficulty": "beginner",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    2.0,
+    4.0
+  ]
+}

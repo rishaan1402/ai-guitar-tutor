@@ -1,0 +1,18 @@
+{
+  "chord": "E_minor7",
+  "display_name": "Emin7",
+  "root": "E",
+  "quality": "minor7",
+  "notes": [
+    "E",
+    "G",
+    "B",
+    "D"
+  ],
+  "difficulty": "intermediate",
+  "source": "garageband_guitar_Acoustic_Guitar.wav",
+  "time_range": [
+    234.0,
+    236.0
+  ]
+}
