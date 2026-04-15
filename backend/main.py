@@ -20,6 +20,7 @@ from audio_engine import ChordEvaluator
 from feedback_engine import FeedbackGenerator
 from lesson_service import LessonService
 from tutor_agent import TutorAgent
+from council.router import router as council_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -98,6 +99,8 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Session-Id"],
 )
+
+app.include_router(council_router)
 
 
 class LearnChordRequest(BaseModel):

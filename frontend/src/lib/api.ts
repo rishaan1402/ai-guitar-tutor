@@ -77,3 +77,67 @@ export interface ChordFingering {
 export function getFingering(chord: string): Promise<ChordFingering> {
   return request(`/fingering/${encodeURIComponent(chord)}`);
 }
+
+// ---------------------------------------------------------------------------
+// Song Learning Council
+// ---------------------------------------------------------------------------
+
+export interface PracticeChord {
+  symbol: string;
+  available_in_app: boolean;
+  chord_key: string | null;
+}
+
+export interface LessonDocument {
+  lesson_id: string;
+  song_title: string;
+  artist: string;
+  overall_difficulty: string;
+  chairman_summary: string;
+  theory_section: string;
+  technique_section: string;
+  ear_training_section: string;
+  practice_plan: string;
+  practice_chords: PracticeChord[];
+}
+
+export interface TipRequest {
+  lesson_id: string;
+  chord_key: string;
+  chord_symbol: string;
+  score: number;
+  detected_notes: string[];
+  missing_notes: string[];
+  extra_notes: string[];
+  attempt: number;
+}
+
+export interface TipResponse {
+  tip: string;
+  all_chords_attempted: boolean;
+  chord_scores: Record<string, number[]>;
+}
+
+export function generateSongLesson(songQuery: string): Promise<LessonDocument> {
+  return request("/api/council/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ song_query: songQuery }),
+  });
+}
+
+export function getSongTip(params: TipRequest): Promise<TipResponse> {
+  return request("/api/council/practice/tip", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+}
+
+export function reviseSongLesson(lessonId: string): Promise<LessonDocument> {
+  return request("/api/council/practice/revise", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lesson_id: lessonId }),
+  });
+}

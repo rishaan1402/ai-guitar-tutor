@@ -8,7 +8,18 @@ import FeedbackDisplay from "@/components/FeedbackDisplay";
 import ChordDiagram from "@/components/ChordDiagram";
 import ProgressDashboard from "@/components/ProgressDashboard";
 import StepIndicator from "@/components/StepIndicator";
-import { learnChord, submitAudio, resetSession, getVideoUrl, getAudioUrl, getFingering, listChords } from "@/lib/api";
+import ModeToggle, { AppMode } from "@/components/ModeToggle";
+import SongCouncil from "@/components/SongCouncil";
+import type { SongCouncilContext } from "@/components/SongCouncil";
+import {
+  learnChord,
+  submitAudio,
+  resetSession,
+  getVideoUrl,
+  getAudioUrl,
+  getFingering,
+  listChords,
+} from "@/lib/api";
 import type { ChordFingering } from "@/lib/api";
 import { loadProgress, recordAttempt } from "@/lib/progress";
 import type { ProgressData } from "@/lib/progress";
@@ -18,6 +29,7 @@ interface Evaluation {
   detected_notes: string[];
   expected_notes: string[];
   missing_notes: string[];
+  extra_notes?: string[];
   issue: string | null;
 }
 
@@ -58,6 +70,7 @@ const STEPS = [
 ];
 
 export default function Home() {
+  const [mode, setMode] = useState<AppMode>("chords");
   const [progress, setProgress] = useState<ProgressData>({ chords: {}, practiceStreak: 0, lastPracticeDate: null });
   const [totalChords, setTotalChords] = useState(84);
   const [loading, setLoading] = useState(false);
@@ -82,6 +95,11 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const stepContentRef = useRef<HTMLDivElement>(null);
+
+  // Song council context (set when user clicks "Practice" from a song lesson)
+  const [songContext, setSongContext] = useState<SongCouncilContext | null>(null);
+  // Whether we came from the song council (so "Back to Song" button shows)
+  const [fromSong, setFromSong] = useState(false);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -121,6 +139,14 @@ export default function Home() {
     }
   }
 
+  // Called from SongCouncil when user clicks "Practice" on a chord card
+  async function handlePracticeChordFromSong(chordKey: string, context: SongCouncilContext) {
+    setSongContext(context);
+    setFromSong(true);
+    setMode("chords");
+    await handleChordSelect(chordKey);
+  }
+
   async function handleRecordingComplete(blob: Blob) {
     setLoading(true);
     setError("");
@@ -140,6 +166,23 @@ export default function Home() {
       if (chordName) {
         setProgress(recordAttempt(chordName, evalResult.score));
       }
+
+      // If we're in song-practice mode, call the Lesson Advisor for a contextual tip
+      if (songContext) {
+        try {
+          const tipResp = await songContext.recordAttempt({
+            score: evalResult.score,
+            detected_notes: evalResult.detected_notes || [],
+            missing_notes: evalResult.missing_notes || [],
+            extra_notes: evalResult.extra_notes || [],
+          });
+          // Replace generic feedback with the advisor's song-specific tip
+          setFeedback(tipResp.tip);
+        } catch {
+          // Keep the original feedback if advisor fails
+        }
+      }
+
       // Auto-advance to review step
       setCompletedSteps(new Set([0, 1, 2]));
       setCurrentStep(3);
@@ -166,6 +209,22 @@ export default function Home() {
     setError("");
     setCurrentStep(0);
     setCompletedSteps(new Set());
+  }
+
+  function handleBackToSong() {
+    handleReset();
+    setSongContext(null);
+    setFromSong(false);
+    setMode("song");
+  }
+
+  function handleModeChange(newMode: AppMode) {
+    // When switching to chords mode from song, clear song context
+    if (newMode === "chords") {
+      setSongContext(null);
+      setFromSong(false);
+    }
+    setMode(newMode);
   }
 
   const canRecord =
@@ -195,170 +254,204 @@ export default function Home() {
           <ProgressDashboard progress={progress} totalChords={totalChords} />
         </div>
 
-        {/* Chord Selector — shown when IDLE */}
+        {/* Mode Toggle — only show when not actively practicing a chord */}
         {!isSessionActive && (
-          <section
-            className="glass-card"
-            style={{ animation: "fade-in-up 0.4s ease-out 0.2s both" }}
-          >
-            <h2 className="text-lg font-semibold gradient-text mb-4">Choose a Chord</h2>
-            <ChordSelector
-              onSelect={handleChordSelect}
-              disabled={loading}
-              chordStatuses={chordStatuses}
-            />
-          </section>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="glass rounded-xl p-4 border border-red-500/30 text-red-300">
-            {error}
+          <div style={{ animation: "fade-in-up 0.4s ease-out 0.15s both" }}>
+            <ModeToggle mode={mode} onChange={handleModeChange} />
           </div>
         )}
 
-        {/* Loading skeleton */}
-        {loading && !isSessionActive && (
-          <div className="flex justify-center py-6">
-            <div className="flex gap-2 items-center text-gray-400 text-sm">
-              <div className="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
-              Processing...
+        {/* ── CHORDS MODE ─────────────────────────────────────────── */}
+        <div style={{ display: mode === "chords" ? "block" : "none" }}>
+          {/* Chord Selector — shown when IDLE */}
+          {!isSessionActive && (
+            <section
+              className="glass-card"
+              style={{ animation: "fade-in-up 0.4s ease-out 0.2s both" }}
+            >
+              <h2 className="text-lg font-semibold gradient-text mb-4">Choose a Chord</h2>
+              <ChordSelector
+                onSelect={handleChordSelect}
+                disabled={loading}
+                chordStatuses={chordStatuses}
+              />
+            </section>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="glass rounded-xl p-4 border border-red-500/30 text-red-300 mt-4">
+              {error}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Session: stepper + content */}
-        {isSessionActive && (
-          <div className="space-y-6" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
-            {/* Chord title + reset */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold gradient-text">
-                  {chordName.replace(/_/g, " ")}
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Step {currentStep + 1} of {STEPS.length} — {STEPS[currentStep]?.label}
-                </p>
+          {/* Loading skeleton */}
+          {loading && !isSessionActive && (
+            <div className="flex justify-center py-6 mt-4">
+              <div className="flex gap-2 items-center text-gray-400 text-sm">
+                <div className="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+                Processing...
               </div>
-              <button
-                onClick={handleReset}
-                className="glass text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
-              >
-                New Chord
-              </button>
             </div>
+          )}
 
-            {/* Step indicator */}
-            <StepIndicator
-              steps={STEPS}
-              currentStep={currentStep}
-              completedSteps={completedSteps}
-            />
-
-            {/* Step content */}
-            <div ref={stepContentRef} key={currentStep} style={{ animation: "fade-in-up 0.3s ease-out both" }}>
-
-              {/* Step 0: Watch */}
-              {currentStep === 0 && (
-                <LessonVideoPlayer
-                  videoPath={videoPath}
-                  audioUrl={null}
-                  chordName={chordName}
-                  onVideoEnd={() => markStepDone(0)}
-                />
-              )}
-
-              {/* Step 1: Listen */}
-              {currentStep === 1 && (
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
-                  <LessonVideoPlayer
-                    videoPath={null}
-                    audioUrl={audioUrl}
-                    chordName={chordName}
-                    onAudioEnd={() => markStepDone(1)}
-                  />
-                  <ChordDiagram fingering={fingering} />
+          {/* Session: stepper + content */}
+          {isSessionActive && (
+            <div className="space-y-6" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+              {/* Chord title + navigation */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold gradient-text">
+                    {chordName.replace(/_/g, " ")}
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Step {currentStep + 1} of {STEPS.length} — {STEPS[currentStep]?.label}
+                  </p>
+                  {fromSong && (
+                    <p className="text-xs mt-1" style={{ color: "#a78bfa" }}>
+                      📖 Song practice mode — advisor tip after each attempt
+                    </p>
+                  )}
                 </div>
-              )}
+                <div className="flex gap-2">
+                  {fromSong && (
+                    <button
+                      onClick={handleBackToSong}
+                      className="glass text-sm px-3 py-1.5 rounded-lg border transition-colors"
+                      style={{
+                        color: "#a78bfa",
+                        borderColor: "rgba(124,58,237,0.4)",
+                      }}
+                    >
+                      ← Song
+                    </button>
+                  )}
+                  <button
+                    onClick={handleReset}
+                    className="glass text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
+                  >
+                    {fromSong ? "Done" : "New Chord"}
+                  </button>
+                </div>
+              </div>
 
-              {/* Step 2: Play */}
-              {currentStep === 2 && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-start">
-                    <div className="glass-card">
-                      <h3 className="text-base font-semibold gradient-text mb-3">
-                        Your Turn — Play the {chordName.replace(/_/g, " ")} chord
-                      </h3>
-                      {canRecord ? (
-                        <MicrophoneRecorder
-                          onRecordingComplete={handleRecordingComplete}
-                          disabled={loading}
-                        />
-                      ) : (
-                        <p className="text-gray-400 text-sm">Session not ready for recording.</p>
-                      )}
-                      {loading && (
-                        <div className="flex items-center gap-2 text-gray-400 text-sm mt-3">
-                          <div className="w-3 h-3 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
-                          Analyzing your playing...
-                        </div>
-                      )}
-                    </div>
+              {/* Step indicator */}
+              <StepIndicator
+                steps={STEPS}
+                currentStep={currentStep}
+                completedSteps={completedSteps}
+              />
+
+              {/* Step content */}
+              <div ref={stepContentRef} key={currentStep} style={{ animation: "fade-in-up 0.3s ease-out both" }}>
+
+                {/* Step 0: Watch */}
+                {currentStep === 0 && (
+                  <LessonVideoPlayer
+                    videoPath={videoPath}
+                    audioUrl={null}
+                    chordName={chordName}
+                    onVideoEnd={() => markStepDone(0)}
+                  />
+                )}
+
+                {/* Step 1: Listen */}
+                {currentStep === 1 && (
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                    <LessonVideoPlayer
+                      videoPath={null}
+                      audioUrl={audioUrl}
+                      chordName={chordName}
+                      onAudioEnd={() => markStepDone(1)}
+                    />
                     <ChordDiagram fingering={fingering} />
                   </div>
-                </div>
-              )}
-
-              {/* Step 3: Review */}
-              {currentStep === 3 && (
-                <FeedbackDisplay
-                  feedback={feedback}
-                  evaluation={evaluation}
-                  attempt={attempt}
-                  attemptsRemaining={attemptsRemaining}
-                  sessionState={sessionState}
-                  fingeringTips={fingeringTips}
-                  scoreHistory={scoreHistory}
-                  analysis={analysis}
-                />
-              )}
-            </div>
-
-            {/* Navigation */}
-            <div className="flex justify-between items-center pt-2">
-              <button
-                onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
-                disabled={currentStep === 0}
-                className="glass px-4 py-2 rounded-xl text-sm font-medium text-gray-300 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                ← Back
-              </button>
-
-              <div className="flex gap-2">
-                {currentStep === 3 && canRecord && (
-                  <button
-                    onClick={() => setCurrentStep(2)}
-                    className="glass px-4 py-2 rounded-xl text-sm font-medium text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/10 transition-all"
-                  >
-                    Try Again
-                  </button>
                 )}
-                {currentStep < 3 && (
-                  <button
-                    onClick={() => {
-                      setCompletedSteps((prev) => { const s = new Set(prev); s.add(currentStep); return s; });
-                      setCurrentStep((s) => s + 1);
-                    }}
-                    disabled={loading}
-                    className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {currentStep === 2 ? "Skip →" : "Next →"}
-                  </button>
+
+                {/* Step 2: Play */}
+                {currentStep === 2 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-start">
+                      <div className="glass-card">
+                        <h3 className="text-base font-semibold gradient-text mb-3">
+                          Your Turn — Play the {chordName.replace(/_/g, " ")} chord
+                        </h3>
+                        {canRecord ? (
+                          <MicrophoneRecorder
+                            onRecordingComplete={handleRecordingComplete}
+                            disabled={loading}
+                          />
+                        ) : (
+                          <p className="text-gray-400 text-sm">Session not ready for recording.</p>
+                        )}
+                        {loading && (
+                          <div className="flex items-center gap-2 text-gray-400 text-sm mt-3">
+                            <div className="w-3 h-3 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+                            {songContext ? "Getting advisor tip..." : "Analyzing your playing..."}
+                          </div>
+                        )}
+                      </div>
+                      <ChordDiagram fingering={fingering} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Review */}
+                {currentStep === 3 && (
+                  <FeedbackDisplay
+                    feedback={feedback}
+                    evaluation={evaluation}
+                    attempt={attempt}
+                    attemptsRemaining={attemptsRemaining}
+                    sessionState={sessionState}
+                    fingeringTips={fingeringTips}
+                    scoreHistory={scoreHistory}
+                    analysis={analysis}
+                  />
                 )}
               </div>
+
+              {/* Navigation */}
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+                  disabled={currentStep === 0}
+                  className="glass px-4 py-2 rounded-xl text-sm font-medium text-gray-300 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  ← Back
+                </button>
+
+                <div className="flex gap-2">
+                  {currentStep === 3 && canRecord && (
+                    <button
+                      onClick={() => setCurrentStep(2)}
+                      className="glass px-4 py-2 rounded-xl text-sm font-medium text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/10 transition-all"
+                    >
+                      Try Again
+                    </button>
+                  )}
+                  {currentStep < 3 && (
+                    <button
+                      onClick={() => {
+                        setCompletedSteps((prev) => { const s = new Set(prev); s.add(currentStep); return s; });
+                        setCurrentStep((s) => s + 1);
+                      }}
+                      disabled={loading}
+                      className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {currentStep === 2 ? "Skip →" : "Next →"}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* ── SONG MODE ───────────────────────────────────────────── */}
+        <div style={{ display: mode === "song" ? "block" : "none" }}>
+          <SongCouncil onPracticeChord={handlePracticeChordFromSong} />
+        </div>
       </div>
     </main>
   );
