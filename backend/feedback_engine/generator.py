@@ -21,7 +21,7 @@ def _get_gemini_model():
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        _gemini_model = genai.GenerativeModel("gemini-2.0-flash-lite")
+        _gemini_model = genai.GenerativeModel("gemini-1.5-flash")
         logger.info("Gemini model initialised")
     except Exception as e:
         logger.warning("Failed to initialise Gemini: %s", e)
