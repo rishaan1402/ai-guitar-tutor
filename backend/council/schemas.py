@@ -99,3 +99,23 @@ class ReviseRequest(BaseModel):
 
 class GenerateRequest(BaseModel):
     song_query: str       # e.g. "Blackbird by The Beatles"
+
+
+# ---------------------------------------------------------------------------
+# Quiz — generated from lesson content, cached per session
+# ---------------------------------------------------------------------------
+
+class QuizQuestion(BaseModel):
+    id: str                  # e.g. "q1"
+    question: str
+    options: list[str]       # always 4 options
+    correct_index: int       # 0–3
+    explanation: str         # shown after answering
+
+
+class QuizResponse(BaseModel):
+    questions: list[QuizQuestion]
+
+
+class QuizRequest(BaseModel):
+    lesson_id: str

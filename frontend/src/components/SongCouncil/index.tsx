@@ -11,8 +11,7 @@ import {
 } from "@/lib/api";
 import SongSearchBar from "./SongSearchBar";
 import CouncilProgress from "./CouncilProgress";
-import LessonDisplay from "./LessonDisplay";
-import PlayAlongMode from "./PlayAlongMode";
+import LessonSuite from "./LessonSuite";
 
 interface SongCouncilProps {
   onPracticeChord: (chordKey: string, lessonContext: SongCouncilContext) => void;
@@ -35,7 +34,6 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
   const [chordScoreHistory, setChordScoreHistory] = useState<Record<string, number[]>>({});
   const [allChordsAttempted, setAllChordsAttempted] = useState(false);
   const [revising, setRevising] = useState(false);
-  const [playAlongActive, setPlayAlongActive] = useState(false);
   // track attempt count per chord
   const [attemptCounts, setAttemptCounts] = useState<Record<string, number>>({});
 
@@ -47,7 +45,6 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
     setChordScoreHistory({});
     setAllChordsAttempted(false);
     setAttemptCounts({});
-    setPlayAlongActive(false);
     try {
       const doc = await generateSongLesson(query);
       setLesson(doc);
@@ -64,7 +61,7 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
     try {
       const updated = await reviseSongLesson(lesson.lesson_id);
       setLesson(updated);
-    } catch (e) {
+    } catch {
       // silently fail — keep existing lesson
     } finally {
       setRevising(false);
@@ -125,9 +122,9 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
         </div>
       )}
 
-      {lesson && !loading && !playAlongActive && (
+      {lesson && !loading && (
         <div className="mt-8">
-          <LessonDisplay
+          <LessonSuite
             lesson={lesson}
             chordScores={chordScores}
             chordScoreHistory={chordScoreHistory}
@@ -135,16 +132,6 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
             revising={revising}
             onPracticeChord={handlePracticeChord}
             onRevise={handleRevise}
-            onPlayAlong={() => setPlayAlongActive(true)}
-          />
-        </div>
-      )}
-
-      {lesson && !loading && playAlongActive && (
-        <div className="mt-8">
-          <PlayAlongMode
-            lesson={lesson}
-            onClose={() => setPlayAlongActive(false)}
           />
         </div>
       )}

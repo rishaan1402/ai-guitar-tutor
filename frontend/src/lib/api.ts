@@ -152,3 +152,27 @@ export function reviseSongLesson(lessonId: string): Promise<LessonDocument> {
     body: JSON.stringify({ lesson_id: lessonId }),
   });
 }
+
+// ---------------------------------------------------------------------------
+// Quiz
+// ---------------------------------------------------------------------------
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];      // always 4 options
+  correct_index: number;  // 0–3
+  explanation: string;
+}
+
+export interface QuizResponse {
+  questions: QuizQuestion[];
+}
+
+export function getQuiz(lessonId: string): Promise<QuizResponse> {
+  return request("/api/council/quiz", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lesson_id: lessonId }),
+  });
+}

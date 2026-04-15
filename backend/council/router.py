@@ -4,12 +4,13 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from council.schemas import GenerateRequest, TipRequest, ReviseRequest, LessonDocument
+from council.schemas import GenerateRequest, TipRequest, ReviseRequest, QuizRequest, QuizResponse, LessonDocument
 from council.ingestion import ingest_song
 from council.agents import run_council
 from council.chairman import synthesize
 from council import session_store
 from council.advisor import get_tip, revise_lesson
+from council.quiz import generate_quiz
 
 logger = logging.getLogger(__name__)
 
@@ -76,3 +77,15 @@ async def practice_revise(body: ReviseRequest) -> LessonDocument:
 
     updated_lesson = await revise_lesson(session)
     return updated_lesson
+
+
+@router.post("/quiz", response_model=QuizResponse)
+async def get_quiz(body: QuizRequest) -> QuizResponse:
+    """
+    Generate (or return cached) 3 MCQ questions from the lesson content.
+    Questions are cached on the session after first generation.
+    """
+    session = session_store.get_session(body.lesson_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
+    return await generate_quiz(session)

@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Optional
 
-from council.schemas import SongObject, LessonDocument
+from council.schemas import SongObject, LessonDocument, QuizResponse
 
 SESSION_TTL = 7200  # 2 hours
 
@@ -16,6 +16,8 @@ class LessonSession:
     lesson: LessonDocument
     # chord_key → list of attempt scores
     chord_scores: dict[str, list[float]] = field(default_factory=dict)
+    # cached quiz so we don't re-generate on every /quiz call
+    cached_quiz: Optional[QuizResponse] = field(default=None)
     created_at: float = field(default_factory=time.time)
 
     @property
