@@ -7,10 +7,12 @@ import PracticeChordCard from "./PracticeChordCard";
 interface LessonDisplayProps {
   lesson: LessonDocument;
   chordScores: Record<string, number>;
+  chordScoreHistory?: Record<string, number[]>;
   allChordsAttempted: boolean;
   revising: boolean;
   onPracticeChord: (chordKey: string) => void;
   onRevise: () => void;
+  onPlayAlong: () => void;
 }
 
 interface SectionProps {
@@ -58,10 +60,12 @@ function Section({ title, icon, content, defaultOpen = false }: SectionProps) {
 export default function LessonDisplay({
   lesson,
   chordScores,
+  chordScoreHistory = {},
   allChordsAttempted,
   revising,
   onPracticeChord,
   onRevise,
+  onPlayAlong,
 }: LessonDisplayProps) {
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
@@ -81,16 +85,33 @@ export default function LessonDisplay({
               {lesson.artist}
             </p>
           </div>
-          <span
-            className="text-xs font-semibold px-3 py-1 rounded-full capitalize"
-            style={{
-              background: `${difficultyColor}22`,
-              border: `1px solid ${difficultyColor}55`,
-              color: difficultyColor,
-            }}
-          >
-            {lesson.overall_difficulty}
-          </span>
+          <div className="flex flex-wrap gap-2 items-center">
+            <span
+              className="text-xs font-semibold px-3 py-1 rounded-full capitalize"
+              style={{
+                background: `${difficultyColor}22`,
+                border: `1px solid ${difficultyColor}55`,
+                color: difficultyColor,
+              }}
+            >
+              {lesson.overall_difficulty}
+            </span>
+            {lesson.key && (
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)", color: "rgba(167,139,250,0.9)" }}>
+                🎵 {lesson.key}
+              </span>
+            )}
+            {lesson.time_signature && (
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)", color: "rgba(147,197,253,0.9)" }}>
+                ⏱ {lesson.time_signature}
+              </span>
+            )}
+            {lesson.tempo_feel && (
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(8,145,178,0.15)", border: "1px solid rgba(8,145,178,0.3)", color: "rgba(103,232,249,0.9)" }}>
+                🎸 {lesson.tempo_feel}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Chairman summary */}
@@ -105,6 +126,28 @@ export default function LessonDisplay({
         >
           {lesson.chairman_summary}
         </div>
+
+        {/* Song structure map */}
+        {lesson.song_sections && lesson.song_sections.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-1">
+            <span className="text-xs mr-1" style={{ color: "rgba(255,255,255,0.35)" }}>Structure:</span>
+            {lesson.song_sections.map((section, i) => (
+              <span key={i} className="flex items-center gap-1">
+                {i > 0 && <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "10px" }}>→</span>}
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full"
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "rgba(255,255,255,0.6)",
+                  }}
+                >
+                  {section.name}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Practice chords */}
@@ -118,14 +161,23 @@ export default function LessonDisplay({
               key={chord.symbol}
               chord={chord}
               score={chord.chord_key ? chordScores[chord.chord_key] ?? null : null}
+              scoreHistory={chord.chord_key ? chordScoreHistory[chord.chord_key] ?? [] : []}
+              chordFunction={lesson.chord_functions?.[chord.symbol] ?? null}
               onPractice={onPracticeChord}
             />
           ))}
         </div>
 
-        {/* Revise button */}
-        {allChordsAttempted && (
-          <div className="mt-4 flex justify-center">
+        {/* Play Along + Revise buttons */}
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <button
+            onClick={onPlayAlong}
+            className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "linear-gradient(135deg, #0891b2, #7c3aed)" }}
+          >
+            🎮 Play Along
+          </button>
+          {allChordsAttempted && (
             <button
               onClick={onRevise}
               disabled={revising}
@@ -133,8 +185,8 @@ export default function LessonDisplay({
             >
               {revising ? "Revising lesson..." : "✨ Revise Lesson Plan"}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Specialist sections */}

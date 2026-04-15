@@ -88,6 +88,11 @@ export interface PracticeChord {
   chord_key: string | null;
 }
 
+export interface SongSection {
+  name: string;
+  chords: string[];
+}
+
 export interface LessonDocument {
   lesson_id: string;
   song_title: string;
@@ -99,6 +104,12 @@ export interface LessonDocument {
   ear_training_section: string;
   practice_plan: string;
   practice_chords: PracticeChord[];
+  // Song metadata (surfaced from SongObject)
+  key: string;
+  time_signature: string;
+  tempo_feel: string;
+  song_sections: SongSection[];
+  chord_functions: Record<string, string>;
 }
 
 export interface TipRequest {

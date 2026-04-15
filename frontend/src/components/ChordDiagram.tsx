@@ -4,6 +4,7 @@ import type { ChordFingering } from "@/lib/api";
 
 interface Props {
   fingering: ChordFingering | null;
+  liveNotes?: string[]; // pitch-class names currently detected (e.g. ["G", "B", "D"])
 }
 
 const STRINGS = 6;
@@ -25,10 +26,11 @@ const FINGER_COLORS: Record<number, string> = {
   4: "#ef4444",
 };
 
-export default function ChordDiagram({ fingering }: Props) {
+export default function ChordDiagram({ fingering, liveNotes }: Props) {
   if (!fingering) return null;
 
   const positions = fingering.positions || [];
+  const isLiveMode = liveNotes !== undefined && liveNotes.length >= 0;
 
   const playedFrets = positions
     .filter((p) => p.fret !== undefined && p.fret > 0 && !p.action)
@@ -60,6 +62,17 @@ export default function ChordDiagram({ fingering }: Props) {
         className="mx-auto"
         aria-label={`Chord diagram for ${fingering.display_name}`}
       >
+        {/* Glow filter for live-detected notes */}
+        <defs>
+          <filter id="liveGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         <rect
           x={LEFT_MARGIN - 4}
           y={TOP_MARGIN - 2}
@@ -128,8 +141,18 @@ export default function ChordDiagram({ fingering }: Props) {
             );
           }
           if (pos.fret === 0) {
+            const isLive = isLiveMode && pos.note && liveNotes!.includes(pos.note);
             return (
-              <text key={`m-${i}`} x={x} y={y} fontSize={7} fill="#4ade80" textAnchor="middle" fontWeight="bold">
+              <text
+                key={`o-${i}`}
+                x={x}
+                y={y}
+                fontSize={7}
+                fill={isLiveMode ? (isLive ? "#22c55e" : "#4ade8055") : "#4ade80"}
+                textAnchor="middle"
+                fontWeight="bold"
+                filter={isLive ? "url(#liveGlow)" : undefined}
+              >
                 O
               </text>
             );
@@ -142,10 +165,24 @@ export default function ChordDiagram({ fingering }: Props) {
           .map((pos, i) => {
             const x = stringX(pos.string);
             const y = fretY(pos.fret as number);
-            const color = pos.finger ? FINGER_COLORS[pos.finger] || "#6b7280" : "#6b7280";
+            const baseColor = pos.finger ? FINGER_COLORS[pos.finger] || "#6b7280" : "#6b7280";
+            const isLive = isLiveMode && pos.note && liveNotes!.includes(pos.note);
+            const fill = isLiveMode
+              ? isLive ? "#22c55e" : `${baseColor}44`
+              : baseColor;
 
             return (
-              <circle key={`d-${i}`} cx={x} cy={y} r={DOT_R} fill={color} stroke="#fff" strokeWidth={0.8} />
+              <circle
+                key={`d-${i}`}
+                cx={x}
+                cy={y}
+                r={isLive ? DOT_R + 1 : DOT_R}
+                fill={fill}
+                stroke={isLive ? "#22c55e" : "#fff"}
+                strokeWidth={isLive ? 1.5 : 0.8}
+                filter={isLive ? "url(#liveGlow)" : undefined}
+                style={{ transition: "fill 0.15s, r 0.1s" }}
+              />
             );
           })}
       </svg>

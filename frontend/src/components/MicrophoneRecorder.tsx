@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import CountdownOverlay from "./CountdownOverlay";
+import { detectPeaks, stabilizeNotes } from "@/lib/noteDetection";
 
 interface Props {
   onRecordingComplete: (blob: Blob) => void;
   disabled?: boolean;
+  onLiveNotes?: (notes: string[]) => void;
 }
 
 const SAMPLE_RATE = 22050;
@@ -52,7 +54,7 @@ function formatTime(seconds: number): string {
   return `${m}:${s}`;
 }
 
-export default function MicrophoneRecorder({ onRecordingComplete, disabled }: Props) {
+export default function MicrophoneRecorder({ onRecordingComplete, disabled, onLiveNotes }: Props) {
   const [recording, setRecording] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const [error, setError] = useState("");
@@ -68,6 +70,8 @@ export default function MicrophoneRecorder({ onRecordingComplete, disabled }: Pr
   const activeRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const liveNotesIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rollingWindowRef = useRef<string[][]>([]);
 
   // Canvas-based waveform with gradient
   useEffect(() => {
@@ -170,12 +174,28 @@ export default function MicrophoneRecorder({ onRecordingComplete, disabled }: Pr
       streamRef.current = stream;
 
       activeRef.current = true;
+      rollingWindowRef.current = [];
       setElapsedSeconds(0);
       setRecording(true);
 
       timerRef.current = setInterval(() => {
         setElapsedSeconds((prev) => prev + 1);
       }, 1000);
+
+      // Live note detection: poll analyser every 80ms
+      if (onLiveNotes) {
+        liveNotesIntervalRef.current = setInterval(() => {
+          if (!analyserRef.current) return;
+          const freqData = new Float32Array(analyserRef.current.frequencyBinCount);
+          analyserRef.current.getFloatFrequencyData(freqData);
+          const peaks = detectPeaks(freqData, SAMPLE_RATE, 2048);
+          rollingWindowRef.current = [
+            ...rollingWindowRef.current.slice(-2),
+            peaks.map((p) => p.noteName),
+          ];
+          onLiveNotes(stabilizeNotes(rollingWindowRef.current, 2));
+        }, 80);
+      }
     } catch {
       setError("Microphone access denied. Please allow microphone permissions.");
     }
@@ -186,6 +206,11 @@ export default function MicrophoneRecorder({ onRecordingComplete, disabled }: Pr
     activeRef.current = false;
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
+    if (liveNotesIntervalRef.current) {
+      clearInterval(liveNotesIntervalRef.current);
+      liveNotesIntervalRef.current = null;
+    }
+    onLiveNotes?.([]);
 
     processorRef.current?.disconnect();
     sourceRef.current?.disconnect();

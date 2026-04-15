@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import NoteComparisonBar from "./NoteComparisonBar";
 import ScoreRing from "./ScoreRing";
 import Confetti from "./Confetti";
@@ -57,6 +58,21 @@ function getProgressionMessage(scoreHistory: ScoreEntry[]): string | null {
   return `${diff}% from last attempt`;
 }
 
+function speakText(text: string, setSpeaking: (v: boolean) => void) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    setSpeaking(false);
+    return;
+  }
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  utterance.onend = () => setSpeaking(false);
+  utterance.onerror = () => setSpeaking(false);
+  window.speechSynthesis.speak(utterance);
+  setSpeaking(true);
+}
+
 export default function FeedbackDisplay({
   feedback,
   evaluation,
@@ -67,6 +83,8 @@ export default function FeedbackDisplay({
   scoreHistory,
   analysis,
 }: Props) {
+  const [speaking, setSpeaking] = useState(false);
+
   if (!feedback && !evaluation) return null;
 
   const progressionMsg = scoreHistory ? getProgressionMessage(scoreHistory) : null;
@@ -120,7 +138,21 @@ export default function FeedbackDisplay({
       {/* Tutor feedback text */}
       {feedback && (
         <div className="glass rounded-xl p-3 border border-white/5">
-          <p className="text-gray-200 text-sm leading-relaxed">{feedback}</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-gray-200 text-sm leading-relaxed flex-1">{feedback}</p>
+            <button
+              onClick={() => speakText(feedback, setSpeaking)}
+              title={speaking ? "Stop reading" : "Read aloud"}
+              className="shrink-0 mt-0.5 rounded-lg px-2 py-1 text-sm transition-all duration-200"
+              style={{
+                background: speaking ? "rgba(124,58,237,0.2)" : "rgba(255,255,255,0.06)",
+                border: speaking ? "1px solid rgba(124,58,237,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                color: speaking ? "#a78bfa" : "rgba(255,255,255,0.5)",
+              }}
+            >
+              {speaking ? "⏹" : "🔊"}
+            </button>
+          </div>
         </div>
       )}
 

@@ -11,6 +11,8 @@ import StepIndicator from "@/components/StepIndicator";
 import ModeToggle, { AppMode } from "@/components/ModeToggle";
 import SongCouncil from "@/components/SongCouncil";
 import type { SongCouncilContext } from "@/components/SongCouncil";
+import MetronomeWidget from "@/components/MetronomeWidget";
+import TransitionTrainer from "@/components/TransitionTrainer";
 import {
   learnChord,
   submitAudio,
@@ -100,6 +102,8 @@ export default function Home() {
   const [songContext, setSongContext] = useState<SongCouncilContext | null>(null);
   // Whether we came from the song council (so "Back to Song" button shows)
   const [fromSong, setFromSong] = useState(false);
+  // Live note detection during Step 2 recording
+  const [liveNotes, setLiveNotes] = useState<string[]>([]);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -183,7 +187,8 @@ export default function Home() {
         }
       }
 
-      // Auto-advance to review step
+      // Reset live notes and auto-advance to review step
+      setLiveNotes([]);
       setCompletedSteps(new Set([0, 1, 2]));
       setCurrentStep(3);
     } catch (err) {
@@ -219,8 +224,8 @@ export default function Home() {
   }
 
   function handleModeChange(newMode: AppMode) {
-    // When switching to chords mode from song, clear song context
-    if (newMode === "chords") {
+    // When switching to chords or transitions mode, clear song context
+    if (newMode === "chords" || newMode === "transitions") {
       setSongContext(null);
       setFromSong(false);
     }
@@ -342,6 +347,13 @@ export default function Home() {
                 completedSteps={completedSteps}
               />
 
+              {/* Metronome Widget — outside key= div so it persists across steps */}
+              {(currentStep === 1 || currentStep === 2) && (
+                <div className="flex justify-end">
+                  <MetronomeWidget />
+                </div>
+              )}
+
               {/* Step content */}
               <div ref={stepContentRef} key={currentStep} style={{ animation: "fade-in-up 0.3s ease-out both" }}>
 
@@ -380,6 +392,7 @@ export default function Home() {
                           <MicrophoneRecorder
                             onRecordingComplete={handleRecordingComplete}
                             disabled={loading}
+                            onLiveNotes={setLiveNotes}
                           />
                         ) : (
                           <p className="text-gray-400 text-sm">Session not ready for recording.</p>
@@ -391,7 +404,7 @@ export default function Home() {
                           </div>
                         )}
                       </div>
-                      <ChordDiagram fingering={fingering} />
+                      <ChordDiagram fingering={fingering} liveNotes={liveNotes} />
                     </div>
                   </div>
                 )}
@@ -451,6 +464,11 @@ export default function Home() {
         {/* ── SONG MODE ───────────────────────────────────────────── */}
         <div style={{ display: mode === "song" ? "block" : "none" }}>
           <SongCouncil onPracticeChord={handlePracticeChordFromSong} />
+        </div>
+
+        {/* ── TRANSITIONS MODE ────────────────────────────────────── */}
+        <div style={{ display: mode === "transitions" ? "block" : "none" }}>
+          <TransitionTrainer />
         </div>
       </div>
     </main>

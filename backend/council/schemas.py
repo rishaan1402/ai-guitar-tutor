@@ -54,6 +54,11 @@ class PracticeChord(BaseModel):
     chord_key: Optional[str]  # snake_case key into existing lesson system (e.g. "A_minor7")
 
 
+class SongSection(BaseModel):
+    name: str            # e.g. "Verse", "Chorus", "Bridge"
+    chords: list[str]    # chord symbols used in that section
+
+
 class LessonDocument(BaseModel):
     lesson_id: str
     song_title: str
@@ -65,6 +70,12 @@ class LessonDocument(BaseModel):
     ear_training_section: str
     practice_plan: str
     practice_chords: list[PracticeChord]
+    # Song metadata surfaced from SongObject
+    key: str = ""
+    time_signature: str = ""
+    tempo_feel: str = ""
+    song_sections: list[SongSection] = []
+    chord_functions: dict[str, str] = {}
 
 
 # ---------------------------------------------------------------------------

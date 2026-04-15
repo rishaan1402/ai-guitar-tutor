@@ -12,6 +12,7 @@ import {
 import SongSearchBar from "./SongSearchBar";
 import CouncilProgress from "./CouncilProgress";
 import LessonDisplay from "./LessonDisplay";
+import PlayAlongMode from "./PlayAlongMode";
 
 interface SongCouncilProps {
   onPracticeChord: (chordKey: string, lessonContext: SongCouncilContext) => void;
@@ -31,8 +32,10 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
   const [error, setError] = useState<string | null>(null);
   const [lesson, setLesson] = useState<LessonDocument | null>(null);
   const [chordScores, setChordScores] = useState<Record<string, number>>({});
+  const [chordScoreHistory, setChordScoreHistory] = useState<Record<string, number[]>>({});
   const [allChordsAttempted, setAllChordsAttempted] = useState(false);
   const [revising, setRevising] = useState(false);
+  const [playAlongActive, setPlayAlongActive] = useState(false);
   // track attempt count per chord
   const [attemptCounts, setAttemptCounts] = useState<Record<string, number>>({});
 
@@ -41,8 +44,10 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
     setError(null);
     setLesson(null);
     setChordScores({});
+    setChordScoreHistory({});
     setAllChordsAttempted(false);
     setAttemptCounts({});
+    setPlayAlongActive(false);
     try {
       const doc = await generateSongLesson(query);
       setLesson(doc);
@@ -94,6 +99,10 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
           ...prev,
           [chordKey]: params.score,
         }));
+        // store full attempt history for sparklines
+        if (resp.chord_scores) {
+          setChordScoreHistory(resp.chord_scores);
+        }
         if (resp.all_chords_attempted) setAllChordsAttempted(true);
         return resp;
       },
@@ -116,15 +125,26 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
         </div>
       )}
 
-      {lesson && !loading && (
+      {lesson && !loading && !playAlongActive && (
         <div className="mt-8">
           <LessonDisplay
             lesson={lesson}
             chordScores={chordScores}
+            chordScoreHistory={chordScoreHistory}
             allChordsAttempted={allChordsAttempted}
             revising={revising}
             onPracticeChord={handlePracticeChord}
             onRevise={handleRevise}
+            onPlayAlong={() => setPlayAlongActive(true)}
+          />
+        </div>
+      )}
+
+      {lesson && !loading && playAlongActive && (
+        <div className="mt-8">
+          <PlayAlongMode
+            lesson={lesson}
+            onClose={() => setPlayAlongActive(false)}
           />
         </div>
       )}

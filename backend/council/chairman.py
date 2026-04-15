@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from council.schemas import SongObject, AgentOutput, LessonDocument, PracticeChord
+from council.schemas import SongObject, AgentOutput, LessonDocument, PracticeChord, SongSection
 from council.agents import _CHAIRMAN_PROMPT
 from feedback_engine.generator import _get_groq_client, GROQ_MODEL
 
@@ -172,6 +172,10 @@ async def synthesize(song: SongObject, agent_outputs: list[AgentOutput]) -> Less
 
     practice_chords = _resolve_practice_chords(song)
 
+    # Surface SongObject metadata to the frontend
+    chord_functions = {c.symbol: c.function for c in song.chords}
+    song_sections = [SongSection(name=s.name, chords=s.chords) for s in song.sections]
+
     return LessonDocument(
         lesson_id=str(uuid.uuid4()),
         song_title=song.song_title,
@@ -183,4 +187,9 @@ async def synthesize(song: SongObject, agent_outputs: list[AgentOutput]) -> Less
         ear_training_section=agent_map.get("ear_training", ""),
         practice_plan=agent_map.get("practice_planner", ""),
         practice_chords=practice_chords,
+        key=song.key,
+        time_signature=song.time_signature,
+        tempo_feel=song.tempo_feel,
+        song_sections=song_sections,
+        chord_functions=chord_functions,
     )
