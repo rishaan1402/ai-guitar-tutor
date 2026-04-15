@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-import uuid
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -56,9 +55,10 @@ _store: dict[str, LessonSession] = {}
 
 
 def create_session(song: SongObject, lesson: LessonDocument) -> LessonSession:
-    lesson_id = str(uuid.uuid4())
-    session = LessonSession(lesson_id=lesson_id, song=song, lesson=lesson)
-    _store[lesson_id] = session
+    # Use the lesson_id already set in the LessonDocument so the frontend
+    # can look up the session with the same ID it received.
+    session = LessonSession(lesson_id=lesson.lesson_id, song=song, lesson=lesson)
+    _store[lesson.lesson_id] = session
     _cleanup()
     return session
 
