@@ -90,31 +90,32 @@ export default function TransitionTrainer() {
     return () => { stopSession(); };
   }, [stopSession]);
 
+  // openMic reuses the AudioContext already created synchronously in startCountdown()
+  // so we are still within the user-gesture context when the AudioContext is constructed.
   async function openMic() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      // Resume immediately — required on Safari after async getUserMedia
+      streamRef.current = stream;
+
+      // audioCtxRef was pre-created synchronously inside the button handler
+      const ctx = audioCtxRef.current!;
       if (ctx.state === "suspended") await ctx.resume();
+
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.6;
       source.connect(analyser);
-      streamRef.current = stream;
-      audioCtxRef.current = ctx;
       analyserRef.current = analyser;
 
       liveIntervalRef.current = setInterval(() => {
         if (!analyserRef.current) return;
         const buf = new Float32Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getFloatFrequencyData(buf);
-        // -52 dB threshold matches PlayAlongMode — more sensitive for real guitar input
         const peaks = detectPeaks(buf, ctx.sampleRate, 2048, -52, 8);
         rollingWindowRef.current = [...rollingWindowRef.current.slice(-2), peaks.map((p) => p.noteName)];
-        // minVotes=1 for snappier real-time response
         setLiveNotes(stabilizeNotes(rollingWindowRef.current, 1));
       }, 80);
     } catch {
@@ -123,6 +124,11 @@ export default function TransitionTrainer() {
   }
 
   function startCountdown() {
+    // Create AudioContext HERE — synchronously inside the button click handler
+    // so it is created within a user-gesture context (Chrome/Safari requirement).
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
     setCountdown(3);
     setPhase("countdown");
     let c = 3;

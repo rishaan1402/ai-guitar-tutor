@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { LessonDocument, getFingering } from "@/lib/api";
 import type { ChordFingering } from "@/lib/api";
 import { detectPeaks, stabilizeNotes, bpmFromTempoFeel } from "@/lib/noteDetection";
-import { useMetronome } from "@/lib/useMetronome";
 import MetronomeWidget from "../MetronomeWidget";
 import ChordDiagram from "../ChordDiagram";
 
@@ -85,7 +84,8 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
   const liveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rollingWindowRef = useRef<string[][]>([]);
 
-  const [, metControls] = useMetronome(bpm);
+  // MetronomeWidget in the JSX has its own useMetronome instance the user controls.
+  // We do NOT run a hidden second metronome here — that was causing double-clicking.
 
   const pixelsPerSec = (bpm / 60) * (BLOCK_WIDTH + BLOCK_GAP);
 
@@ -121,7 +121,6 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     return () => {
       isRunningRef.current = false;
       closeMic();
-      metControls.stop();
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -203,9 +202,11 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     ctx.lineTo(MARKER_X, LANE_Y + LANE_H);
     ctx.stroke();
 
-    // Which block is at the marker
-    const newBlockIdx = Math.floor(scrollXRef.current / (BLOCK_WIDTH + BLOCK_GAP));
-    const clampedIdx = Math.min(Math.max(newBlockIdx, 0), n - 1);
+    // Which block is currently at the marker.
+    // Block i reaches the marker when scrollX = (i+1)*(BLOCK_WIDTH+BLOCK_GAP),
+    // so the correct index is floor(scrollX/(BLOCK_WIDTH+BLOCK_GAP)) - 1.
+    const newBlockIdx = Math.max(0, Math.floor(scrollXRef.current / (BLOCK_WIDTH + BLOCK_GAP)) - 1);
+    const clampedIdx = Math.min(newBlockIdx, n - 1);
 
     if (clampedIdx !== currentBlockIdxRef.current) {
       const prevIdx = currentBlockIdxRef.current;
@@ -223,19 +224,12 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       currentBlockIdxRef.current = clampedIdx;
       setCurrentBlockIdx(clampedIdx);
 
-      // Round complete — last block just got scored (newBlockIdx exceeded array bounds)
-      if (newBlockIdx >= n) {
+      // Round complete — last block just got scored
+      if (clampedIdx === n - 1 && newBlockIdx >= n - 1 && blockResultsRef.current[n - 1] !== null) {
         isRunningRef.current = false;
         setIsRunning(false);
-        return; // stop the loop
+        return;
       }
-    }
-
-    // Also stop if we've scrolled well past the last block (safety net)
-    if (newBlockIdx > n + 1) {
-      isRunningRef.current = false;
-      setIsRunning(false);
-      return;
     }
 
     // Draw chord blocks
@@ -290,7 +284,6 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
 
   async function handleStart() {
     await openMic();
-    metControls.start();
 
     scrollXRef.current = 0;
     currentBlockIdxRef.current = 0;
@@ -310,7 +303,6 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     isRunningRef.current = false;
     setIsRunning(false);
     cancelAnimationFrame(rafRef.current);
-    metControls.stop();
     closeMic();
   }
 
