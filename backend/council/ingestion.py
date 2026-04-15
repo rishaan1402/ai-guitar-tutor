@@ -45,18 +45,24 @@ Output schema:
 
 Song to analyse: {song_query}"""
 
-    try:
-        import google.generativeai as genai
-        response = await model.generate_content_async(
-            prompt,
-            generation_config=genai.GenerationConfig(
-                response_mime_type="application/json",
-                temperature=0.2,
-            ),
-        )
-        raw = response.text.strip()
-        logger.info("Ingestion raw response length: %d chars", len(raw))
-        return SongObject.model_validate_json(raw)
-    except Exception as exc:
-        logger.error("Ingestion failed: %s", exc)
-        raise ValueError(f"Failed to parse song data: {exc}") from exc
+    import google.generativeai as genai
+    gen_config = genai.GenerationConfig(response_mime_type="application/json", temperature=0.2)
+    backoff = [4, 10, 20]
+
+    for attempt, wait in enumerate([0] + backoff):
+        if wait:
+            import asyncio
+            logger.info("Ingestion: 429 received, retrying in %ss", wait)
+            await asyncio.sleep(wait)
+        try:
+            response = await model.generate_content_async(prompt, generation_config=gen_config)
+            raw = response.text.strip()
+            logger.info("Ingestion raw response length: %d chars", len(raw))
+            return SongObject.model_validate_json(raw)
+        except Exception as exc:
+            if "429" in str(exc) and attempt < len(backoff):
+                continue
+            logger.error("Ingestion failed: %s", exc)
+            raise ValueError(f"Failed to parse song data: {exc}") from exc
+
+    raise ValueError("Failed to parse song data: quota exceeded after retries")

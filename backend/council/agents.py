@@ -116,33 +116,49 @@ def _planner_slice(song: SongObject) -> str:
     return json.dumps(song.model_dump(), indent=2)
 
 
+# Semaphore: max 2 concurrent Gemini calls to stay within free-tier RPM
+_gemini_semaphore = asyncio.Semaphore(2)
+
+
 # ---------------------------------------------------------------------------
-# Individual agent runner
+# Individual agent runner (with semaphore + retry backoff)
 # ---------------------------------------------------------------------------
 
 async def _run_agent(agent_name: str, system_prompt: str, content: str) -> AgentOutput:
     model = _get_gemini_model()
     if model is None:
         raise RuntimeError("GOOGLE_API_KEY not set.")
-    try:
-        response = await model.generate_content_async(
-            f"{system_prompt}\n\nSong data:\n{content}",
-        )
-        return AgentOutput(agent_name=agent_name, content=response.text.strip())
-    except Exception as exc:
-        logger.error("Agent %s failed: %s", agent_name, exc)
-        return AgentOutput(
-            agent_name=agent_name,
-            content=f"[Agent unavailable — {exc}]",
-        )
+
+    prompt = f"{system_prompt}\n\nSong data:\n{content}"
+    backoff = [4, 10, 20]  # seconds to wait on successive 429s
+
+    for attempt, wait in enumerate([0] + backoff):
+        if wait:
+            logger.info("Agent %s: 429 received, retrying in %ss", agent_name, wait)
+            await asyncio.sleep(wait)
+        try:
+            async with _gemini_semaphore:
+                response = await model.generate_content_async(prompt)
+            return AgentOutput(agent_name=agent_name, content=response.text.strip())
+        except Exception as exc:
+            if "429" in str(exc) and attempt < len(backoff):
+                continue
+            logger.error("Agent %s failed: %s", agent_name, exc)
+            return AgentOutput(
+                agent_name=agent_name,
+                content=f"[Agent unavailable — {exc}]",
+            )
+
+    # exhausted retries
+    return AgentOutput(agent_name=agent_name, content="[Agent unavailable — quota exceeded]")
 
 
 # ---------------------------------------------------------------------------
-# Public: run all 4 agents in parallel
+# Public: run all 4 agents (2 at a time) with retry
 # ---------------------------------------------------------------------------
 
 async def run_council(song: SongObject) -> list[AgentOutput]:
-    """Fire all 4 agents simultaneously. Returns outputs in fixed order."""
+    """Run 4 agents with semaphore (max 2 concurrent) + 429 retry backoff."""
     results = await asyncio.gather(
         _run_agent("theory_teacher",   _THEORY_PROMPT,   _theory_slice(song)),
         _run_agent("technique_coach",  _TECHNIQUE_PROMPT, _technique_slice(song)),
