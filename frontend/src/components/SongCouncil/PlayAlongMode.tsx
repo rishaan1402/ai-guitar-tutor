@@ -17,11 +17,36 @@ type BlockResult = "great" | "ok" | "miss" | null;
 type FlashType = "GREAT!" | "OK" | "MISS" | null;
 
 const BLOCK_WIDTH = 120;
-const BLOCK_GAP = 16;
-const MARKER_X = 90;
+const BLOCK_GAP = 20;
+const MARKER_X = 100;
 const CANVAS_HEIGHT = 140;
 const LANE_Y = 20;
 const LANE_H = 100;
+
+/** Safe rounded rect — falls back to fillRect on browsers without roundRect */
+function safeRoundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number, r: number
+) {
+  if (typeof (ctx as any).roundRect === "function") {
+    ctx.beginPath();
+    (ctx as any).roundRect(x, y, w, h, r);
+  } else {
+    // Manual rounded rect via arcs
+    const ri = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + ri, y);
+    ctx.lineTo(x + w - ri, y);
+    ctx.arcTo(x + w, y, x + w, y + ri, ri);
+    ctx.lineTo(x + w, y + h - ri);
+    ctx.arcTo(x + w, y + h, x + w - ri, y + h, ri);
+    ctx.lineTo(x + ri, y + h);
+    ctx.arcTo(x, y + h, x, y + h - ri, ri);
+    ctx.lineTo(x, y + ri);
+    ctx.arcTo(x, y, x + ri, y, ri);
+    ctx.closePath();
+  }
+}
 
 function getBpm(lesson: LessonDocument): number {
   return bpmFromTempoFeel(lesson.tempo_feel || "");
@@ -40,6 +65,11 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
   const [liveNotes, setLiveNotes] = useState<string[]>([]);
   const [fingerings, setFingerings] = useState<Record<string, ChordFingering>>({});
 
+  // ── CRITICAL: use refs for everything touched inside the rAF loop ──────────
+  const isRunningRef = useRef(false);        // avoids stale closure on isRunning state
+  const fingeringsRef = useRef<Record<string, ChordFingering>>({});  // avoids stale fingerings
+  const liveNotesRef = useRef<string[]>([]);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef(0);
   const scrollXRef = useRef(0);
@@ -55,12 +85,16 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
   const liveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rollingWindowRef = useRef<string[][]>([]);
 
-  const [metState, metControls] = useMetronome(bpm);
+  const [, metControls] = useMetronome(bpm);
 
   const pixelsPerSec = (bpm / 60) * (BLOCK_WIDTH + BLOCK_GAP);
-  const blockDurationSec = (60 / bpm) * 2; // 2 beats per block
 
-  // Load fingerings
+  // Keep fingeringsRef in sync with state
+  useEffect(() => { fingeringsRef.current = fingerings; }, [fingerings]);
+  // Keep liveNotesRef in sync
+  useEffect(() => { liveNotesRef.current = liveNotes; }, [liveNotes]);
+
+  // Load fingerings on mount
   useEffect(() => {
     availableChords.forEach((c) => {
       if (!c.chord_key) return;
@@ -68,26 +102,30 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
         .then((f) => setFingerings((prev) => ({ ...prev, [c.chord_key!]: f })))
         .catch(() => {});
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const closeMic = useCallback(() => {
     if (liveIntervalRef.current) { clearInterval(liveIntervalRef.current); liveIntervalRef.current = null; }
     streamRef.current?.getTracks().forEach((t) => t.stop());
-    audioCtxRef.current?.close();
+    audioCtxRef.current?.close().catch(() => {});
     streamRef.current = null;
     audioCtxRef.current = null;
     analyserRef.current = null;
     setLiveNotes([]);
+    liveNotesRef.current = [];
     rollingWindowRef.current = [];
   }, []);
 
   useEffect(() => {
     return () => {
+      isRunningRef.current = false;
       closeMic();
       metControls.stop();
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [closeMic, metControls]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function openMic() {
     try {
@@ -95,6 +133,8 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Resume immediately — required on Safari after async getUserMedia
+      if (ctx.state === "suspended") await ctx.resume();
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
@@ -108,10 +148,16 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
         if (!analyserRef.current) return;
         const buf = new Float32Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getFloatFrequencyData(buf);
-        const peaks = detectPeaks(buf, ctx.sampleRate, 2048);
-        rollingWindowRef.current = [...rollingWindowRef.current.slice(-2), peaks.map((p) => p.noteName)];
-        const stable = stabilizeNotes(rollingWindowRef.current, 2);
+        // Looser threshold (-52) for real mic input
+        const peaks = detectPeaks(buf, ctx.sampleRate, 2048, -52, 8);
+        rollingWindowRef.current = [
+          ...rollingWindowRef.current.slice(-2),
+          peaks.map((p) => p.noteName),
+        ];
+        // minVotes=1 for faster real-time response
+        const stable = stabilizeNotes(rollingWindowRef.current, 1);
         setLiveNotes(stable);
+        liveNotesRef.current = stable;
       }, 80);
     } catch {
       // mic denied — continue without detection
@@ -123,14 +169,17 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     setTimeout(() => setFlashResult(null), 800);
   }
 
-  function drawCanvas(timestamp: number) {
+  // The actual draw loop — uses ONLY refs, no React state
+  function drawFrame(timestamp: number) {
+    if (!isRunningRef.current) return;  // ← the critical fix
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     if (lastTimeRef.current !== null) {
-      const delta = (timestamp - lastTimeRef.current) / 1000;
+      const delta = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1); // cap at 100ms
       scrollXRef.current += pixelsPerSec * delta;
     }
     lastTimeRef.current = timestamp;
@@ -138,13 +187,12 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     const n = availableChords.length;
     if (n === 0) return;
 
-    ctx.clearRect(0, 0, canvas.width, CANVAS_HEIGHT);
+    const W = canvas.width;
+    ctx.clearRect(0, 0, W, CANVAS_HEIGHT);
 
     // Lane background
     ctx.fillStyle = "rgba(255,255,255,0.04)";
-    ctx.beginPath();
-    // @ts-ignore
-    ctx.roundRect(0, LANE_Y, canvas.width, LANE_H, 8);
+    safeRoundRect(ctx, 0, LANE_Y, W, LANE_H, 8);
     ctx.fill();
 
     // Marker line
@@ -155,100 +203,95 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     ctx.lineTo(MARKER_X, LANE_Y + LANE_H);
     ctx.stroke();
 
-    // Determine which block is currently at the marker
+    // Which block is at the marker
     const newBlockIdx = Math.floor(scrollXRef.current / (BLOCK_WIDTH + BLOCK_GAP));
-    const clampedIdx = Math.min(newBlockIdx, n - 1);
+    const clampedIdx = Math.min(Math.max(newBlockIdx, 0), n - 1);
 
     if (clampedIdx !== currentBlockIdxRef.current) {
-      // Block changed — score the previous block
       const prevIdx = currentBlockIdxRef.current;
       const matchRatio = totalFramesRef.current > 0
         ? matchFramesRef.current / totalFramesRef.current
         : 0;
-      const result: BlockResult = matchRatio >= 0.7 ? "great" : matchRatio >= 0.35 ? "ok" : "miss";
+      const result: BlockResult = matchRatio >= 0.65 ? "great" : matchRatio >= 0.3 ? "ok" : "miss";
 
-      blockResultsRef.current = [...blockResultsRef.current];
       blockResultsRef.current[prevIdx] = result;
       setBlockResults([...blockResultsRef.current]);
       flashResultMsg(result === "great" ? "GREAT!" : result === "ok" ? "OK" : "MISS");
 
-      // Reset counters
       matchFramesRef.current = 0;
       totalFramesRef.current = 0;
       currentBlockIdxRef.current = clampedIdx;
       setCurrentBlockIdx(clampedIdx);
+
+      // Round complete — last block just got scored (newBlockIdx exceeded array bounds)
+      if (newBlockIdx >= n) {
+        isRunningRef.current = false;
+        setIsRunning(false);
+        return; // stop the loop
+      }
     }
 
-    // Draw blocks
+    // Also stop if we've scrolled well past the last block (safety net)
+    if (newBlockIdx > n + 1) {
+      isRunningRef.current = false;
+      setIsRunning(false);
+      return;
+    }
+
+    // Draw chord blocks
     for (let i = 0; i < n; i++) {
-      const blockLeft = i * (BLOCK_WIDTH + BLOCK_GAP) - scrollXRef.current + MARKER_X + BLOCK_WIDTH + BLOCK_GAP;
-      if (blockLeft > canvas.width + BLOCK_WIDTH) continue;
-      if (blockLeft < -BLOCK_WIDTH) continue;
+      // Block starts to the right of the marker, scrolls left
+      const blockLeft = MARKER_X + (BLOCK_WIDTH + BLOCK_GAP) + i * (BLOCK_WIDTH + BLOCK_GAP) - scrollXRef.current;
+      if (blockLeft > W + BLOCK_WIDTH) continue;
+      if (blockLeft + BLOCK_WIDTH < -10) continue;
 
       const isCurrent = i === clampedIdx;
       const result = blockResultsRef.current[i];
 
-      // Block fill
-      let fillColor = "rgba(124,58,237,0.25)";
-      if (isCurrent) fillColor = "rgba(124,58,237,0.45)";
-      if (result === "great") fillColor = "rgba(34,197,94,0.25)";
-      else if (result === "ok") fillColor = "rgba(234,179,8,0.25)";
-      else if (result === "miss") fillColor = "rgba(239,68,68,0.2)";
+      let fillColor = "rgba(124,58,237,0.22)";
+      if (isCurrent) fillColor = "rgba(124,58,237,0.50)";
+      if (result === "great") fillColor = "rgba(34,197,94,0.30)";
+      else if (result === "ok") fillColor = "rgba(234,179,8,0.28)";
+      else if (result === "miss") fillColor = "rgba(239,68,68,0.22)";
 
       ctx.fillStyle = fillColor;
-      ctx.beginPath();
-      // @ts-ignore
-      ctx.roundRect(blockLeft, LANE_Y + 8, BLOCK_WIDTH, LANE_H - 16, 6);
+      safeRoundRect(ctx, blockLeft, LANE_Y + 8, BLOCK_WIDTH, LANE_H - 16, 6);
       ctx.fill();
 
-      // Border
-      ctx.strokeStyle = isCurrent ? "#7c3aed" : "rgba(124,58,237,0.3)";
-      ctx.lineWidth = isCurrent ? 1.5 : 1;
+      ctx.strokeStyle = result === "great" ? "#22c55e"
+        : result === "ok" ? "#eab308"
+        : result === "miss" ? "#ef4444"
+        : isCurrent ? "#a78bfa" : "rgba(124,58,237,0.35)";
+      ctx.lineWidth = isCurrent ? 2 : 1;
       ctx.stroke();
 
-      // Result indicator
-      if (result === "great") { ctx.strokeStyle = "#22c55e"; ctx.lineWidth = 1.5; ctx.stroke(); }
-      else if (result === "ok") { ctx.strokeStyle = "#eab308"; ctx.lineWidth = 1.5; ctx.stroke(); }
-      else if (result === "miss") { ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5; ctx.stroke(); }
-
-      // Chord label
-      ctx.fillStyle = isCurrent ? "#ffffff" : "rgba(255,255,255,0.7)";
-      ctx.font = `${isCurrent ? "bold " : ""}16px system-ui`;
+      // Chord name text
+      ctx.fillStyle = isCurrent ? "#ffffff" : "rgba(255,255,255,0.75)";
+      ctx.font = `${isCurrent ? "bold " : ""}${isCurrent ? 18 : 15}px system-ui, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(availableChords[i].symbol, blockLeft + BLOCK_WIDTH / 2, LANE_Y + LANE_H / 2);
     }
 
-    // Update live note matching for current block
-    if (analyserRef.current) {
-      const buf = new Float32Array(analyserRef.current.frequencyBinCount);
-      analyserRef.current.getFloatFrequencyData(buf);
-      const peaks = detectPeaks(buf, audioCtxRef.current?.sampleRate ?? 22050, 2048);
-      const notes = stabilizeNotes([...rollingWindowRef.current.slice(-2), peaks.map((p) => p.noteName)], 2);
-      const expectedNotes = fingerings[availableChords[clampedIdx]?.chord_key ?? ""]?.notes ?? [];
-      const matchCount = notes.filter((n) => expectedNotes.includes(n)).length;
-      if (expectedNotes.length > 0) {
-        totalFramesRef.current += 1;
-        if (matchCount >= Math.ceil(expectedNotes.length * 0.5)) {
-          matchFramesRef.current += 1;
-        }
+    // Accumulate live note match frames for current block scoring
+    const currentChordKey = availableChords[clampedIdx]?.chord_key ?? "";
+    const expectedNotes = fingeringsRef.current[currentChordKey]?.notes ?? [];
+    if (expectedNotes.length > 0) {
+      const matchCount = liveNotesRef.current.filter((n) => expectedNotes.includes(n)).length;
+      totalFramesRef.current += 1;
+      if (matchCount >= Math.ceil(expectedNotes.length * 0.4)) {
+        matchFramesRef.current += 1;
       }
     }
 
-    // Loop detection: stop when all blocks have scrolled past
-    const lastBlockRight = (n - 1) * (BLOCK_WIDTH + BLOCK_GAP) - scrollXRef.current + MARKER_X + BLOCK_WIDTH + BLOCK_GAP + BLOCK_WIDTH;
-    if (lastBlockRight < 0 && isRunning) {
-      // All done
-    }
-
-    if (isRunning) {
-      rafRef.current = requestAnimationFrame(drawCanvas);
-    }
+    // Continue loop
+    rafRef.current = requestAnimationFrame(drawFrame);
   }
 
   async function handleStart() {
     await openMic();
     metControls.start();
+
     scrollXRef.current = 0;
     currentBlockIdxRef.current = 0;
     matchFramesRef.current = 0;
@@ -257,18 +300,23 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     setBlockResults(new Array(availableChords.length).fill(null));
     setCurrentBlockIdx(0);
     lastTimeRef.current = null;
+
+    isRunningRef.current = true;  // set ref BEFORE scheduling rAF
     setIsRunning(true);
-    rafRef.current = requestAnimationFrame(drawCanvas);
+    rafRef.current = requestAnimationFrame(drawFrame);
   }
 
   function handleStop() {
+    isRunningRef.current = false;
     setIsRunning(false);
     cancelAnimationFrame(rafRef.current);
     metControls.stop();
     closeMic();
   }
 
-  function handleRepeat() {
+  async function handleRepeat() {
+    cancelAnimationFrame(rafRef.current);
+
     scrollXRef.current = 0;
     currentBlockIdxRef.current = 0;
     matchFramesRef.current = 0;
@@ -277,17 +325,22 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     setBlockResults(new Array(availableChords.length).fill(null));
     setCurrentBlockIdx(0);
     lastTimeRef.current = null;
-    if (!isRunning) {
-      setIsRunning(true);
-      rafRef.current = requestAnimationFrame(drawCanvas);
+
+    // Re-open mic if it was closed (e.g. after Stop or auto round-complete)
+    if (!analyserRef.current) {
+      await openMic();
     }
+
+    isRunningRef.current = true;
+    setIsRunning(true);
+    rafRef.current = requestAnimationFrame(drawFrame);
   }
 
   const currentChord = availableChords[currentBlockIdx];
   const currentFingering = currentChord?.chord_key ? fingerings[currentChord.chord_key] : null;
   const expectedNotes = currentFingering?.notes ?? [];
   const matchCount = liveNotes.filter((n) => expectedNotes.includes(n)).length;
-  const isOnChord = expectedNotes.length > 0 && matchCount >= Math.ceil(expectedNotes.length * 0.5);
+  const isOnChord = expectedNotes.length > 0 && matchCount >= Math.ceil(expectedNotes.length * 0.4);
 
   const flashColor = flashResult === "GREAT!" ? "#22c55e" : flashResult === "OK" ? "#eab308" : "#ef4444";
 
@@ -296,7 +349,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       <div className="glass-card p-8 text-center space-y-4 max-w-xl mx-auto">
         <p className="gradient-text text-xl font-bold">Play Along</p>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-          No app-supported chords found in this lesson. Practice individual chords first to unlock play-along mode.
+          No app-supported chords found in this lesson. Practice individual chords first.
         </p>
         <button onClick={onClose} className="btn-gradient px-6 py-2 rounded-xl text-sm font-semibold text-white">
           ← Back to Lesson
@@ -317,7 +370,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
           </p>
         </div>
         <button
-          onClick={onClose}
+          onClick={() => { handleStop(); onClose(); }}
           className="glass text-sm px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
           style={{ color: "rgba(255,255,255,0.5)" }}
         >
@@ -329,11 +382,16 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       <div className="glass-card p-3 overflow-hidden">
         <canvas
           ref={canvasRef}
-          width={800}
+          width={760}
           height={CANVAS_HEIGHT}
           className="w-full rounded-lg"
-          style={{ background: "transparent" }}
+          style={{ background: "rgba(0,0,0,0.2)" }}
         />
+        {!isRunning && (
+          <p className="text-center text-xs mt-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Press Start — chord blocks will scroll from right to left
+          </p>
+        )}
       </div>
 
       {/* Current chord + live detection */}
@@ -341,7 +399,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
         <div className="glass-card p-4 flex-1 text-center">
           <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>Now Playing</p>
           <p className="gradient-text text-4xl font-black">{currentChord?.symbol ?? "—"}</p>
-          {expectedNotes.length > 0 && (
+          {isRunning && (
             <div
               className={`mt-2 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 inline-block ${
                 liveNotes.length === 0 ? "" : isOnChord ? "animate-note-match" : "animate-note-miss"
@@ -358,25 +416,23 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
                   : isOnChord ? "#22c55e" : "#ef4444",
               }}
             >
-              {liveNotes.length === 0 ? "🎸 Waiting..." : isOnChord ? "✓ On chord" : "Keep pressing"}
+              {liveNotes.length === 0 ? "🎸 Play to detect" : isOnChord ? `✓ ${liveNotes.join(", ")}` : `Hearing: ${liveNotes.join(", ")}`}
             </div>
           )}
         </div>
 
         {currentFingering && (
-          <ChordDiagram fingering={currentFingering} liveNotes={liveNotes} />
+          <ChordDiagram fingering={currentFingering} liveNotes={isRunning ? liveNotes : undefined} />
         )}
       </div>
 
       {/* Flash result overlay */}
       {flashResult && (
-        <div
-          key={flashResult + Date.now()}
-          className="fixed inset-0 flex items-center justify-center pointer-events-none z-50"
-        >
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
           <div
-            className="animate-flash-result text-6xl font-black"
-            style={{ color: flashColor, textShadow: `0 0 40px ${flashColor}` }}
+            key={flashResult + Date.now()}
+            className="animate-flash-result text-7xl font-black"
+            style={{ color: flashColor, textShadow: `0 0 60px ${flashColor}88` }}
           >
             {flashResult}
           </div>
@@ -413,7 +469,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
         </div>
       </div>
 
-      {/* Song sections (if available) */}
+      {/* Song sections */}
       {lesson.song_sections && lesson.song_sections.length > 0 && (
         <div className="glass-card p-3">
           <p className="text-xs font-semibold mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>Song Structure</p>

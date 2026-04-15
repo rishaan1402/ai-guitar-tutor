@@ -45,6 +45,10 @@ export default function TransitionTrainer() {
 
   const [metState, metControls] = useMetronome(80);
 
+  // Refs for scoring — avoids stale closure in endSession() called from setInterval
+  const gotCountRef = useRef(0);
+  const missCountRef = useRef(0);
+
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -92,6 +96,8 @@ export default function TransitionTrainer() {
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Resume immediately — required on Safari after async getUserMedia
+      if (ctx.state === "suspended") await ctx.resume();
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
@@ -105,9 +111,11 @@ export default function TransitionTrainer() {
         if (!analyserRef.current) return;
         const buf = new Float32Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getFloatFrequencyData(buf);
-        const peaks = detectPeaks(buf, ctx.sampleRate, 2048);
+        // -52 dB threshold matches PlayAlongMode — more sensitive for real guitar input
+        const peaks = detectPeaks(buf, ctx.sampleRate, 2048, -52, 8);
         rollingWindowRef.current = [...rollingWindowRef.current.slice(-2), peaks.map((p) => p.noteName)];
-        setLiveNotes(stabilizeNotes(rollingWindowRef.current, 2));
+        // minVotes=1 for snappier real-time response
+        setLiveNotes(stabilizeNotes(rollingWindowRef.current, 1));
       }, 80);
     } catch {
       // mic denied — continue without live detection
@@ -138,6 +146,9 @@ export default function TransitionTrainer() {
     setSwitchCount(0);
     setGotCount(0);
     setMissCount(0);
+    // Reset refs — the timer's endSession closure reads these, not state
+    gotCountRef.current = 0;
+    missCountRef.current = 0;
     metControls.start();
 
     // Main countdown timer
@@ -164,7 +175,10 @@ export default function TransitionTrainer() {
   function endSession() {
     if (phaseRef.current !== "active") return;
     stopSession();
-    const tpm = gotCount + missCount;
+    // Use refs — gotCount/missCount state is stale here when called from the timer closure
+    const finalGot = gotCountRef.current;
+    const finalMiss = missCountRef.current;
+    const tpm = finalGot + finalMiss;
     const today = new Date().toISOString().slice(0, 10);
     saveTransitionResult({
       chordA: selectedPair.keyA,
@@ -173,9 +187,12 @@ export default function TransitionTrainer() {
       chordBSymbol: selectedPair.symbolB,
       date: today,
       tpm,
-      gotCount,
-      missCount,
+      gotCount: finalGot,
+      missCount: finalMiss,
     });
+    // Sync state from refs so results screen shows correct values
+    setGotCount(finalGot);
+    setMissCount(finalMiss);
     const stats = getTransitionStats(selectedPair.keyA, selectedPair.keyB)
       .slice(0, 5)
       .map((r) => ({ tpm: r.tpm, date: r.date }));
@@ -363,7 +380,7 @@ export default function TransitionTrainer() {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => setGotCount((c) => c + 1)}
+                onClick={() => { gotCountRef.current += 1; setGotCount((c) => c + 1); }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold transition-all"
                 style={{
                   background: "rgba(34,197,94,0.15)",
@@ -374,7 +391,7 @@ export default function TransitionTrainer() {
                 ✓ Got it! ({gotCount})
               </button>
               <button
-                onClick={() => setMissCount((c) => c + 1)}
+                onClick={() => { missCountRef.current += 1; setMissCount((c) => c + 1); }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold transition-all"
                 style={{
                   background: "rgba(239,68,68,0.1)",

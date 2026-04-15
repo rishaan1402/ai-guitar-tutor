@@ -185,15 +185,18 @@ export default function MicrophoneRecorder({ onRecordingComplete, disabled, onLi
       // Live note detection: poll analyser every 80ms
       if (onLiveNotes) {
         liveNotesIntervalRef.current = setInterval(() => {
-          if (!analyserRef.current) return;
+          if (!analyserRef.current || !audioContextRef.current) return;
           const freqData = new Float32Array(analyserRef.current.frequencyBinCount);
           analyserRef.current.getFloatFrequencyData(freqData);
-          const peaks = detectPeaks(freqData, SAMPLE_RATE, 2048);
+          // -52 dB threshold — more sensitive for real guitar at mic distance
+          // Use actual AudioContext sampleRate (device may not honour 22050 constraint)
+          const peaks = detectPeaks(freqData, audioContextRef.current.sampleRate, 2048, -52, 8);
           rollingWindowRef.current = [
             ...rollingWindowRef.current.slice(-2),
             peaks.map((p) => p.noteName),
           ];
-          onLiveNotes(stabilizeNotes(rollingWindowRef.current, 2));
+          // minVotes=1 for snappier real-time response
+          onLiveNotes(stabilizeNotes(rollingWindowRef.current, 1));
         }, 80);
       }
     } catch {
