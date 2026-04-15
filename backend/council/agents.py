@@ -129,7 +129,9 @@ async def _run_agent(agent_name: str, system_prompt: str, content: str) -> Agent
 
     for attempt in range(2):  # 1 retry max
         try:
-            response = await model.generate_content_async(prompt)
+            response = await asyncio.wait_for(
+                model.generate_content_async(prompt), timeout=20.0
+            )
             return AgentOutput(agent_name=agent_name, content=response.text.strip())
         except Exception as exc:
             if "429" in str(exc) and attempt == 0:

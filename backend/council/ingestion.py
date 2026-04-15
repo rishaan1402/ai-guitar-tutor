@@ -51,7 +51,9 @@ Song to analyse: {song_query}"""
 
     for attempt in range(2):  # 1 retry max
         try:
-            response = await model.generate_content_async(prompt, generation_config=gen_config)
+            response = await asyncio.wait_for(
+                model.generate_content_async(prompt, generation_config=gen_config), timeout=20.0
+            )
             raw = response.text.strip()
             logger.info("Ingestion raw response length: %d chars", len(raw))
             return SongObject.model_validate_json(raw)
