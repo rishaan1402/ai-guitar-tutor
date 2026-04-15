@@ -7,26 +7,32 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Lazily initialised Gemini client — only created if GOOGLE_API_KEY is set
-_gemini_model = None
+GROQ_MODEL = "llama-3.3-70b-versatile"
+
+# Lazily initialised Groq client — only created if GROQ_API_KEY is set
+_groq_client = None
 
 
-def _get_gemini_model():
-    global _gemini_model
-    if _gemini_model is not None:
-        return _gemini_model
-    api_key = os.environ.get("GOOGLE_API_KEY")
+def _get_groq_client():
+    global _groq_client
+    if _groq_client is not None:
+        return _groq_client
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         return None
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        _gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-        logger.info("Gemini model initialised")
+        from groq import AsyncGroq
+        _groq_client = AsyncGroq(api_key=api_key)
+        logger.info("Groq client initialised (model: %s)", GROQ_MODEL)
     except Exception as e:
-        logger.warning("Failed to initialise Gemini: %s", e)
-        _gemini_model = None
-    return _gemini_model
+        logger.warning("Failed to initialise Groq: %s", e)
+        _groq_client = None
+    return _groq_client
+
+
+# Backwards-compat alias used by council modules
+def _get_gemini_model():
+    return _get_groq_client()
 
 
 class FeedbackGenerator:
@@ -34,7 +40,7 @@ class FeedbackGenerator:
     Converts audio evaluation results into human-readable,
     beginner-friendly tutor feedback.
 
-    If GOOGLE_API_KEY is set, uses Gemini 2.0 Flash for rich,
+    If GROQ_API_KEY is set, uses Llama 3.3 70B via Groq for rich,
     contextual responses. Falls back to rule-based templates otherwise.
     """
 
@@ -99,20 +105,23 @@ class FeedbackGenerator:
         if issue == "no_sound":
             return random.choice(self._NO_SOUND_RESPONSES)
 
-        model = _get_gemini_model()
-        if model is not None:
+        client = _get_groq_client()
+        if client is not None:
             try:
-                return self._generate_with_gemini(
-                    model, evaluation, chord_name, attempt, score_history, fingering_positions
+                import asyncio
+                return asyncio.get_event_loop().run_until_complete(
+                    self._generate_with_groq(
+                        client, evaluation, chord_name, attempt, score_history, fingering_positions
+                    )
                 )
             except Exception as e:
-                logger.warning("Gemini call failed, falling back to templates: %s", e)
+                logger.warning("Groq call failed, falling back to templates: %s", e)
 
         return self._generate_from_templates(evaluation)
 
-    def _generate_with_gemini(
+    async def _generate_with_groq(
         self,
-        model: Any,
+        client: Any,
         evaluation: Dict[str, Any],
         chord_name: Optional[str],
         attempt: int,
@@ -129,13 +138,11 @@ class FeedbackGenerator:
         chord_display = (chord_name or "this chord").replace("_", " ")
         score_pct = round(score * 100)
 
-        # Build score progression string
         progress_str = ""
         if score_history and len(score_history) > 1:
             history_pcts = [f"{round(s * 100)}%" for s in score_history]
             progress_str = f"Score progression across attempts: {' → '.join(history_pcts)}."
 
-        # Build fingering context for missing notes
         fingering_str = ""
         if missing and fingering_positions:
             tips = []
@@ -173,8 +180,13 @@ Mention specific fingers, strings or frets if you have that information. \
 If the score is improving across attempts, acknowledge the progress. \
 Keep it encouraging and actionable. Do not use markdown or bullet points."""
 
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        response = await client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=120,
+        )
+        return response.choices[0].message.content.strip()
 
     def _generate_from_templates(self, evaluation: Dict[str, Any]) -> str:
         """Rule-based fallback when Gemini is unavailable."""

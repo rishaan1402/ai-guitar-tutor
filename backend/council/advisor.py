@@ -4,7 +4,7 @@ import logging
 
 from council.schemas import LessonDocument, TipRequest
 from council.session_store import LessonSession
-from feedback_engine.generator import _get_gemini_model
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,10 @@ Be honest but encouraging. Name the actual chord symbols."""
 async def get_tip(request: TipRequest, session: LessonSession) -> str:
     """
     Generate a 1-2 sentence adaptive tip after a single chord attempt.
-    Falls back to a plain string if Gemini is unavailable.
+    Falls back to a plain string if Groq is unavailable.
     """
-    model = _get_gemini_model()
-    if model is None:
+    client = _get_groq_client()
+    if client is None:
         score_pct = round(request.score * 100)
         if score_pct >= 80:
             return f"Nice work on {request.chord_symbol}! Keep that up."
@@ -45,9 +45,7 @@ async def get_tip(request: TipRequest, session: LessonSession) -> str:
     score_history = session.chord_scores.get(request.chord_key, [])
     history_str = ", ".join(f"{round(s*100)}%" for s in score_history)
 
-    prompt = f"""{_TIP_SYSTEM}
-
-Song: {session.song.song_title} by {session.song.artist}
+    user_prompt = f"""Song: {session.song.song_title} by {session.song.artist}
 Chord being practised: {request.chord_symbol}
 Score this attempt: {score_pct}%
 Missing notes: {', '.join(request.missing_notes) or 'none'}
@@ -58,8 +56,16 @@ All chord progress so far:
 {session.score_summary()}"""
 
     try:
-        response = await model.generate_content_async(prompt)
-        return response.text.strip()
+        response = await client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": _TIP_SYSTEM},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.7,
+            max_tokens=80,
+        )
+        return response.choices[0].message.content.strip()
     except Exception as exc:
         logger.warning("Advisor tip failed: %s", exc)
         return f"Score: {score_pct}% on {request.chord_symbol}. Keep practising!"
@@ -70,11 +76,9 @@ async def revise_lesson(session: LessonSession) -> LessonDocument:
     After all chords attempted at least once, generate a revised practice plan.
     Returns an updated LessonDocument with the new practice_plan field.
     """
-    model = _get_gemini_model()
+    client = _get_groq_client()
 
-    prompt = f"""{_REVISE_SYSTEM}
-
-Song: {session.song.song_title} by {session.song.artist}
+    user_prompt = f"""Song: {session.song.song_title} by {session.song.artist}
 Difficulty: {session.song.overall_difficulty}
 
 Chord results:
@@ -85,10 +89,18 @@ Original practice plan:
 
     revised_plan = session.lesson.practice_plan  # fallback
 
-    if model is not None:
+    if client is not None:
         try:
-            response = await model.generate_content_async(prompt)
-            revised_plan = response.text.strip()
+            response = await client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": _REVISE_SYSTEM},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.7,
+                max_tokens=600,
+            )
+            revised_plan = response.choices[0].message.content.strip()
         except Exception as exc:
             logger.warning("Lesson revision failed: %s", exc)
 

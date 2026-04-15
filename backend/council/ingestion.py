@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 
 from council.schemas import SongObject
-from feedback_engine.generator import _get_gemini_model
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -28,33 +29,37 @@ Rules:
 
 async def ingest_song(song_query: str) -> SongObject:
     """
-    Call Gemini to extract a SongObject from a song name / query string.
+    Call Groq/Llama to extract a SongObject from a song name / query string.
     Returns a validated SongObject.
     Raises ValueError if the model returns unparseable JSON.
     """
-    model = _get_gemini_model()
-    if model is None:
-        raise RuntimeError("GOOGLE_API_KEY is not set — cannot run Song Learning Council.")
+    client = _get_groq_client()
+    if client is None:
+        raise RuntimeError("GROQ_API_KEY is not set — cannot run Song Learning Council.")
 
     schema_json = json.dumps(SongObject.model_json_schema(), indent=2)
 
-    prompt = f"""{_SYSTEM_PROMPT}
-
-Output schema:
+    user_prompt = f"""Output schema:
 {schema_json}
 
 Song to analyse: {song_query}"""
 
-    import asyncio
-    import google.generativeai as genai
-    gen_config = genai.GenerationConfig(response_mime_type="application/json", temperature=0.2)
-
     for attempt in range(2):  # 1 retry max
         try:
             response = await asyncio.wait_for(
-                model.generate_content_async(prompt, generation_config=gen_config), timeout=20.0
+                client.chat.completions.create(
+                    model=GROQ_MODEL,
+                    messages=[
+                        {"role": "system", "content": _SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.2,
+                    max_tokens=1500,
+                ),
+                timeout=20.0,
             )
-            raw = response.text.strip()
+            raw = response.choices[0].message.content.strip()
             logger.info("Ingestion raw response length: %d chars", len(raw))
             return SongObject.model_validate_json(raw)
         except Exception as exc:

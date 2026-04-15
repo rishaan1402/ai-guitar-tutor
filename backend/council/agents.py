@@ -5,7 +5,7 @@ import json
 import logging
 
 from council.schemas import SongObject, AgentOutput
-from feedback_engine.generator import _get_gemini_model
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -121,18 +121,25 @@ def _planner_slice(song: SongObject) -> str:
 # ---------------------------------------------------------------------------
 
 async def _run_agent(agent_name: str, system_prompt: str, content: str) -> AgentOutput:
-    model = _get_gemini_model()
-    if model is None:
-        raise RuntimeError("GOOGLE_API_KEY not set.")
-
-    prompt = f"{system_prompt}\n\nSong data:\n{content}"
+    client = _get_groq_client()
+    if client is None:
+        raise RuntimeError("GROQ_API_KEY not set.")
 
     for attempt in range(2):  # 1 retry max
         try:
             response = await asyncio.wait_for(
-                model.generate_content_async(prompt), timeout=20.0
+                client.chat.completions.create(
+                    model=GROQ_MODEL,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"Song data:\n{content}"},
+                    ],
+                    temperature=0.7,
+                    max_tokens=600,
+                ),
+                timeout=20.0,
             )
-            return AgentOutput(agent_name=agent_name, content=response.text.strip())
+            return AgentOutput(agent_name=agent_name, content=response.choices[0].message.content.strip())
         except Exception as exc:
             if "429" in str(exc) and attempt == 0:
                 logger.info("Agent %s: 429, retrying in 5s", agent_name)

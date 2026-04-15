@@ -9,7 +9,7 @@ from typing import Optional
 
 from council.schemas import SongObject, AgentOutput, LessonDocument, PracticeChord
 from council.agents import _CHAIRMAN_PROMPT
-from feedback_engine.generator import _get_gemini_model
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -139,11 +139,10 @@ async def synthesize(song: SongObject, agent_outputs: list[AgentOutput]) -> Less
     Call Gemini once with all agent outputs to produce the chairman summary.
     Assembles and returns the final LessonDocument.
     """
-    model = _get_gemini_model()
-    if model is None:
-        raise RuntimeError("GOOGLE_API_KEY not set.")
+    client = _get_groq_client()
+    if client is None:
+        raise RuntimeError("GROQ_API_KEY not set.")
 
-    # Build the chairman prompt
     agents_text = "\n\n".join(
         f"=== {ao.agent_name.replace('_', ' ').title()} ===\n{ao.content}"
         for ao in agent_outputs
@@ -152,11 +151,18 @@ async def synthesize(song: SongObject, agent_outputs: list[AgentOutput]) -> Less
         f"Song: {song.song_title} by {song.artist}\n\n"
         f"{agents_text}"
     )
-    full_prompt = f"{_CHAIRMAN_PROMPT}\n\n{chairman_user}"
 
     try:
-        response = await model.generate_content_async(full_prompt)
-        summary = response.text.strip()
+        response = await client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": _CHAIRMAN_PROMPT},
+                {"role": "user", "content": chairman_user},
+            ],
+            temperature=0.7,
+            max_tokens=400,
+        )
+        summary = response.choices[0].message.content.strip()
     except Exception as exc:
         logger.error("Chairman synthesis failed: %s", exc)
         summary = "Lesson summary unavailable."
