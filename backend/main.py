@@ -3,6 +3,13 @@ from __future__ import annotations
 import json
 import logging
 import sys
+
+# Load .env file if present (local dev convenience — production uses real env vars)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 import tempfile
 import time
 import uuid
