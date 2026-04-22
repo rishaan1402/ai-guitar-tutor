@@ -48,10 +48,30 @@ class AgentOutput(BaseModel):
 # Lesson Document — produced by chairman, returned to frontend
 # ---------------------------------------------------------------------------
 
+class FingeringPosition(BaseModel):
+    """A single finger placement on the fretboard."""
+    string: int                     # 1 (high e) – 6 (low E)
+    fret: int = 0                   # 0 = open string
+    note: str = ""                  # note name, e.g. "A"
+    finger: Optional[int] = None    # 1–4, None for open/mute
+    action: Optional[str] = None    # "mute" if string is muted
+
+
+class ChordRankEntry(BaseModel):
+    """Per-chord progress rank returned after lesson revision."""
+    chord_key: str
+    symbol: str
+    best_score: float   # 0.0–1.0, -1.0 if untouched
+    attempts: int
+    status: str         # "solid" | "needs_work" | "untouched"
+
+
 class PracticeChord(BaseModel):
     symbol: str               # chord symbol as it appears in the song (e.g. "Am7")
     available_in_app: bool    # True if a matching chord lesson exists in the app
     chord_key: Optional[str]  # snake_case key into existing lesson system (e.g. "A_minor7")
+    chord_function: str = ""  # e.g. "ii chord in G major" (from SongObject.chords)
+    positions: list[FingeringPosition] = []  # fretboard positions, embedded at generate time
 
 
 class SongSection(BaseModel):
@@ -76,6 +96,7 @@ class LessonDocument(BaseModel):
     tempo_feel: str = ""
     song_sections: list[SongSection] = []
     chord_functions: dict[str, str] = {}
+    chord_ranking: list[ChordRankEntry] = []  # populated after /practice/revise
 
 
 # ---------------------------------------------------------------------------

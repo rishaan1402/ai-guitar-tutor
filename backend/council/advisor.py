@@ -107,7 +107,11 @@ Original practice plan:
         except Exception as exc:
             logger.warning("Lesson revision failed: %s", exc)
 
-    # Return a copy of the lesson with updated practice plan
-    updated = session.lesson.model_copy(update={"practice_plan": revised_plan})
+    # Return a copy of the lesson with updated practice plan + structured ranking
+    ranking = session.chord_ranking()
+    updated = session.lesson.model_copy(update={
+        "practice_plan": revised_plan,
+        "chord_ranking": ranking,
+    })
     session.lesson = updated
     return updated

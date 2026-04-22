@@ -36,6 +36,7 @@ from auth.profile_context import build_user_context
 from progress.router import router as progress_router
 from teacher.router import router as teacher_router
 from admin.router import router as admin_router
+from personalization.router import router as plan_router
 from db.engine import get_db
 
 logging.basicConfig(
@@ -132,6 +133,7 @@ app.include_router(auth_router)
 app.include_router(progress_router)
 app.include_router(teacher_router)
 app.include_router(admin_router)
+app.include_router(plan_router)
 
 
 class LearnChordRequest(BaseModel):

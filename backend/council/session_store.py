@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Optional
 
-from council.schemas import SongObject, LessonDocument, QuizResponse
+from council.schemas import SongObject, LessonDocument, QuizResponse, ChordRankEntry
 
 SESSION_TTL = 7200  # 2 hours
 
@@ -34,6 +34,33 @@ class LessonSession:
     def best_score(self, chord_key: str) -> Optional[float]:
         scores = self.chord_scores.get(chord_key, [])
         return max(scores) if scores else None
+
+    def chord_ranking(self) -> list[ChordRankEntry]:
+        """Ranked list of practice chords by performance — used by revise endpoint."""
+        entries: list[ChordRankEntry] = []
+        for chord in self.lesson.practice_chords:
+            if not chord.chord_key or not chord.available_in_app:
+                continue
+            scores = self.chord_scores.get(chord.chord_key, [])
+            best = max(scores) if scores else -1.0
+            attempts = len(scores)
+            if attempts == 0:
+                status = "untouched"
+            elif best >= 0.70:
+                status = "solid"
+            else:
+                status = "needs_work"
+            entries.append(ChordRankEntry(
+                chord_key=chord.chord_key,
+                symbol=chord.symbol,
+                best_score=round(best, 3),
+                attempts=attempts,
+                status=status,
+            ))
+        # Sort: needs_work first, then untouched, then solid
+        order = {"needs_work": 0, "untouched": 1, "solid": 2}
+        entries.sort(key=lambda e: order.get(e.status, 3))
+        return entries
 
     def score_summary(self) -> str:
         """Human-readable summary of all chord scores for prompts."""

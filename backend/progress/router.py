@@ -299,3 +299,89 @@ async def migrate_transitions(
         )
     await db.commit()
     return {"status": "imported", "count": len(body.results)}
+
+
+# ---------------------------------------------------------------------------
+# Calendar heatmap — last 365 days of practice activity
+# ---------------------------------------------------------------------------
+
+class CalendarDay(BaseModel):
+    date: str          # ISO date string "2024-04-22"
+    attempts: int
+    avg_score: float
+
+
+@router.get("/calendar", response_model=list[CalendarDay])
+async def get_calendar(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """365-day activity feed for the GitHub-style heatmap."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=365)
+    rows = await db.execute(
+        select(
+            func.date(ChordAttempt.created_at).label("day"),
+            func.count().label("attempts"),
+            func.avg(ChordAttempt.score).label("avg_score"),
+        )
+        .where(ChordAttempt.user_id == user.id, ChordAttempt.created_at >= cutoff)
+        .group_by(func.date(ChordAttempt.created_at))
+        .order_by(func.date(ChordAttempt.created_at))
+    )
+    result = []
+    for row in rows.all():
+        day = row.day
+        if isinstance(day, str):
+            day_str = day[:10]
+        elif isinstance(day, datetime):
+            day_str = day.date().isoformat()
+        else:
+            day_str = str(day)
+        result.append(CalendarDay(
+            date=day_str,
+            attempts=row.attempts,
+            avg_score=round(float(row.avg_score or 0), 3),
+        ))
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Chord history drill-down — full attempt timeline for one chord
+# ---------------------------------------------------------------------------
+
+class ChordAttemptItem(BaseModel):
+    id: str
+    score: float
+    missing_notes: list[str]
+    extra_notes: list[str]
+    issue: str | None
+    feedback_text: str
+    created_at: str
+
+
+@router.get("/chord/{chord_name}/history", response_model=list[ChordAttemptItem])
+async def get_chord_history(
+    chord_name: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Full attempt timeline for a single chord — used by the drill-down page."""
+    rows = await db.execute(
+        select(ChordAttempt)
+        .where(ChordAttempt.user_id == user.id, ChordAttempt.chord_name == chord_name)
+        .order_by(ChordAttempt.created_at.asc())
+        .limit(200)
+    )
+    attempts = rows.scalars().all()
+    return [
+        ChordAttemptItem(
+            id=str(a.id),
+            score=round(float(a.score), 3),
+            missing_notes=a.missing_notes or [],
+            extra_notes=a.extra_notes or [],
+            issue=a.issue,
+            feedback_text=a.feedback_text or "",
+            created_at=a.created_at.isoformat() if a.created_at else "",
+        )
+        for a in attempts
+    ]
