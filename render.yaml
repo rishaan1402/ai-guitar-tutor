@@ -1,0 +1,34 @@
+databases:
+  - name: guitar-tutor-db
+    databaseName: guitar_tutor
+    user: guitar
+    plan: free          # free tier: 1 GB storage, expires after 90 days
+    region: oregon
+
+services:
+  - type: web
+    name: guitar-tutor-backend
+    runtime: python
+    region: oregon
+    plan: free          # free tier: spins down after 15 min inactivity
+    rootDir: backend    # Render cd's here before build/start
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash start.sh
+    healthCheckPath: /
+    envVars:
+      # Injected automatically from the database above
+      - key: DATABASE_URL
+        fromDatabase:
+          name: guitar-tutor-db
+          property: connectionString
+
+      # Auto-generated 256-bit secret on first deploy — never changes after that
+      - key: JWT_SECRET_KEY
+        generateValue: true
+
+      # Set this manually in the Render dashboard after deploy
+      - key: GROQ_API_KEY
+        sync: false
+
+      - key: PYTHON_VERSION
+        value: 3.12.0

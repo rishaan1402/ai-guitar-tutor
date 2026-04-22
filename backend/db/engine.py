@@ -12,7 +12,18 @@ from sqlalchemy.orm import DeclarativeBase
 
 # Falls back to a local SQLite for local dev without docker
 _DEFAULT_URL = "sqlite+aiosqlite:///./guitar_tutor.db"
-DATABASE_URL = os.environ.get("DATABASE_URL", _DEFAULT_URL)
+_raw_url = os.environ.get("DATABASE_URL", _DEFAULT_URL)
+
+# Render (and Heroku) provide postgres:// or postgresql:// URLs.
+# asyncpg requires the postgresql+asyncpg:// scheme.
+def _normalize_db_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql://") and "+asyncpg" not in url:
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    return url
+
+DATABASE_URL = _normalize_db_url(_raw_url)
 
 engine = create_async_engine(
     DATABASE_URL,
