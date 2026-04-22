@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 
 # Load .env file if present (local dev convenience — production uses real env vars)
@@ -106,9 +107,20 @@ def _resolve_session(session_id: Optional[str]) -> Tuple[str, TutorAgent]:
 # ---------------------------------------------------------------------------
 app = FastAPI(title="AI Guitar Tutor", version="1.0.0")
 
+# CORS — read allowed origins from env so production can lock to Vercel domain.
+# Set ALLOWED_ORIGINS=https://your-app.vercel.app on Render after first deploy.
+# Falls back to * for local dev (when env var is absent or empty).
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "")
+_allowed_origins: list[str] = (
+    [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    if _raw_origins.strip()
+    else ["*"]
+)
+logger.info("CORS allowed origins: %s", _allowed_origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

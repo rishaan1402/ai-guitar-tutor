@@ -8,6 +8,12 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-secret-change-in-production-use-64-chars")
+if SECRET_KEY == "dev-secret-change-in-production-use-64-chars":
+    import warnings
+    warnings.warn(
+        "JWT_SECRET_KEY is using the default dev value — set a real secret in production!",
+        stacklevel=1,
+    )
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
