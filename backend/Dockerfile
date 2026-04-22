@@ -17,4 +17,8 @@ COPY data/ /data/
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# start.sh runs `alembic upgrade head` then starts uvicorn
+COPY backend/start.sh .
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]

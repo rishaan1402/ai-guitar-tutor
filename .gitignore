@@ -1,5 +1,12 @@
 .DS_Store
 
+# Secrets — never commit
+.env
+*.env
+
+# SQLite local dev DB
+backend/*.db
+
 # Python
 __pycache__/
 *.py[cod]
@@ -27,6 +34,9 @@ pnpm-debug.log*
 
 # Local runtime artifacts
 *.log
+
+# TypeScript build info
+*.tsbuildinfo
 
 # Large lesson assets (keep metadata in git, store media elsewhere)
 data/lessons/**/lesson.mp4
