@@ -13,6 +13,7 @@ import SongCouncil from "@/components/SongCouncil";
 import type { SongCouncilContext } from "@/components/SongCouncil";
 import MetronomeWidget from "@/components/MetronomeWidget";
 import TransitionTrainer from "@/components/TransitionTrainer";
+import NavBar from "@/components/NavBar";
 import {
   learnChord,
   submitAudio,
@@ -243,6 +244,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
+      <NavBar />
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <header className="text-center space-y-2" style={{ animation: "fade-in-up 0.4s ease-out both" }}>

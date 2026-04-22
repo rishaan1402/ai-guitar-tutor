@@ -90,6 +90,7 @@ class FeedbackGenerator:
         attempt: int = 1,
         score_history: Optional[List[float]] = None,
         fingering_positions: Optional[List[Dict[str, Any]]] = None,
+        user_context: str = "",
     ) -> str:
         """
         Generate feedback text from an evaluation result.
@@ -111,7 +112,8 @@ class FeedbackGenerator:
                 import asyncio
                 return asyncio.get_event_loop().run_until_complete(
                     self._generate_with_groq(
-                        client, evaluation, chord_name, attempt, score_history, fingering_positions
+                        client, evaluation, chord_name, attempt, score_history,
+                        fingering_positions, user_context
                     )
                 )
             except Exception as e:
@@ -127,6 +129,7 @@ class FeedbackGenerator:
         attempt: int,
         score_history: Optional[List[float]],
         fingering_positions: Optional[List[Dict[str, Any]]],
+        user_context: str = "",
     ) -> str:
         score: float = evaluation.get("score", 0.0)
         detected: List[str] = evaluation.get("detected_notes", [])
@@ -180,9 +183,14 @@ Mention specific fingers, strings or frets if you have that information. \
 If the score is improving across attempts, acknowledge the progress. \
 Keep it encouraging and actionable. Do not use markdown or bullet points."""
 
+        messages = []
+        if user_context:
+            messages.append({"role": "system", "content": f"You are a guitar tutor.\n\n{user_context}"})
+        messages.append({"role": "user", "content": prompt})
+
         response = await client.chat.completions.create(
             model=GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             temperature=0.7,
             max_tokens=120,
         )

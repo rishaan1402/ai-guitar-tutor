@@ -9,10 +9,11 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -21,6 +22,13 @@ from feedback_engine import FeedbackGenerator
 from lesson_service import LessonService
 from tutor_agent import TutorAgent
 from council.router import router as council_router
+from auth.router import router as auth_router
+from auth.dependencies import get_current_user_optional
+from auth.profile_context import build_user_context
+from progress.router import router as progress_router
+from teacher.router import router as teacher_router
+from admin.router import router as admin_router
+from db.engine import get_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -101,6 +109,10 @@ app.add_middleware(
 )
 
 app.include_router(council_router)
+app.include_router(auth_router)
+app.include_router(progress_router)
+app.include_router(teacher_router)
+app.include_router(admin_router)
 
 
 class LearnChordRequest(BaseModel):
@@ -183,6 +195,8 @@ def learn_chord(
 async def submit_audio(
     audio: UploadFile = File(...),
     x_session_id: Optional[str] = Header(None),
+    user=Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """Accept audio recording and return evaluation feedback."""
     sid, agent = _resolve_session(x_session_id)
@@ -199,12 +213,32 @@ async def submit_audio(
         tmp.write(contents)
         tmp_path = tmp.name
 
-    result = agent.submit_audio(tmp_path)
+    # Build user profile context for personalized feedback
+    user_context = await build_user_context(db, user.id if user else None)
+    result = agent.submit_audio(tmp_path, user_context=user_context)
 
     try:
         Path(tmp_path).unlink()
     except OSError:
         pass
+
+    # Persist chord attempt for authenticated users
+    if user is not None:
+        eval_data = result.get("evaluation", {})
+        if isinstance(eval_data, dict) and eval_data.get("score") is not None:
+            from db.models import ChordAttempt
+            feedback_text = result.get("feedback", "")
+            db.add(ChordAttempt(
+                user_id=user.id,
+                chord_name=agent.current_chord or "unknown",
+                score=float(eval_data.get("score", 0.0)),
+                detected_notes=eval_data.get("detected_notes", []),
+                missing_notes=eval_data.get("missing_notes", []),
+                extra_notes=eval_data.get("extra_notes", []),
+                issue=eval_data.get("issue"),
+                feedback_text=feedback_text,
+            ))
+            await db.commit()
 
     # Inject analysis summary and fingering tips
     eval_data = result.get("evaluation", {})

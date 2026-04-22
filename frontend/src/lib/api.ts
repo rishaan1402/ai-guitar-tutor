@@ -1,3 +1,5 @@
+import { getAccessToken, refreshAccessToken, setTokens, clearTokens } from "./auth";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 let sessionId: string | null = null;
@@ -9,11 +11,30 @@ function getSessionId(): string {
   return sessionId;
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(path: string, options?: RequestInit, retry = true): Promise<T> {
   const headers = new Headers(options?.headers);
   headers.set("X-Session-Id", getSessionId());
 
+  const token = getAccessToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  // If 401 and we haven't retried yet, try to refresh the token
+  if (res.status === 401 && retry) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      return request<T>(path, options, false);
+    }
+    // Refresh failed — redirect to login
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    throw new Error("Session expired. Please log in again.");
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || `Request failed: ${res.status}`);
@@ -76,6 +97,176 @@ export interface ChordFingering {
 
 export function getFingering(chord: string): Promise<ChordFingering> {
   return request(`/fingering/${encodeURIComponent(chord)}`);
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  display_name: string;
+  role: string;
+  skill_level: string;
+  created_at: string;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+}
+
+export async function signup(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<{ tokens: TokenResponse; user: UserResponse }> {
+  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, display_name: displayName }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `Signup failed: ${res.status}`);
+  }
+  const tokens: TokenResponse = await res.json();
+  setTokens(tokens.access_token, tokens.refresh_token);
+  const user = await getMe();
+  return { tokens, user };
+}
+
+export async function login(
+  email: string,
+  password: string
+): Promise<{ tokens: TokenResponse; user: UserResponse }> {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `Login failed: ${res.status}`);
+  }
+  const tokens: TokenResponse = await res.json();
+  setTokens(tokens.access_token, tokens.refresh_token);
+  const user = await getMe();
+  return { tokens, user };
+}
+
+export function getMe(): Promise<UserResponse> {
+  return request("/api/auth/me");
+}
+
+export function updateProfile(data: {
+  display_name?: string;
+  skill_level?: string;
+}): Promise<UserResponse> {
+  return request("/api/auth/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await request("/api/auth/logout", { method: "POST" });
+  } catch {
+    // ignore errors on logout
+  }
+  clearTokens();
+}
+
+// ---------------------------------------------------------------------------
+// Progress (authenticated)
+// ---------------------------------------------------------------------------
+
+export interface ChordProgressItem {
+  chord_name: string;
+  best_score: number;
+  total_attempts: number;
+  mastered: boolean;
+  last_practiced: string | null;
+  streak_days: number;
+}
+
+export interface ProgressResponse {
+  chords: ChordProgressItem[];
+  overall_streak: number;
+  total_attempts: number;
+  mastered_count: number;
+}
+
+export function getProgress(): Promise<ProgressResponse> {
+  return request("/api/progress/");
+}
+
+export interface TransitionHistoryItem {
+  id: string;
+  chord_a: string;
+  chord_b: string;
+  chord_a_symbol: string;
+  chord_b_symbol: string;
+  tpm: number;
+  got_count: number;
+  miss_count: number;
+  created_at: string;
+}
+
+export function getTransitionHistory(): Promise<TransitionHistoryItem[]> {
+  return request("/api/progress/transitions");
+}
+
+export function saveTransitionDrill(data: {
+  chord_a: string;
+  chord_b: string;
+  chord_a_symbol: string;
+  chord_b_symbol: string;
+  tpm: number;
+  got_count: number;
+  miss_count: number;
+}): Promise<{ id: string }> {
+  return request("/api/progress/transitions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function migrateProgress(data: {
+  chord_name: string;
+  best_score: number;
+  total_attempts: number;
+  last_practiced: string | null;
+}): Promise<{ imported: boolean }> {
+  return request("/api/progress/migrate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function migrateTransitions(
+  items: {
+    chord_a: string;
+    chord_b: string;
+    chord_a_symbol: string;
+    chord_b_symbol: string;
+    tpm: number;
+    got_count: number;
+    miss_count: number;
+    date: string;
+  }[]
+): Promise<{ imported: number }> {
+  return request("/api/progress/migrate-transitions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -175,4 +366,105 @@ export function getQuiz(lessonId: string): Promise<QuizResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lesson_id: lessonId }),
   });
+}
+
+// ---------------------------------------------------------------------------
+// Teacher
+// ---------------------------------------------------------------------------
+
+export interface StudentSummary {
+  id: string;
+  display_name: string;
+  email: string;
+  skill_level: string;
+  total_attempts: number;
+  mastered_count: number;
+  avg_score: number;
+  last_active: string | null;
+}
+
+export interface StudentProgress {
+  user: UserResponse;
+  chords: ChordProgressItem[];
+  transitions: TransitionHistoryItem[];
+}
+
+export function getStudents(page = 1, perPage = 20): Promise<StudentSummary[]> {
+  return request(`/api/teacher/students?page=${page}&per_page=${perPage}`);
+}
+
+export function getStudentProgress(studentId: string): Promise<StudentProgress> {
+  return request(`/api/teacher/students/${studentId}/progress`);
+}
+
+export function getStudentReport(studentId: string): Promise<{ report: string }> {
+  return request(`/api/teacher/students/${studentId}/report`);
+}
+
+export interface ClassAnalytics {
+  most_practiced: { chord_name: string; total_attempts: number }[];
+  lowest_avg_score: { chord_name: string; avg_score: number }[];
+  total_students: number;
+}
+
+export function getClassAnalytics(): Promise<ClassAnalytics> {
+  return request("/api/teacher/analytics");
+}
+
+export function assignChord(data: {
+  student_id: string;
+  chord_name: string;
+  note?: string;
+}): Promise<{ id: string }> {
+  return request("/api/teacher/assign", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  display_name: string;
+  role: string;
+  skill_level: string;
+  created_at: string;
+}
+
+export interface SystemStats {
+  total_users: number;
+  users_by_role: Record<string, number>;
+  total_chord_attempts: number;
+  total_transition_drills: number;
+}
+
+export function getAdminUsers(
+  page = 1,
+  perPage = 20,
+  role?: string
+): Promise<AdminUser[]> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+  if (role) params.set("role", role);
+  return request(`/api/admin/users?${params}`);
+}
+
+export function updateUserRole(userId: string, role: string): Promise<{ id: string; role: string }> {
+  return request(`/api/admin/users/${userId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ role }),
+  });
+}
+
+export function deleteUser(userId: string): Promise<void> {
+  return request(`/api/admin/users/${userId}`, { method: "DELETE" });
+}
+
+export function getSystemStats(): Promise<SystemStats> {
+  return request("/api/admin/stats");
 }

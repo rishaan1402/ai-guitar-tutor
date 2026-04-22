@@ -76,7 +76,7 @@ def _fallback_quiz(lesson_title: str) -> QuizResponse:
     ])
 
 
-async def generate_quiz(session: LessonSession) -> QuizResponse:
+async def generate_quiz(session: LessonSession, user_context: str = "") -> QuizResponse:
     """
     Generate 3 MCQ questions from the lesson content.
     Result is cached on the session to avoid re-generation.
@@ -105,11 +105,16 @@ async def generate_quiz(session: LessonSession) -> QuizResponse:
         session.cached_quiz = quiz
         return quiz
 
+    quiz_system = (
+        f"{user_context}\n\nAdapt question difficulty to this student's level.\n\n{_QUIZ_SYSTEM}"
+        if user_context else _QUIZ_SYSTEM
+    )
+
     try:
         response = await client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[
-                {"role": "system", "content": _QUIZ_SYSTEM},
+                {"role": "system", "content": quiz_system},
                 {"role": "user", "content": lesson_text},
             ],
             temperature=0.6,

@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { getFingering } from "@/lib/api";
 import type { ChordFingering } from "@/lib/api";
 import { detectPeaks, stabilizeNotes } from "@/lib/noteDetection";
-import { useMetronome } from "@/lib/useMetronome";
 import { saveTransitionResult, getTransitionStats } from "@/lib/transitionHistory";
 import MetronomeWidget from "./MetronomeWidget";
 import ChordDiagram from "./ChordDiagram";
@@ -43,8 +42,6 @@ export default function TransitionTrainer() {
   const [fingeringB, setFingeringB] = useState<ChordFingering | null>(null);
   const [pastStats, setPastStats] = useState<{ tpm: number; date: string }[]>([]);
 
-  const [metState, metControls] = useMetronome(80);
-
   // Refs for scoring — avoids stale closure in endSession() called from setInterval
   const gotCountRef = useRef(0);
   const missCountRef = useRef(0);
@@ -82,9 +79,8 @@ export default function TransitionTrainer() {
   const stopSession = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     if (switchTimerRef.current) { clearInterval(switchTimerRef.current); switchTimerRef.current = null; }
-    metControls.stop();
     closeMic();
-  }, [closeMic, metControls]);
+  }, [closeMic]);
 
   useEffect(() => {
     return () => { stopSession(); };
@@ -155,7 +151,6 @@ export default function TransitionTrainer() {
     // Reset refs — the timer's endSession closure reads these, not state
     gotCountRef.current = 0;
     missCountRef.current = 0;
-    metControls.start();
 
     // Main countdown timer
     let remaining = SESSION_DURATION;

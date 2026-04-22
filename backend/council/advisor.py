@@ -27,7 +27,7 @@ Write a revised practice plan (200-250 words) that:
 Be honest but encouraging. Name the actual chord symbols."""
 
 
-async def get_tip(request: TipRequest, session: LessonSession) -> str:
+async def get_tip(request: TipRequest, session: LessonSession, user_context: str = "") -> str:
     """
     Generate a 1-2 sentence adaptive tip after a single chord attempt.
     Falls back to a plain string if Groq is unavailable.
@@ -55,11 +55,13 @@ Score history for this chord: [{history_str}]
 All chord progress so far:
 {session.score_summary()}"""
 
+    system = f"{user_context}\n\n{_TIP_SYSTEM}" if user_context else _TIP_SYSTEM
+
     try:
         response = await client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[
-                {"role": "system", "content": _TIP_SYSTEM},
+                {"role": "system", "content": system},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.7,
@@ -71,7 +73,7 @@ All chord progress so far:
         return f"Score: {score_pct}% on {request.chord_symbol}. Keep practising!"
 
 
-async def revise_lesson(session: LessonSession) -> LessonDocument:
+async def revise_lesson(session: LessonSession, user_context: str = "") -> LessonDocument:
     """
     After all chords attempted at least once, generate a revised practice plan.
     Returns an updated LessonDocument with the new practice_plan field.
@@ -88,13 +90,14 @@ Original practice plan:
 {session.lesson.practice_plan}"""
 
     revised_plan = session.lesson.practice_plan  # fallback
+    revise_system = f"{user_context}\n\n{_REVISE_SYSTEM}" if user_context else _REVISE_SYSTEM
 
     if client is not None:
         try:
             response = await client.chat.completions.create(
                 model=GROQ_MODEL,
                 messages=[
-                    {"role": "system", "content": _REVISE_SYSTEM},
+                    {"role": "system", "content": revise_system},
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.7,

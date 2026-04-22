@@ -100,7 +100,7 @@ class TutorAgent:
             "message": f"Watch the lesson video, then play the {chord_name} chord.",
         }
 
-    def submit_audio(self, audio_path: str) -> Dict[str, Any]:
+    def submit_audio(self, audio_path: str, user_context: str = "") -> Dict[str, Any]:
         """
         Accept a user's audio recording for evaluation.
 
@@ -133,6 +133,7 @@ class TutorAgent:
             attempt=self._attempt_count,
             score_history=list(self._score_history),
             fingering_positions=list(self._fingering_positions),
+            user_context=user_context,
         )
 
         if evaluation.score >= 1.0:

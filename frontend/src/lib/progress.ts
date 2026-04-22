@@ -1,3 +1,6 @@
+import { getAccessToken } from "./auth";
+import { getProgress, type ProgressResponse, type ChordProgressItem } from "./api";
+
 const STORAGE_KEY = "guitar-tutor-progress";
 
 export interface ChordProgress {
@@ -27,7 +30,11 @@ function defaultProgress(): ProgressData {
   return { chords: {}, practiceStreak: 0, lastPracticeDate: null };
 }
 
-export function loadProgress(): ProgressData {
+// ---------------------------------------------------------------------------
+// localStorage helpers (anonymous mode)
+// ---------------------------------------------------------------------------
+
+export function loadProgressLocal(): ProgressData {
   if (typeof window === "undefined") return defaultProgress();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -43,8 +50,58 @@ export function saveProgress(data: ProgressData): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+// ---------------------------------------------------------------------------
+// Dual-mode: API if authenticated, localStorage otherwise
+// ---------------------------------------------------------------------------
+
+/** Convert API response to the local ProgressData shape. */
+function apiToProgressData(apiData: ProgressResponse): ProgressData {
+  const chords: Record<string, ChordProgress> = {};
+  for (const c of apiData.chords) {
+    const status: ChordProgress["status"] = c.mastered
+      ? "mastered"
+      : c.total_attempts > 0
+      ? "in_progress"
+      : "not_attempted";
+    chords[c.chord_name] = {
+      bestScore: c.best_score,
+      totalAttempts: c.total_attempts,
+      lastPracticedDate: c.last_practiced ?? today(),
+      status,
+    };
+  }
+  return {
+    chords,
+    practiceStreak: apiData.overall_streak,
+    lastPracticeDate: null,
+  };
+}
+
+/**
+ * Load progress — from API if logged in, from localStorage otherwise.
+ * For backward compatibility with components that call this synchronously,
+ * this returns localStorage data immediately.
+ * Components that want the live API data should call loadProgressAsync().
+ */
+export function loadProgress(): ProgressData {
+  return loadProgressLocal();
+}
+
+/** Async version — fetches from API when authenticated. */
+export async function loadProgressAsync(): Promise<ProgressData> {
+  if (typeof window !== "undefined" && getAccessToken()) {
+    try {
+      const apiData = await getProgress();
+      return apiToProgressData(apiData);
+    } catch {
+      // fall through to localStorage
+    }
+  }
+  return loadProgressLocal();
+}
+
 export function recordAttempt(chord: string, score: number): ProgressData {
-  const data = loadProgress();
+  const data = loadProgressLocal();
   const existing = data.chords[chord];
   const todayStr = today();
 
@@ -69,7 +126,7 @@ export function recordAttempt(chord: string, score: number): ProgressData {
 }
 
 export function getChordStatus(chord: string): ChordProgress["status"] {
-  const data = loadProgress();
+  const data = loadProgressLocal();
   return data.chords[chord]?.status || "not_attempted";
 }
 
@@ -94,3 +151,6 @@ export function getProgressSummary(data: ProgressData): {
     masteredCount,
   };
 }
+
+// Re-export API type for convenience
+export type { ChordProgressItem, ProgressResponse };
