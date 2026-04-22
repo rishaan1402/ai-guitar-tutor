@@ -38,6 +38,6 @@ pnpm-debug.log*
 # TypeScript build info
 *.tsbuildinfo
 
-# Large lesson assets (keep metadata in git, store media elsewhere)
-data/lessons/**/lesson.mp4
-data/lessons/**/reference.wav
+# Large lesson assets — tracked in git (small placeholder files, ~11MB total)
+# data/lessons/**/lesson.mp4
+# data/lessons/**/reference.wav
