@@ -10,7 +10,7 @@ export { _useReducedMotion as useReducedMotion };
 
 export const fadeInUp = {
   hidden:  { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 };
 
 export const fadeIn = {
@@ -39,8 +39,8 @@ export const cardEntrance = {
 
 export const slideInRight = {
   hidden:  { opacity: 0, x: 40 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } },
-  exit:    { opacity: 0, x: 40, transition: { duration: 0.2, ease: "easeIn" } },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+  exit:    { opacity: 0, x: 40, transition: { duration: 0.2 } },
 };
 
 // ── Scale pop (score ring, badges) ───────────────────────────────────────────

@@ -3,11 +3,13 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
 import { getChordHistory } from "@/lib/api";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { fadeInUp, staggerContainer } from "@/lib/motion";
 import useSWR from "swr";
 
 function ChordDetailContent({ chordName }: { chordName: string }) {
@@ -71,9 +73,14 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
     .slice(0, 3);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Stats cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4">
         <div className="glass-card p-4">
           <p className="text-xs text-gray-400 uppercase">Best Score</p>
           <p className="text-3xl font-bold text-green-400 mt-2">{(bestScore * 100).toFixed(0)}%</p>
@@ -86,10 +93,10 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
           <p className="text-xs text-gray-400 uppercase">Latest Score</p>
           <p className="text-3xl font-bold text-cyan-400 mt-2">{(latestScore * 100).toFixed(0)}%</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Score trend chart */}
-      <div className="glass-card p-6">
+      <motion.div variants={fadeInUp} className="glass-card p-6">
         <SectionHeader title="Score Trend" subtitle="Your performance over time" />
         <div className="flex items-end gap-1 h-32 mt-4">
           {attempts.map((attempt, idx) => (
@@ -113,11 +120,11 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
           {attempts.length} total attempt{attempts.length > 1 ? "s" : ""} •{" "}
           {Math.round((scores.filter((s) => s >= 0.8).length / scores.length) * 100)}% mastery rate
         </p>
-      </div>
+      </motion.div>
 
       {/* Common issues */}
       {topIssues.length > 0 && (
-        <div className="glass-card p-6">
+        <motion.div variants={fadeInUp} className="glass-card p-6">
           <SectionHeader title="Common Issues" subtitle="What to focus on improving" />
           <div className="space-y-2 mt-4">
             {topIssues.map(([issue, count]) => (
@@ -127,12 +134,12 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Most commonly missed notes */}
       {topMissingNotes.length > 0 && (
-        <div className="glass-card p-6">
+        <motion.div variants={fadeInUp} className="glass-card p-6">
           <SectionHeader title="Most Commonly Missed Notes" subtitle="Notes to practice more" />
           <div className="flex flex-wrap gap-2 mt-4">
             {topMissingNotes.map(([note, count]) => (
@@ -149,11 +156,11 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
               </span>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Detailed attempt timeline */}
-      <div className="glass-card p-6">
+      <motion.div variants={fadeInUp} className="glass-card p-6">
         <SectionHeader title="Attempt Timeline" subtitle="Complete history of this chord" />
         <div className="space-y-2 mt-4 max-h-96 overflow-y-auto">
           {attempts
@@ -227,8 +234,8 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
               </div>
             ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -254,18 +261,23 @@ export default function ChordDetailPage() {
 
   return (
     <AppShell>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
+      <motion.div
+        className="max-w-4xl mx-auto space-y-6"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={fadeInUp} className="flex items-center gap-4">
           <Link href="/progress" className="text-gray-400 hover:text-white transition-colors">
             ← Back to Progress
           </Link>
           <h1 className="text-3xl font-bold gradient-text">{decodedChordName}</h1>
-        </div>
+        </motion.div>
 
         <Suspense fallback={<LoadingSkeleton />}>
           <ChordDetailContent chordName={decodedChordName} />
         </Suspense>
-      </div>
+      </motion.div>
     </AppShell>
   );
 }

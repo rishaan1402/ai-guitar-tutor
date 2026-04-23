@@ -2,12 +2,14 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { getProgress, getCalendar } from "@/lib/api";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { fadeInUp, staggerContainer } from "@/lib/motion";
 import useSWR from "swr";
 
 function CalendarHeatmap() {
@@ -224,39 +226,44 @@ export default function ProgressPage() {
 
   return (
     <AppShell>
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div>
+      <motion.div
+        className="max-w-6xl mx-auto space-y-8"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={fadeInUp}>
           <h1 className="text-3xl font-bold gradient-text">Your Progress</h1>
           <p className="text-gray-400 mt-2">Track your journey to guitar mastery</p>
-        </div>
+        </motion.div>
 
-        <Suspense fallback={<LoadingSkeleton />}>
-          <StatsOverview />
-        </Suspense>
+        <motion.div variants={fadeInUp}>
+          <Suspense fallback={<LoadingSkeleton />}>
+            <StatsOverview />
+          </Suspense>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-3">
             <Suspense fallback={<LoadingSkeleton />}>
               <CalendarHeatmap />
             </Suspense>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Suspense fallback={<LoadingSkeleton />}>
             <SkillMeter skillLevel={user.skill_level} />
           </Suspense>
-        </div>
+        </motion.div>
 
-        <Suspense fallback={<LoadingSkeleton />}>
-          <div className="space-y-4">
-            <SectionHeader title="All Practiced Chords" subtitle="Click any chord to see detailed history" />
-            <Suspense fallback={<LoadingSkeleton />}>
-              <ProgressContent />
-            </Suspense>
-          </div>
-        </Suspense>
-      </div>
+        <motion.div variants={fadeInUp} className="space-y-4">
+          <SectionHeader title="All Practiced Chords" subtitle="Click any chord to see detailed history" />
+          <Suspense fallback={<LoadingSkeleton />}>
+            <ProgressContent />
+          </Suspense>
+        </motion.div>
+      </motion.div>
     </AppShell>
   );
 }
