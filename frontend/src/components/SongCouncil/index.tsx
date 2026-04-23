@@ -11,7 +11,7 @@ import {
 } from "@/lib/api";
 import SongSearchBar from "./SongSearchBar";
 import CouncilProgress from "./CouncilProgress";
-import LessonSuite from "./LessonSuite";
+import { IntegratedLessonView } from "./IntegratedLessonView";
 
 interface SongCouncilProps {
   onPracticeChord: (chordKey: string, lessonContext: SongCouncilContext) => void;
@@ -124,7 +124,7 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
 
       {lesson && !loading && (
         <div className="mt-8">
-          <LessonSuite
+          <IntegratedLessonView
             lesson={lesson}
             chordScores={chordScores}
             chordScoreHistory={chordScoreHistory}

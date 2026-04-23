@@ -273,10 +273,20 @@ export function migrateTransitions(
 // Song Learning Council
 // ---------------------------------------------------------------------------
 
+export interface FingeringPosition {
+  string: number;
+  fret?: number;
+  note?: string;
+  finger?: number;
+  action?: string;
+}
+
 export interface PracticeChord {
   symbol: string;
   available_in_app: boolean;
   chord_key: string | null;
+  positions?: FingeringPosition[];
+  chord_function?: string;
 }
 
 export interface SongSection {
