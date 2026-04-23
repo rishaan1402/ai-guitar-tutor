@@ -4,12 +4,17 @@ import { useState } from "react";
 import NoteComparisonBar from "./NoteComparisonBar";
 import ScoreRing from "./ScoreRing";
 import Confetti from "./Confetti";
+import { FretboardVisualizer } from "./feedback/FretboardVisualizer";
+import { NoteDiffStrip } from "./feedback/NoteDiffStrip";
+import { FingeringTipCard } from "./feedback/FingeringTipCard";
+import type { ChordFingering } from "@/lib/api";
 
 interface Evaluation {
   score: number;
   detected_notes: string[];
   expected_notes: string[];
   missing_notes: string[];
+  extra_notes?: string[];
   issue: string | null;
 }
 
@@ -45,6 +50,11 @@ interface Props {
   fingeringTips?: FingeringTip[];
   scoreHistory?: ScoreEntry[];
   analysis?: Analysis | null;
+  fingering?: ChordFingering | null;
+  skillLevel?: string;
+  onRetry?: () => void;
+  onMoveOn?: () => void;
+  onMarkMastered?: () => void;
 }
 
 function getProgressionMessage(scoreHistory: ScoreEntry[]): string | null {
@@ -82,8 +92,14 @@ export default function FeedbackDisplay({
   fingeringTips,
   scoreHistory,
   analysis,
+  fingering,
+  skillLevel = "intermediate",
+  onRetry,
+  onMoveOn,
+  onMarkMastered,
 }: Props) {
   const [speaking, setSpeaking] = useState(false);
+  const [hoveredNote, setHoveredNote] = useState<string | null>(null);
 
   if (!feedback && !evaluation) return null;
 
@@ -208,23 +224,118 @@ export default function FeedbackDisplay({
         </div>
       )}
 
-      {/* Fingering tips */}
+      {/* Fretboard visualizer */}
+      {evaluation && fingering && (
+        <div>
+          <FretboardVisualizer
+            fingering={fingering}
+            detectedNotes={evaluation.detected_notes}
+            missingNotes={evaluation.missing_notes}
+            extraNotes={evaluation.extra_notes || []}
+          />
+        </div>
+      )}
+
+      {/* Note diff strip */}
+      {evaluation && (
+        <div>
+          <NoteDiffStrip
+            expectedNotes={evaluation.expected_notes}
+            detectedNotes={evaluation.detected_notes}
+            missingNotes={evaluation.missing_notes}
+            extraNotes={evaluation.extra_notes}
+            onNoteHover={setHoveredNote}
+          />
+        </div>
+      )}
+
+      {/* Enhanced fingering tips */}
       {fingeringTips && fingeringTips.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Fix These</h4>
-          <div className="space-y-1.5">
+          <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Fingering Tips</h4>
+          <div className="space-y-2">
             {fingeringTips.map((tip) => (
-              <div
+              <FingeringTipCard
                 key={tip.note}
-                className="glass flex items-center gap-2 text-xs rounded-xl px-3 py-2 border border-white/5"
-              >
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500/20 text-red-300 text-[10px] font-bold shrink-0 border border-red-500/30">
-                  {tip.note}
-                </span>
-                <span className="text-gray-300">{tip.tip}</span>
-              </div>
+                note={tip.note}
+                string={tip.string}
+                fret={tip.fret}
+                finger={tip.finger}
+                tip={tip.tip}
+              />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Next action bar */}
+      {!isCompleted && evaluation && (
+        <div className="border-t border-gray-700 pt-4 space-y-3">
+          {currentScore < 0.7 ? (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400">
+                {skillLevel === "beginner"
+                  ? "Keep practicing! You're building muscle memory."
+                  : "There's still room for improvement. Try again!"}
+              </p>
+              <button
+                onClick={onRetry}
+                className="w-full px-4 py-2 rounded-lg font-semibold text-white transition-all"
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                }}
+              >
+                🎸 Retry This Chord
+              </button>
+            </div>
+          ) : currentScore >= 0.9 ? (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400">
+                {skillLevel === "advanced"
+                  ? "Excellent execution. Ready for more complexity?"
+                  : "Great work! You've mastered this one."}
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={onMarkMastered}
+                  className="px-4 py-2 rounded-lg font-semibold text-white"
+                  style={{
+                    background: "rgba(34,197,94,0.2)",
+                    border: "1px solid rgba(34,197,94,0.5)",
+                    color: "#86efac",
+                  }}
+                >
+                  ✅ Mastered
+                </button>
+                <button
+                  onClick={onMoveOn}
+                  className="px-4 py-2 rounded-lg font-semibold text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                  }}
+                >
+                  → Next
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400">
+                {skillLevel === "beginner"
+                  ? "Nice progress! Keep practicing for consistency."
+                  : "Good progress. Ready to move on?"}
+              </p>
+              <button
+                onClick={onMoveOn}
+                className="w-full px-4 py-2 rounded-lg font-semibold text-white transition-all"
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                }}
+              >
+                → Move On
+              </button>
+            </div>
+          )}
         </div>
       )}
 
