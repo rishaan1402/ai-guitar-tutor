@@ -72,7 +72,7 @@ function apiToProgressData(apiData: ProgressResponse): ProgressData {
   }
   return {
     chords,
-    practiceStreak: apiData.overall_streak,
+    practiceStreak: apiData.practice_streak,
     lastPracticeDate: null,
   };
 }

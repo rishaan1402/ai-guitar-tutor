@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import NavBar from "@/components/NavBar";
+import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { updateProfile, getProgress, type ProgressResponse } from "@/lib/api";
 
@@ -55,9 +55,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <NavBar />
-      <div className="max-w-2xl mx-auto px-4 py-10">
+    <AppShell>
+      <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold text-white mb-8">Your Profile</h1>
 
         {/* Edit form */}
@@ -131,7 +130,7 @@ export default function ProfilePage() {
             <h2 className="text-lg font-semibold text-white mb-4">Practice Stats</h2>
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-indigo-400">{progress.total_attempts}</p>
+                <p className="text-2xl font-bold text-indigo-400">{progress.total_attempted}</p>
                 <p className="text-xs text-gray-400 mt-1">Total Attempts</p>
               </div>
               <div className="text-center">
@@ -139,7 +138,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-400 mt-1">Chords Mastered</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-yellow-400">{progress.overall_streak}</p>
+                <p className="text-2xl font-bold text-yellow-400">{progress.practice_streak}</p>
                 <p className="text-xs text-gray-400 mt-1">Day Streak</p>
               </div>
             </div>
@@ -169,6 +168,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }

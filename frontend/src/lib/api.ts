@@ -196,9 +196,9 @@ export interface ChordProgressItem {
 
 export interface ProgressResponse {
   chords: ChordProgressItem[];
-  overall_streak: number;
-  total_attempts: number;
   mastered_count: number;
+  total_attempted: number;
+  practice_streak: number;
 }
 
 export function getProgress(): Promise<ProgressResponse> {
@@ -467,4 +467,66 @@ export function deleteUser(userId: string): Promise<void> {
 
 export function getSystemStats(): Promise<SystemStats> {
   return request("/api/admin/stats");
+}
+
+// ---------------------------------------------------------------------------
+// Personalization & Progress
+// ---------------------------------------------------------------------------
+
+export interface PlanItem {
+  type: "warmup" | "focus" | "new" | "transition";
+  chord_key?: string;
+  chord_symbol?: string;
+  chord_a?: string;
+  chord_b?: string;
+  chord_a_symbol?: string;
+  chord_b_symbol?: string;
+  description: string;
+  best_score?: number;
+  attempts?: number;
+  difficulty?: string;
+  miss_rate?: number;
+}
+
+export interface DailyPlan {
+  skill_level: string;
+  display_name: string;
+  items: PlanItem[];
+  total: number;
+}
+
+export function getPlan(): Promise<DailyPlan> {
+  return request("/api/plan/next");
+}
+
+export interface CalendarDay {
+  date: string;
+  attempts: number;
+  avg_score: number;
+}
+
+export function getCalendar(): Promise<CalendarDay[]> {
+  return request("/api/progress/calendar");
+}
+
+export interface ChordAttempt {
+  id: string;
+  score: number;
+  missing_notes: string[];
+  extra_notes: string[];
+  issue: string | null;
+  feedback_text: string;
+  created_at: string;
+}
+
+export function getChordHistory(chordName: string): Promise<ChordAttempt[]> {
+  return request(`/api/progress/chord/${encodeURIComponent(chordName)}/history`);
+}
+
+export function submitTipFeedback(tipId: string, helpful: boolean): Promise<{ status: string }> {
+  return request(`/api/progress/feedback/${tipId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ helpful }),
+  });
 }

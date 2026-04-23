@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import NavBar from "@/components/NavBar";
+import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import UserManagement from "@/components/AdminPanel/UserManagement";
 import SystemStatsView from "@/components/AdminPanel/SystemStats";
@@ -46,16 +46,15 @@ export default function AdminPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <AppShell>
         <span className="text-gray-400">Loading…</span>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <NavBar />
-      <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
+    <AppShell>
+      <div className="max-w-6xl mx-auto space-y-8">
         <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
 
         {/* System stats */}
@@ -106,6 +105,6 @@ export default function AdminPage() {
           )}
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

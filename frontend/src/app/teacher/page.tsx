@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import NavBar from "@/components/NavBar";
+import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import StudentList from "@/components/TeacherDashboard/StudentList";
 import StudentDetail from "@/components/TeacherDashboard/StudentDetail";
@@ -45,16 +45,15 @@ export default function TeacherPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <AppShell>
         <span className="text-gray-400">Loading…</span>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <NavBar />
-      <div className="max-w-6xl mx-auto px-4 py-10">
+    <AppShell>
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold text-white mb-6">Teacher Dashboard</h1>
 
         {/* Tab switcher */}
@@ -123,6 +122,6 @@ export default function TeacherPage() {
           </div>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }
