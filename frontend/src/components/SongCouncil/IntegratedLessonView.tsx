@@ -38,6 +38,8 @@ export function IntegratedLessonView({
   const [showQuiz, setShowQuiz] = useState(false);
   const [showPlayAlong, setShowPlayAlong] = useState(false);
   const [quizPassed, setQuizPassed] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [highlightedChords, setHighlightedChords] = useState<string[]>([]);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const theoryRef = useRef<HTMLDivElement>(null);
@@ -72,9 +74,30 @@ export function IntegratedLessonView({
   };
 
   const handleScrollToSection = (sectionName: string) => {
-    // In a real implementation, we'd scroll to the section
-    // For now, just acknowledge it
-    console.log("Scroll to section:", sectionName);
+    // Find the section and its chords
+    const section = lesson.song_sections?.find((s) => s.name === sectionName);
+
+    // Toggle off if clicking same section
+    if (activeSection === sectionName) {
+      setActiveSection(null);
+      setHighlightedChords([]);
+      return;
+    }
+
+    setActiveSection(sectionName);
+
+    // Map section chord symbols → chord_keys for highlighting
+    if (section?.chords) {
+      const keys = section.chords
+        .map((sym) => lesson.practice_chords.find((pc) => pc.symbol === sym)?.chord_key)
+        .filter((k): k is string => !!k);
+      setHighlightedChords(keys);
+    } else {
+      setHighlightedChords([]);
+    }
+
+    // Scroll to chord board
+    chordBoardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -158,6 +181,7 @@ export function IntegratedLessonView({
             <SongTimeline
               lesson={lesson}
               chordScores={chordScores}
+              activeSection={activeSection}
               onSectionClick={handleScrollToSection}
             />
           </div>
@@ -192,6 +216,8 @@ export function IntegratedLessonView({
           lesson={lesson}
           chordScores={chordScores}
           chordScoreHistory={chordScoreHistory}
+          highlightedChords={highlightedChords}
+          activeSection={activeSection}
           onPracticeChord={handlePracticeChord}
         />
 

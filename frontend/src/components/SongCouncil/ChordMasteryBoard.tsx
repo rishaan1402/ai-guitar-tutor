@@ -8,6 +8,8 @@ interface ChordMasteryBoardProps {
   lesson: LessonDocument;
   chordScores: Record<string, number>;
   chordScoreHistory: Record<string, number[]>;
+  highlightedChords?: string[];   // chord_keys to highlight (from section click)
+  activeSection?: string | null;
   onPracticeChord: (chordKey: string) => void;
 }
 
@@ -19,6 +21,8 @@ export function ChordMasteryBoard({
   lesson,
   chordScores,
   chordScoreHistory,
+  highlightedChords = [],
+  activeSection,
   onPracticeChord,
 }: ChordMasteryBoardProps) {
   const available = lesson.practice_chords.filter((c) => c.available_in_app && c.chord_key);
@@ -48,8 +52,22 @@ export function ChordMasteryBoard({
   return (
     <div className="space-y-4">
       {/* Progress header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Chord Mastery</h3>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-semibold text-white">Chord Mastery</h3>
+          {activeSection && (
+            <span
+              className="text-xs px-2.5 py-1 rounded-full font-medium"
+              style={{
+                background: "rgba(124,58,237,0.2)",
+                border: "1px solid rgba(167,139,250,0.5)",
+                color: "#c4b5fd",
+              }}
+            >
+              Showing: {activeSection}
+            </span>
+          )}
+        </div>
         <span className="text-sm text-gray-400">
           {attemptedCount}/{available.length} practiced
         </span>
@@ -73,17 +91,28 @@ export function ChordMasteryBoard({
 
       {/* Chord grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {lesson.practice_chords.map((chord) => (
-          <EnhancedPracticeChordCard
-            key={chord.symbol}
-            chord={chord}
-            fingering={fingeringMap[chord.symbol] || null}
-            score={chord.chord_key ? chordScores[chord.chord_key] ?? null : null}
-            scoreHistory={chord.chord_key ? chordScoreHistory[chord.chord_key] ?? [] : []}
-            chordFunction={lesson.chord_functions?.[chord.symbol] ?? null}
-            onPractice={onPracticeChord}
-          />
-        ))}
+        {lesson.practice_chords.map((chord) => {
+          const isHighlighted =
+            highlightedChords.length === 0 ||
+            (chord.chord_key ? highlightedChords.includes(chord.chord_key) : false);
+
+          return (
+            <div
+              key={chord.symbol}
+              className="transition-all duration-300"
+              style={{ opacity: isHighlighted ? 1 : 0.3, transform: isHighlighted ? "scale(1)" : "scale(0.97)" }}
+            >
+              <EnhancedPracticeChordCard
+                chord={chord}
+                fingering={fingeringMap[chord.symbol] || null}
+                score={chord.chord_key ? chordScores[chord.chord_key] ?? null : null}
+                scoreHistory={chord.chord_key ? chordScoreHistory[chord.chord_key] ?? [] : []}
+                chordFunction={lesson.chord_functions?.[chord.symbol] ?? null}
+                onPractice={onPracticeChord}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
