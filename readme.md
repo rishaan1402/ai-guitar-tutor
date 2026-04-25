@@ -1,441 +1,294 @@
-AI Guitar Tutor 🎸
+# AI Guitar Tutor 🎸
 
-An AI-powered web application that helps beginners learn guitar chords through guided lessons and real-time audio feedback.
+An AI-powered web application that helps guitarists learn songs through structured lessons, real-time chord evaluation, and a personalised daily practice plan.
 
-The system plays instructional videos, listens to the user play a chord through the device microphone, analyzes the sound using signal processing techniques, detects mistakes, and provides corrective guidance until the chord is played correctly.
+**Live app:** Vercel (frontend) + Render (backend)
+**Stack:** Next.js 14 · FastAPI · PostgreSQL · Groq LLM · librosa
 
-Unlike traditional video courses, the AI Guitar Tutor acts like a practice companion that actively evaluates the student’s playing and guides improvement.
+---
 
-Project Vision
+## What It Does
 
-Most online guitar learning platforms are passive learning systems. Students watch lesson videos but often struggle to know whether they are playing correctly.
+| Feature | Description |
+|---|---|
+| **Song Lesson Generator** | Enter any song — a 4-agent AI council analyses it and produces a full lesson: music theory, technique guide, ear training, practice plan, chord fingerings, and a quiz |
+| **Chord Practice** | Record a chord attempt via microphone; the audio engine detects which notes are present, scores accuracy, and generates personalised fingering tips |
+| **SVG Fretboard Feedback** | Visual fretboard shows green (detected), red (missing), and yellow (extra) notes after every attempt |
+| **Transition Trainer** | Timed chord-to-chord switch drill with TPM (transitions per minute) tracking |
+| **Personalised Daily Plan** | Learns from your history and builds a 5–7 item daily plan: warmup, focus chord, new challenge, and a transition drill |
+| **Progress Dashboard** | 52-week activity heatmap, skill meter, chord mastery matrix, per-chord attempt history |
+| **Quiz with Remediation** | Multiple-choice quiz at the end of each lesson; wrong answers link back to the relevant chord card |
+| **Teacher Dashboard** | Teachers see all students, class analytics, and can assign specific chords |
+| **Admin Panel** | Admins manage users and roles via a UI at `/admin` |
 
-Without feedback, beginners commonly face issues such as:
+---
 
-Muted strings
+## Project Structure
 
-Incorrect finger pressure
-
-Wrong chord structure
-
-Inconsistent strumming
-
-Poor technique
-
-Human teachers can provide guidance, but they are not always available for continuous practice.
-
-The AI Guitar Tutor aims to bridge this gap by creating an interactive practice environment that behaves like a virtual instructor.
-
-The system:
-
-Teaches guitar chords using structured lessons
-
-Listens to the student play through the microphone
-
-Analyzes the audio signal
-
-Detects playing mistakes
-
-Provides corrective guidance
-
-Repeats the learning loop until the chord is played correctly
-
-This transforms passive watching into active, guided practice.
-
-Key Features
-🎥 Lesson-Based Learning
-
-Each chord lesson contains structured learning content:
-
-Instructional video explaining the chord
-
-Reference audio of the correct sound
-
-Chord metadata (notes, difficulty level)
-
-Lessons are stored as reusable assets and are served when the student requests a chord.
-
-🎤 Audio-Based Evaluation
-
-The system records the student’s chord attempt through the device microphone and processes the audio signal to determine whether the chord is played correctly.
-
-Signal processing techniques are used to detect:
-
-Active frequencies
-
-Musical notes
-
-Missing notes
-
-Muted strings
-
-Incorrect chord structure
-
-This allows the system to perform automated chord evaluation.
-
-🧠 AI Tutor Guidance
-
-The platform includes a tutor agent that manages the learning interaction.
-
-The tutor behaves like a virtual instructor and guides the student through a learning loop:
-
-Play → Analyze → Feedback → Retry
-
-For example:
-
-Student plays a chord.
-
-The system analyzes the audio and responds:
-
-“Your B string isn’t ringing clearly. Try pressing closer to the fret and play again.”
-
-The loop continues until the chord is successfully played.
-
-📊 Progress Tracking
-
-The platform tracks student practice attempts and learning progress.
-
-This enables:
-
-Chord mastery tracking
-
-Practice statistics
-
-Future adaptive learning recommendations
-
-☁️ Cloud Deployment
-
-The platform is designed to run on Google Cloud Platform for scalability and reliability.
-
-Cloud deployment allows:
-
-scalable backend services
-
-cloud storage for lesson content
-
-centralized data storage
-
-global accessibility
-
-System Architecture
-
-The system is built using a modular architecture where each component handles a specific responsibility.
-
-Frontend Web Application
-        ↓
-AI Tutor Agent (Session Controller)
-        ↓
-Lesson Service (Content Management)
-        ↓
-Audio Evaluation Engine
-        ↓
-Feedback Generator
-        ↓
-Database & Cloud Storage
-Frontend Application
-
-The frontend provides the interface where users interact with the AI tutor.
-
-Responsibilities:
-
-Accept user requests for chord lessons
-
-Display instructional videos
-
-Record microphone input
-
-Send audio recordings to the backend
-
-Display tutor feedback
-
-Track learning progress
-
-Technologies:
-
-React / Next.js
-
-Web Audio API
-
-REST API integration
-
-AI Tutor Agent
-
-The tutor agent acts as the orchestrator of the learning session.
-
-Responsibilities:
-
-interpret the user's request
-
-fetch lesson data
-
-manage session state
-
-send audio to evaluation engine
-
-generate tutor responses
-
-guide the learning process
-
-Session states include:
-
-IDLE
-TEACHING
-WAITING_FOR_PLAY
-ANALYZING
-FEEDBACK
-COMPLETED
-Lesson Service
-
-The lesson service manages the educational content for the platform.
-
-Responsibilities:
-
-load lesson assets
-
-serve instructional videos
-
-provide chord metadata
-
-provide reference audio
-
-Lesson assets are stored locally or in cloud storage.
-
-Audio Evaluation Engine
-
-This is the core technical component of the system.
-
-The audio engine analyzes recorded audio to determine whether the student played the correct chord.
-
-The engine uses signal processing techniques to detect:
-
-frequency spectrum
-
-pitch
-
-musical notes
-
-harmonic patterns
-
-The detected notes are compared with the expected notes of the chord.
-
-Feedback Generator
-
-The feedback generator converts evaluation results into human-friendly tutor feedback.
-
-Example:
-
-Input:
-
-{
- "score": 0.72,
- "issue": "muted_string",
- "string": "B"
-}
-
-Output:
-
-“Your B string isn't ringing clearly. Try pressing closer to the fret.”
-
-Technology Stack
-Frontend
-
-React
-
-Next.js
-
-Web Audio API
-
-Fetch API
-
-Backend
-
-Python
-
-FastAPI
-
-Audio Processing
-
-librosa
-
-numpy
-
-scipy
-
-Cloud Platform
-
-Google Cloud Run
-
-Google Cloud Storage
-
-Firestore
-
-Deployment
-
-Docker
-
-Docker Compose
-
-Project Structure
+```
 ai-guitar-tutor/
+├── frontend/                   Next.js 14 app (deployed to Vercel)
+│   └── src/
+│       ├── app/                App Router pages
+│       │   ├── page.tsx        Landing / chord practice (home)
+│       │   ├── dashboard/      Authenticated dashboard
+│       │   ├── progress/       Progress analytics + chord drill-down
+│       │   ├── profile/        User settings & skill level
+│       │   ├── admin/          Admin user management panel
+│       │   └── teacher/        Teacher student view
+│       ├── components/
+│       │   ├── SongCouncil/    Song lesson UI (timeline, mastery board, quiz, play-along)
+│       │   ├── feedback/       FretboardVisualizer, NoteDiffStrip, FingeringTipCard
+│       │   ├── AdminPanel/     UserManagement, SystemStats
+│       │   ├── TeacherDashboard/ StudentList, ClassAnalytics, AssignmentForm
+│       │   ├── layout/         AppShell (nav + layout wrapper)
+│       │   └── ui/             shadcn/ui primitives + custom StatCard, EmptyState etc.
+│       └── lib/
+│           ├── api.ts          All API calls + TypeScript interfaces
+│           ├── auth.ts         JWT token helpers
+│           ├── motion.ts       Framer Motion variants
+│           ├── progress.ts     Progress data helpers
+│           └── noteDetection.ts  Client-side note frequency detection
+│
+├── backend/                    FastAPI app (deployed to Render)
+│   ├── main.py                 App entry, session management, core endpoints
+│   ├── council/                4-agent lesson generation system
+│   │   ├── agents.py           Theory / Technique / Ear / Planner AI agents (Groq)
+│   │   ├── chairman.py         Synthesiser: assembles LessonDocument from agent outputs
+│   │   ├── ingestion.py        Song ingestor: extracts key, chords, feel, structure
+│   │   ├── advisor.py          Per-attempt tip generator + lesson revision
+│   │   ├── quiz.py             Quiz question generator
+│   │   ├── session_store.py    In-memory lesson session cache
+│   │   ├── router.py           /api/council/* endpoints
+│   │   └── schemas.py          LessonDocument + all council Pydantic models
+│   ├── audio_engine/           Chord evaluation (librosa + scipy)
+│   ├── feedback_engine/        Tip generator + fingering guidance
+│   ├── lesson_service/         File-based chord lesson loader
+│   ├── tutor_agent/            Session state machine (IDLE→TEACHING→ANALYZING→FEEDBACK)
+│   ├── auth/                   JWT auth (signup, login, refresh, roles)
+│   ├── db/                     SQLAlchemy 2.0 models + async engine
+│   ├── progress/               Progress tracking API
+│   ├── personalization/        Daily plan builder
+│   ├── teacher/                Teacher reports + student assignment
+│   └── admin/                  Admin user management API
+│
+└── data/
+    ├── lessons/                84 chord lesson folders (metadata.json + reference audio)
+    └── chords/
+        ├── fingerings.json     Finger positions for all chords (string, fret, finger, note)
+        └── chord_definations.json  Chord definitions (notes, quality, root)
+```
 
-frontend/
-    app/
+---
 
-backend/
-    tutor_agent/
-    lesson_service/
-    audio_engine/
-    feedback_engine/
+## Tech Stack
 
-data/
-    lessons/
+### Frontend
+| Package | Purpose |
+|---|---|
+| Next.js 14 (App Router) | Framework, SSR, routing |
+| React 18 | UI |
+| TypeScript | Type safety |
+| Tailwind CSS | Styling (glassmorphism design system) |
+| shadcn/ui + Radix UI | Component primitives |
+| Framer Motion | Page transitions + card animations |
+| SWR | Data fetching with caching |
+| Lucide React | Icons |
+| Sonner | Toast notifications |
+| cmdk | Command palette (⌘K) |
 
-infra/
-    docker/
-Lesson Data Format
+### Backend
+| Package | Purpose |
+|---|---|
+| FastAPI | API framework |
+| Groq (`llama-3.3-70b`) | LLM for lesson generation, tips, quiz |
+| librosa + scipy + numpy | Audio signal processing, pitch detection |
+| SQLAlchemy 2.0 async | ORM |
+| asyncpg | PostgreSQL async driver |
+| aiosqlite | SQLite driver (local dev fallback) |
+| Alembic | DB migrations |
+| python-jose + passlib | JWT auth + bcrypt hashing |
 
-Each chord lesson is stored as a folder containing lesson assets.
+### Infrastructure
+| Service | Role |
+|---|---|
+| Vercel | Frontend hosting (auto-deploy from `main`) |
+| Render | Backend hosting (auto-deploy from `main`) |
+| Render PostgreSQL | Production database |
+| GitHub | Source of truth — push to `main` deploys everywhere |
 
-Example:
+---
 
-data/lessons/G_major/
+## Running Locally
 
-lesson.mp4
-reference.wav
-metadata.json
+### Backend
 
-Example metadata file:
-
-{
- "chord": "G_major",
- "notes": ["G", "B", "D"],
- "difficulty": "beginner"
-}
-Audio Evaluation Pipeline
-
-The audio evaluation process follows several signal processing stages.
-
-Audio Input
-      ↓
-Noise Reduction
-      ↓
-Frame Segmentation
-      ↓
-FFT Frequency Analysis
-      ↓
-Pitch Detection
-      ↓
-Note Matching
-      ↓
-Error Classification
-      ↓
-Feedback Generation
-
-The system determines whether the chord was played correctly based on note detection and frequency analysis.
-
-Development Roadmap
-
-The project will be developed in structured phases.
-
-Phase 1 — Lesson Content System
-
-Create the lesson storage structure and lesson service.
-
-Phase 2 — Audio Evaluation Engine
-
-Implement chord detection and note matching algorithms.
-
-Phase 3 — Tutor Agent Logic
-
-Build the AI tutor controller and learning loop.
-
-Phase 4 — Web Interface
-
-Develop the user interface and integrate microphone recording.
-
-Phase 5 — Cloud Deployment
-
-Deploy backend services and lesson storage on Google Cloud.
-
-Example Learning Flow
-
-Example user interaction:
-
-User:
-
-Teach me the G chord
-
-System:
-
-Loads the G chord lesson
-
-Plays the instructional video
-
-Asks the student to play the chord
-
-Records microphone audio
-
-Analyzes the audio signal
-
-Detects mistakes
-
-Provides corrective feedback
-
-Repeats the practice loop until correct
-
-Running the Project Locally
-Clone Repository
-git clone https://github.com/yourusername/ai-guitar-tutor.git
-cd ai-guitar-tutor
-Install Backend Dependencies
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-Run Backend Server
-uvicorn backend.main:app --reload
-Run Frontend
+
+# Optional: set env vars (or let it fall back to SQLite)
+export GROQ_API_KEY=your_key_here
+# DATABASE_URL defaults to sqlite+aiosqlite:///./guitar_tutor.db if not set
+
+uvicorn main:app --reload --port 8001
+```
+
+### Frontend
+
+```bash
 cd frontend
 npm install
+
+# Create .env.local (not committed)
+echo "NEXT_PUBLIC_API_URL=http://localhost:8001" > .env.local
+
 npm run dev
-Run With Docker
-docker-compose up
-Future Improvements
+# → http://localhost:3000
+```
 
-Planned improvements include:
+### Running Tests
 
-real-time chord analysis
+```bash
+# Backend
+cd backend
+pytest tests/ -v
 
-expanded chord library
+# Frontend
+cd frontend
+npx vitest run
+```
 
-advanced chord progressions
+---
 
-multiple instrument support
+## Environment Variables
 
-adaptive learning paths
+### Backend (set in Render dashboard)
+| Variable | Description |
+|---|---|
+| `GROQ_API_KEY` | Required for AI lesson generation |
+| `DATABASE_URL` | PostgreSQL connection string (Render sets this automatically) |
+| `SECRET_KEY` | JWT signing key (generate a random 64-char string) |
+| `ALLOWED_ORIGINS` | Comma-separated allowed CORS origins (e.g. `https://yourapp.vercel.app`) |
 
-mobile app version
+### Frontend (set in Vercel dashboard)
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend URL (e.g. `https://your-api.onrender.com`) |
 
-improved audio accuracy using machine learning
+---
 
-Contributing
+## Roles & Permissions
 
-Contributions are welcome.
+| Role | Access |
+|---|---|
+| `student` | Chord practice, song lessons, progress, daily plan |
+| `teacher` | Everything + student roster, class analytics, chord assignments |
+| `admin` | Everything + `/admin` panel (change any user's role, view system stats) |
 
-You can contribute by:
+**Bootstrapping the first admin** — run in Render's PSQL shell:
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'your@email.com';
+```
+After that, use the `/admin` UI to manage all other roles.
 
-improving audio detection algorithms
+---
 
-adding new lesson content
+## Key API Endpoints
 
-improving UI/UX
+### Core (no auth required)
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Health check |
+| `GET` | `/chords` | List all available chords |
+| `GET` | `/lesson/{chord}` | Chord lesson metadata |
+| `GET` | `/fingering/{chord}` | Fingering positions for chord diagram |
+| `POST` | `/learn_chord` | Start tutoring session for a chord |
+| `POST` | `/submit_audio` | Submit recorded audio → score + feedback |
 
-expanding instrument support
+### Auth (`/api/auth/`)
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/signup` | Register + receive JWT tokens |
+| `POST` | `/login` | Login + receive JWT tokens |
+| `POST` | `/refresh` | Refresh access token |
+| `GET` | `/me` | Current user profile |
+| `PATCH` | `/me` | Update display name / skill level |
 
-optimizing backend architecture
+### Song Council (`/api/council/`)
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/generate` | Generate full song lesson (4-agent pipeline) |
+| `POST` | `/practice/tip` | Get personalised tip after a chord attempt |
+| `POST` | `/practice/revise` | Revise lesson plan after all chords attempted |
+| `POST` | `/quiz` | Generate quiz for a lesson |
 
-Please open issues or pull requests.
+### Progress (`/api/progress/`)
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Summary (mastered count, streak, chord list) |
+| `GET` | `/calendar` | 365-day activity data for heatmap |
+| `GET` | `/chord/{name}/history` | Full attempt timeline for one chord |
+| `GET` | `/transitions` | Transition drill history |
+| `POST` | `/transitions` | Save a transition drill result |
+| `POST` | `/quiz/{lesson_id}/submit` | Save quiz result |
 
-License
+### Personalisation (`/api/plan/`)
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/next` | Today's personalised practice plan |
+| `GET` | `/weekly` | 7-day plan |
 
-MIT License
+### Teacher (`/api/teacher/`)
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/students` | List all students |
+| `GET` | `/students/{id}/progress` | Student progress detail |
+| `GET` | `/analytics` | Class-wide analytics |
+| `POST` | `/assign` | Assign a chord to a student |
 
-Goal
-Build a scalable AI-powered music tutor that enables interactive and guided practice for beginner musicians and eventually expands into a full multi-instrument learning platform.
+### Admin (`/api/admin/`)
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/users` | Paginated user list (filterable by role) |
+| `PATCH` | `/users/{id}` | Update a user's role |
+| `DELETE` | `/users/{id}` | Delete a user |
+| `GET` | `/stats` | System stats (total users, attempts, drills) |
+
+---
+
+## Song Lesson Pipeline
+
+```
+User query  →  ingestion.py  →  4 parallel Groq agents  →  chairman.py  →  LessonDocument
+               (key, chords,    Theory / Technique /        synthesise       + fingerings
+                sections, feel)  Ear / Planner               all outputs       embedded
+```
+
+The `LessonDocument` includes: song metadata, chairman summary, four lesson sections, `practice_chords[]` (with fingering positions + chord function), `song_sections[]` (structure), `chord_functions{}`, and a `lesson_id` for subsequent API calls.
+
+---
+
+## Database Schema
+
+| Table | Purpose |
+|---|---|
+| `users` | Accounts (id, email, password_hash, display_name, role, skill_level) |
+| `refresh_tokens` | JWT refresh token store |
+| `chord_attempts` | Every audio submission (user, chord, score, detected/missing/extra notes, feedback) |
+| `transition_drills` | Every chord-switch drill result (tpm, got/miss counts) |
+| `quiz_results` | Quiz pass/fail per lesson |
+| `teacher_assignments` | Teacher-to-student chord assignments |
+
+---
+
+## Deploying Changes
+
+```bash
+git add <files>
+git commit -m "your message"
+git push origin main
+```
+
+Vercel rebuilds the frontend automatically. Render rebuilds the backend automatically.
