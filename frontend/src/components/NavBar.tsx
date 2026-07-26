@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -23,9 +23,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", authRequired: true },
-  { href: "/",          label: "Practice" },
-  { href: "/?mode=song",label: "Songs" },
-  { href: "/?mode=transitions", label: "Transitions" },
+  { href: "/practice",          label: "Practice" },
+  { href: "/practice?mode=song",label: "Songs" },
+  { href: "/practice?mode=transitions", label: "Transitions" },
   { href: "/progress",  label: "Progress", authRequired: true },
   { href: "/teacher",   label: "Class",    authRequired: true, teacherOnly: true },
   { href: "/admin",     label: "Admin",    authRequired: true, adminOnly: true },
@@ -48,15 +48,32 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
 }
 
 export default function NavBar() {
+  return (
+    <Suspense fallback={<div className="sticky top-0 z-50 w-full glass border-b border-white/10 h-14" />}>
+      <NavBarInner />
+    </Suspense>
+  );
+}
+
+function NavBarInner() {
   const { user, loading, logout, isTeacher, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     router.push("/");
     setMobileOpen(false);
+  };
+
+  const currentMode = searchParams.get("mode");
+  const isItemActive = (href: string) => {
+    const [path, query] = href.split("?");
+    if (path !== pathname) return false;
+    const itemMode = query ? new URLSearchParams(query).get("mode") : null;
+    return itemMode === currentMode;
   };
 
   const visibleItems = NAV_ITEMS.filter(item => {
@@ -71,7 +88,7 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
+        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 shrink-0">
           <span className="text-xl">🎸</span>
           <span className="font-bold text-white hidden sm:inline">AI Guitar Tutor</span>
         </Link>
@@ -83,7 +100,7 @@ export default function NavBar() {
               key={item.href}
               href={item.href}
               label={item.label}
-              active={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href.split("?")[0])}
+              active={isItemActive(item.href)}
             />
           ))}
         </div>
@@ -126,7 +143,7 @@ export default function NavBar() {
                     <path d="M3 5h14M3 10h14M3 15h14" strokeLinecap="round"/>
                   </svg>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-64 bg-[#0f0b1a] border-white/10 p-0">
+                <SheetContent side="right" className="w-64 bg-[#08080c] border-white/10 p-0">
                   <div className="flex flex-col h-full">
                     {/* Mobile user header */}
                     <div className="p-5 border-b border-white/10">

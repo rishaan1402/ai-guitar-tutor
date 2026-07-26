@@ -35,7 +35,7 @@ export default function UserManagement({ users, onRoleChange }: Props) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-700">
+          <tr className="panel-row-border">
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Email</th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Level</th>
@@ -45,7 +45,7 @@ export default function UserManagement({ users, onRoleChange }: Props) {
         </thead>
         <tbody>
           {users.map((u) => (
-            <tr key={u.id} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+            <tr key={u.id} className="panel-row-border panel-row-hover transition-colors">
               <td className="py-3 px-4 font-medium text-white">{u.display_name}</td>
               <td className="py-3 px-4 text-gray-400">{u.email}</td>
               <td className="py-3 px-4 capitalize text-gray-300">{u.skill_level}</td>
@@ -54,12 +54,12 @@ export default function UserManagement({ users, onRoleChange }: Props) {
                   value={u.role}
                   disabled={updatingId === u.id}
                   onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                  className={`bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs focus:outline-none focus:border-indigo-500 ${
+                  className={`bg-white/5 border border-white/10 rounded px-2 py-1 text-xs focus:outline-none focus:border-purple-500/50 ${
                     ROLE_COLORS[u.role] ?? "text-gray-300"
                   }`}
                 >
                   {ROLES.map((r) => (
-                    <option key={r} value={r}>
+                    <option key={r} value={r} className="bg-[#0a0a0e] text-gray-200">
                       {r}
                     </option>
                   ))}

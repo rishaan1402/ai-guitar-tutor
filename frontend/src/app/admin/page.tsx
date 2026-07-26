@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import UserManagement from "@/components/AdminPanel/UserManagement";
 import SystemStatsView from "@/components/AdminPanel/SystemStats";
 import { getAdminUsers, getSystemStats, type AdminUser, type SystemStats } from "@/lib/api";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export default function AdminPage() {
   const { user, loading, isAdmin } = useAuth();
@@ -20,7 +21,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
-      router.push("/");
+      router.push("/dashboard");
     }
   }, [loading, user, isAdmin, router]);
 
@@ -55,25 +56,25 @@ export default function AdminPage() {
   return (
     <AppShell>
       <div className="max-w-6xl mx-auto space-y-8">
-        <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
+        <SectionHeader title="Admin Panel" subtitle="System-wide usage and user management" />
 
         {/* System stats */}
         {stats && <SystemStatsView stats={stats} />}
 
         {/* User management */}
-        <div className="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+        <div className="panel overflow-hidden">
+          <div className="px-4 py-3 panel-header flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-300">User Management</h2>
             <div className="flex gap-2 items-center">
               <select
                 value={roleFilter}
                 onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-                className="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1 text-xs focus:outline-none"
+                className="bg-white/5 text-white border border-white/10 rounded px-2 py-1 text-xs focus:outline-none"
               >
-                <option value="">All roles</option>
-                <option value="student">Students</option>
-                <option value="teacher">Teachers</option>
-                <option value="admin">Admins</option>
+                <option value="" className="bg-[#0a0a0e]">All roles</option>
+                <option value="student" className="bg-[#0a0a0e]">Students</option>
+                <option value="teacher" className="bg-[#0a0a0e]">Teachers</option>
+                <option value="admin" className="bg-[#0a0a0e]">Admins</option>
               </select>
             </div>
           </div>
@@ -84,7 +85,7 @@ export default function AdminPage() {
             <>
               <UserManagement users={users} onRoleChange={handleRoleChange} />
               {/* Pagination */}
-              <div className="px-4 py-3 border-t border-gray-700 flex items-center gap-3">
+              <div className="px-4 py-3 panel-footer flex items-center gap-3">
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage((p) => p - 1)}

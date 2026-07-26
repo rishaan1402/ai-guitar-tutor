@@ -8,6 +8,7 @@ import StudentList from "@/components/TeacherDashboard/StudentList";
 import StudentDetail from "@/components/TeacherDashboard/StudentDetail";
 import ClassAnalyticsView from "@/components/TeacherDashboard/ClassAnalytics";
 import AssignmentForm from "@/components/TeacherDashboard/AssignmentForm";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
   getStudents,
   getClassAnalytics,
@@ -29,7 +30,7 @@ export default function TeacherPage() {
 
   useEffect(() => {
     if (!loading && (!user || !isTeacher)) {
-      router.push("/");
+      router.push("/dashboard");
     }
   }, [loading, user, isTeacher, router]);
 
@@ -54,17 +55,20 @@ export default function TeacherPage() {
   return (
     <AppShell>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-6">Teacher Dashboard</h1>
+        <SectionHeader title="Teacher Dashboard" subtitle="Manage your class and track their progress" />
 
         {/* Tab switcher */}
-        <div className="flex gap-1 mb-6 bg-gray-800 rounded-lg p-1 w-fit">
+        <div
+          className="flex gap-1 mb-6 rounded-lg p-1 w-fit"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
           {(["students", "analytics"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
                 tab === t
-                  ? "bg-gray-600 text-white"
+                  ? "bg-white/10 text-white"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -84,8 +88,8 @@ export default function TeacherPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Student list */}
-            <div className="lg:col-span-1 bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-700">
+            <div className="lg:col-span-1 panel overflow-hidden">
+              <div className="px-4 py-3 panel-header">
                 <h2 className="text-sm font-semibold text-gray-300">
                   Students ({students.length})
                 </h2>
@@ -101,11 +105,11 @@ export default function TeacherPage() {
             <div className="lg:col-span-2 space-y-6">
               {selectedStudent ? (
                 <>
-                  <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+                  <div className="glass-card">
                     <StudentDetail student={selectedStudent} />
                   </div>
                   {availableChords.length > 0 && (
-                    <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+                    <div className="glass-card">
                       <AssignmentForm
                         student={selectedStudent}
                         availableChords={availableChords}
@@ -114,7 +118,7 @@ export default function TeacherPage() {
                   )}
                 </>
               ) : (
-                <div className="bg-gray-900 border border-gray-700 rounded-xl p-12 text-center text-gray-500">
+                <div className="panel p-12 text-center text-gray-500">
                   Select a student to view their progress
                 </div>
               )}

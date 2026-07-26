@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { updateProfile, getProgress, type ProgressResponse } from "@/lib/api";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 const SKILL_LEVELS = ["beginner", "intermediate", "advanced"];
 
@@ -48,7 +49,7 @@ export default function ProfilePage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <span className="text-gray-400">Loading…</span>
       </div>
     );
@@ -56,30 +57,30 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-8">Your Profile</h1>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <SectionHeader title="Your Profile" subtitle="Manage your account and see how practice is going" />
 
         {/* Edit form */}
-        <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-8">
+        <div className="glass-card">
           <h2 className="text-lg font-semibold text-white mb-4">Account Settings</h2>
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Display Name</label>
+              <label className="field-label">Display Name</label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                className="field-input"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Skill Level</label>
+              <label className="field-label">Skill Level</label>
               <select
                 value={skillLevel}
                 onChange={(e) => setSkillLevel(e.target.value)}
-                className="w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                className="field-input"
               >
                 {SKILL_LEVELS.map((lvl) => (
                   <option key={lvl} value={lvl}>
@@ -93,32 +94,28 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Email</label>
+              <label className="field-label">Email</label>
               <p className="text-gray-400 text-sm">{user.email}</p>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Role</label>
+              <label className="field-label">Role</label>
               <p className="text-gray-400 text-sm capitalize">{user.role}</p>
             </div>
 
             {saveMsg && (
               <p
-                className={`text-sm px-3 py-2 rounded-lg ${
+                className={`text-sm px-3 py-2 rounded-lg border ${
                   saveMsg.includes("updated")
-                    ? "bg-green-900/20 border border-green-800 text-green-400"
-                    : "bg-red-900/20 border border-red-800 text-red-400"
+                    ? "bg-green-500/10 border-green-500/30 text-green-300"
+                    : "bg-red-500/10 border-red-500/30 text-red-300"
                 }`}
               >
                 {saveMsg}
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
-            >
+            <button type="submit" disabled={saving} className="btn-gradient py-2 px-4">
               {saving ? "Saving…" : "Save Changes"}
             </button>
           </form>
@@ -126,11 +123,11 @@ export default function ProfilePage() {
 
         {/* Progress summary */}
         {progress && (
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+          <div className="glass-card">
             <h2 className="text-lg font-semibold text-white mb-4">Practice Stats</h2>
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-indigo-400">{progress.total_attempted}</p>
+                <p className="text-2xl font-bold text-purple-400">{progress.total_attempted}</p>
                 <p className="text-xs text-gray-400 mt-1">Total Attempts</p>
               </div>
               <div className="text-center">
@@ -150,9 +147,9 @@ export default function ProfilePage() {
                   {progress.chords.slice(0, 10).map((c) => (
                     <div key={c.chord_name} className="flex items-center gap-3">
                       <span className="text-sm text-gray-300 w-16 font-mono">{c.chord_name}</span>
-                      <div className="flex-1 bg-gray-700 rounded-full h-2">
+                      <div className="flex-1 bg-white/5 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${c.mastered ? "bg-green-500" : "bg-indigo-500"}`}
+                          className={`h-2 rounded-full ${c.mastered ? "bg-green-500" : "bg-purple-500"}`}
                           style={{ width: `${Math.round(c.best_score * 100)}%` }}
                         />
                       </div>

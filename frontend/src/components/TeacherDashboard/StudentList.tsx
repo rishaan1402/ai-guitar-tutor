@@ -21,7 +21,7 @@ export default function StudentList({ students, onSelect, selectedId }: Props) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-700">
+          <tr className="panel-row-border">
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Level</th>
             <th className="text-right py-3 px-4 text-gray-400 font-medium">Attempts</th>
@@ -35,8 +35,8 @@ export default function StudentList({ students, onSelect, selectedId }: Props) {
             <tr
               key={s.id}
               onClick={() => onSelect(s)}
-              className={`border-b border-gray-800 cursor-pointer hover:bg-gray-800 transition-colors ${
-                selectedId === s.id ? "bg-gray-800" : ""
+              className={`panel-row-border cursor-pointer panel-row-hover transition-colors ${
+                selectedId === s.id ? "bg-white/[0.04]" : ""
               }`}
             >
               <td className="py-3 px-4">

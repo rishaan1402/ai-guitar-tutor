@@ -45,15 +45,15 @@ export default function StudentDetail({ student }: Props) {
         <button
           onClick={handleGenerateReport}
           disabled={loadingReport}
-          className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="btn-gradient text-sm px-4 py-2"
         >
           {loadingReport ? "Generating…" : "AI Report"}
         </button>
       </div>
 
       {report && (
-        <div className="bg-indigo-900/20 border border-indigo-700 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-indigo-300 mb-2">AI Progress Report</h3>
+        <div className="rounded-xl p-4 border border-purple-500/30 bg-purple-500/10">
+          <h3 className="text-sm font-semibold text-purple-300 mb-2">AI Progress Report</h3>
           <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-line">{report}</p>
         </div>
       )}
@@ -70,9 +70,9 @@ export default function StudentDetail({ student }: Props) {
               {progress.chords.map((c) => (
                 <div key={c.chord_name} className="flex items-center gap-3">
                   <span className="text-sm text-gray-300 w-20 font-mono">{c.chord_name}</span>
-                  <div className="flex-1 bg-gray-700 rounded-full h-2">
+                  <div className="flex-1 bg-white/5 rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full ${c.mastered ? "bg-green-500" : "bg-indigo-500"}`}
+                      className={`h-2 rounded-full ${c.mastered ? "bg-green-500" : "bg-purple-500"}`}
                       style={{ width: `${Math.round(c.best_score * 100)}%` }}
                     />
                   </div>
