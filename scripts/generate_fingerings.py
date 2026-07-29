@@ -1,231 +1,199 @@
 """
-Generate fingerings.json for all 84 chords.
+Generate data/chords/fingerings.json for all 84 lesson chords.
 
-Uses standard open chord shapes for common chords and CAGED-based
-transposition for barre chords. Outputs to data/chords/fingerings.json.
+For each chord we build candidate voicings and keep the lowest on the neck:
+  * the classic open shape where one exists (C, D, G, Dm, G7, B7, Fmaj7, ...)
+  * movable shapes rooted on the 6th, 5th or 4th string (E-, A- and D-shape),
+    which also yield the open E, A and Am-family chords at fret 0
+
+`positions` is the voicing to teach first; `alt_positions` is the lowest
+barre voicing, for players moving up the neck.
+
+Every voicing must sound exactly the chord's notes (from the lesson
+metadata). The scorer marks missing chord tones down, so a voicing that
+drops a note (e.g. the common open C7, x32310, has no G) would score a
+student 75% for playing the diagram perfectly. The script refuses to write
+such a voicing.
+
+Run from the repo root:  python3 scripts/generate_fingerings.py
+Then regenerate the lesson videos, which draw these diagrams:
+                         python3 scripts/generate_videos.py
 """
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 ALL_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-# Standard guitar tuning (string 6 to string 1)
+# Open-string notes, string 6 (low E) to string 1 (high e)
 TUNING = ["E", "A", "D", "G", "B", "E"]
+
+X = None  # muted string
+
+Frets = Sequence[Optional[int]]   # string 6..1; None = muted
+Fingers = Sequence[Optional[int]]  # string 6..1; None = open or muted
 
 
 def note_index(note: str) -> int:
     return ALL_NOTES.index(note)
 
 
-def semitone_distance(from_note: str, to_note: str) -> int:
-    return (note_index(to_note) - note_index(from_note)) % 12
+def note_at(string_num: int, fret: int) -> str:
+    return ALL_NOTES[(note_index(TUNING[6 - string_num]) + fret) % 12]
 
 
-def note_at_fret(string_num: int, fret: int) -> str:
-    """Get the note name at a given string and fret."""
-    open_note = TUNING[6 - string_num]  # string 6 = index 0
-    idx = (note_index(open_note) + fret) % 12
-    return ALL_NOTES[idx]
+# ---------------------------------------------------------------------------
+# Movable shapes: (root string, fret offsets from the root fret, fingers)
+# Fingers assume a barre with finger 1 at the root fret.
+# ---------------------------------------------------------------------------
 
-
-# ---- Base shapes (open position) ----
-# Each shape: list of {string, fret, finger, note} or {string, action: "mute"}
-# These are the canonical open chord shapes.
-
-E_MAJOR_SHAPE = [
-    {"string": 6, "fret": 0, "note": "E"},
-    {"string": 5, "fret": 2, "finger": 2, "note": "B"},
-    {"string": 4, "fret": 2, "finger": 3, "note": "E"},
-    {"string": 3, "fret": 1, "finger": 1, "note": "G#"},
-    {"string": 2, "fret": 0, "note": "B"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-E_MINOR_SHAPE = [
-    {"string": 6, "fret": 0, "note": "E"},
-    {"string": 5, "fret": 2, "finger": 2, "note": "B"},
-    {"string": 4, "fret": 2, "finger": 3, "note": "E"},
-    {"string": 3, "fret": 0, "note": "G"},
-    {"string": 2, "fret": 0, "note": "B"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-A_MAJOR_SHAPE = [
-    {"string": 6, "action": "mute"},
-    {"string": 5, "fret": 0, "note": "A"},
-    {"string": 4, "fret": 2, "finger": 1, "note": "E"},
-    {"string": 3, "fret": 2, "finger": 2, "note": "A"},
-    {"string": 2, "fret": 2, "finger": 3, "note": "C#"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-A_MINOR_SHAPE = [
-    {"string": 6, "action": "mute"},
-    {"string": 5, "fret": 0, "note": "A"},
-    {"string": 4, "fret": 2, "finger": 2, "note": "E"},
-    {"string": 3, "fret": 2, "finger": 3, "note": "A"},
-    {"string": 2, "fret": 1, "finger": 1, "note": "C"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-E7_SHAPE = [
-    {"string": 6, "fret": 0, "note": "E"},
-    {"string": 5, "fret": 2, "finger": 2, "note": "B"},
-    {"string": 4, "fret": 0, "note": "D"},
-    {"string": 3, "fret": 1, "finger": 1, "note": "G#"},
-    {"string": 2, "fret": 0, "note": "B"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-A7_SHAPE = [
-    {"string": 6, "action": "mute"},
-    {"string": 5, "fret": 0, "note": "A"},
-    {"string": 4, "fret": 2, "finger": 2, "note": "E"},
-    {"string": 3, "fret": 0, "note": "G"},
-    {"string": 2, "fret": 2, "finger": 3, "note": "C#"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-EMAJ7_SHAPE = [
-    {"string": 6, "fret": 0, "note": "E"},
-    {"string": 5, "fret": 2, "finger": 2, "note": "B"},
-    {"string": 4, "fret": 1, "finger": 1, "note": "D#"},
-    {"string": 3, "fret": 1, "finger": 1, "note": "G#"},
-    {"string": 2, "fret": 0, "note": "B"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-EMIN7_SHAPE = [
-    {"string": 6, "fret": 0, "note": "E"},
-    {"string": 5, "fret": 2, "finger": 2, "note": "B"},
-    {"string": 4, "fret": 0, "note": "D"},
-    {"string": 3, "fret": 0, "note": "G"},
-    {"string": 2, "fret": 0, "note": "B"},
-    {"string": 1, "fret": 0, "note": "E"},
-]
-
-# Power chord shape (root on 6th string)
-E5_SHAPE = [
-    {"string": 6, "fret": 0, "note": "E"},
-    {"string": 5, "fret": 2, "finger": 3, "note": "B"},
-    {"string": 4, "action": "mute"},
-    {"string": 3, "action": "mute"},
-    {"string": 2, "action": "mute"},
-    {"string": 1, "action": "mute"},
-]
-
-# A5 power chord (root on 5th string)
-A5_SHAPE = [
-    {"string": 6, "action": "mute"},
-    {"string": 5, "fret": 0, "note": "A"},
-    {"string": 4, "fret": 2, "finger": 3, "note": "E"},
-    {"string": 3, "action": "mute"},
-    {"string": 2, "action": "mute"},
-    {"string": 1, "action": "mute"},
-]
-
-# Half-diminished from A shape
-AHDIM7_SHAPE = [
-    {"string": 6, "action": "mute"},
-    {"string": 5, "fret": 0, "note": "A"},
-    {"string": 4, "fret": 1, "finger": 1, "note": "D#"},
-    {"string": 3, "fret": 2, "finger": 3, "note": "A"},
-    {"string": 2, "fret": 1, "finger": 2, "note": "C"},
-    {"string": 1, "fret": 1, "finger": 4, "note": "E"},  # actually wrong but placeholder
-]
-
-# Map quality -> (base_shape, base_root, root_string)
-# root_string tells us which string carries the root for transposition
-QUALITY_SHAPES: Dict[str, tuple] = {
-    "major": (E_MAJOR_SHAPE, "E", 6),
-    "minor": (E_MINOR_SHAPE, "E", 6),
-    "dominant7": (E7_SHAPE, "E", 6),
-    "major7": (EMAJ7_SHAPE, "E", 6),
-    "minor7": (EMIN7_SHAPE, "E", 6),
-    "power": (E5_SHAPE, "E", 6),
-    "half_dim7": (AHDIM7_SHAPE, "A", 5),
+MOVABLE: Dict[str, List[Tuple[int, Frets, Fingers]]] = {
+    "major": [
+        (6, [0, 2, 2, 1, 0, 0], [1, 3, 4, 2, 1, 1]),
+        (5, [X, 0, 2, 2, 2, 0], [X, 1, 2, 3, 4, 1]),
+    ],
+    "minor": [
+        (6, [0, 2, 2, 0, 0, 0], [1, 3, 4, 1, 1, 1]),
+        (5, [X, 0, 2, 2, 1, 0], [X, 1, 3, 4, 2, 1]),
+    ],
+    "dominant7": [
+        (6, [0, 2, 0, 1, 0, 0], [1, 3, 1, 2, 1, 1]),
+        (5, [X, 0, 2, 0, 2, 0], [X, 1, 3, 1, 4, 1]),
+    ],
+    "major7": [
+        (6, [0, 2, 1, 1, 0, 0], [1, 4, 2, 3, 1, 1]),
+        (5, [X, 0, 2, 1, 2, 0], [X, 1, 3, 2, 4, 1]),
+    ],
+    "minor7": [
+        (6, [0, 2, 0, 0, 0, 0], [1, 3, 1, 1, 1, 1]),
+        (5, [X, 0, 2, 0, 1, 0], [X, 1, 3, 1, 2, 1]),
+    ],
+    "half_dim7": [
+        (5, [X, 0, 1, 0, 1, X], [X, 2, 3, 1, 4, X]),
+        (4, [X, X, 0, 1, 1, 1], [X, X, 1, 2, 3, 4]),
+    ],
+    "power": [
+        (6, [0, 2, X, X, X, X], [1, 3, X, X, X, X]),
+        (5, [X, 0, 2, X, X, X], [X, 1, 3, X, X, X]),
+        (4, [X, X, 0, 2, X, X], [X, X, 1, 3, X, X]),
+    ],
 }
 
-# For power chords D and below, use A5 shape on 5th string
-POWER_A_ROOTS = {"A", "A#", "B", "C", "C#", "D", "D#"}
+# ---------------------------------------------------------------------------
+# Classic open shapes the movable ones don't produce
+# ---------------------------------------------------------------------------
+
+OPEN: Dict[str, Tuple[Frets, Fingers]] = {
+    "C_major":     ([X, 3, 2, 0, 1, 0], [X, 3, 2, X, 1, X]),
+    "C_major7":    ([X, 3, 2, 0, 0, 0], [X, 3, 2, X, X, X]),
+    "D_major":     ([X, X, 0, 2, 3, 2], [X, X, X, 1, 3, 2]),
+    "D_minor":     ([X, X, 0, 2, 3, 1], [X, X, X, 2, 3, 1]),
+    "D_dominant7": ([X, X, 0, 2, 1, 2], [X, X, X, 2, 1, 3]),
+    "D_major7":    ([X, X, 0, 2, 2, 2], [X, X, X, 1, 2, 3]),
+    "D_minor7":    ([X, X, 0, 2, 1, 1], [X, X, X, 2, 1, 1]),
+    "D_power":     ([X, X, 0, 2, 3, X], [X, X, X, 1, 3, X]),
+    "G_major":     ([3, 2, 0, 0, 0, 3], [2, 1, X, X, X, 3]),
+    "G_dominant7": ([3, 2, 0, 0, 0, 1], [3, 2, X, X, X, 1]),
+    "G_major7":    ([3, 2, 0, 0, 0, 2], [3, 2, X, X, X, 1]),
+    "B_dominant7": ([X, 2, 1, 2, 0, 2], [X, 2, 1, 3, X, 4]),
+    "F_major7":    ([X, X, 3, 2, 1, 0], [X, X, 3, 2, 1, X]),
+}
 
 
-def transpose_shape(
-    base_shape: List[Dict[str, Any]],
-    base_root: str,
-    target_root: str,
-) -> List[Dict[str, Any]]:
-    """Transpose a chord shape from base_root to target_root."""
-    shift = semitone_distance(base_root, target_root)
-    if shift == 0:
-        return [dict(pos) for pos in base_shape]
+def movable_voicing(root: str, shape: Tuple[int, Frets, Fingers]) -> Tuple[List[Optional[int]], List[Optional[int]]]:
+    root_string, offsets, fingers = shape
+    base = (note_index(root) - note_index(TUNING[6 - root_string])) % 12
+    frets = [None if o is None else base + o for o in offsets]
+    fing: List[Optional[int]] = [
+        None if (f is None or fr is None or fr == 0) else f for f, fr in zip(fingers, frets)
+    ]
+    # At fret 0 the barre finger becomes open strings; renumber from 1
+    used = [f for f in fing if f is not None]
+    if used and min(used) > 1:
+        shift = min(used) - 1
+        fing = [None if f is None else f - shift for f in fing]
+    return frets, fing
 
-    result = []
-    for pos in base_shape:
-        new_pos = dict(pos)
-        if "action" in pos:
-            result.append(new_pos)
+
+def to_positions(frets: Frets, fingers: Fingers) -> List[Dict[str, Any]]:
+    positions: List[Dict[str, Any]] = []
+    for i, (fret, finger) in enumerate(zip(frets, fingers)):
+        string_num = 6 - i
+        if fret is None:
+            positions.append({"string": string_num, "action": "mute"})
             continue
+        pos: Dict[str, Any] = {"string": string_num, "fret": fret, "note": note_at(string_num, fret)}
+        if fret > 0 and finger is not None:
+            pos["finger"] = finger
+        positions.append(pos)
+    return positions
 
-        new_fret = pos["fret"] + shift
-        new_pos["fret"] = new_fret
-        new_pos["note"] = note_at_fret(pos["string"], new_fret)
-        result.append(new_pos)
 
-    return result
+def sounded(frets: Frets) -> set[str]:
+    return {note_at(6 - i, f) for i, f in enumerate(frets) if f is not None}
+
+
+def check(chord: str, frets: Frets, notes: List[str]) -> None:
+    got = sounded(frets)
+    if got != set(notes):
+        raise ValueError(f"{chord}: voicing {frets} sounds {sorted(got)}, chord is {sorted(notes)}")
+
+
+def height(frets: Frets) -> int:
+    return max(f for f in frets if f is not None)
+
+
+def build_entry(meta: Dict[str, Any]) -> Dict[str, Any]:
+    chord = meta["chord"]
+    root = meta.get("root", chord.split("_")[0])
+    quality = meta.get("quality", "major")
+    notes = meta.get("notes", [])
+
+    movable = [movable_voicing(root, s) for s in MOVABLE[quality]]
+    for frets, _ in movable:
+        check(chord, frets, notes)
+
+    if chord in OPEN:
+        primary = OPEN[chord]
+        check(chord, primary[0], notes)
+    else:
+        primary = min(movable, key=lambda v: height(v[0]))
+
+    # Lowest barre (no open strings) that differs from the primary voicing
+    barres = [v for v in movable if 0 not in v[0] and list(v[0]) != list(primary[0])]
+    alt = min(barres, key=lambda v: height(v[0])) if barres else None
+
+    entry: Dict[str, Any] = {
+        "chord": chord,
+        "display_name": meta.get("display_name", chord),
+        "root": root,
+        "quality": quality,
+        "notes": notes,
+        "positions": to_positions(*primary),
+    }
+    if alt is not None:
+        entry["alt_positions"] = to_positions(*alt)
+    return entry
 
 
 def generate_all_fingerings() -> List[Dict[str, Any]]:
-    """Generate fingering data for all 84 chords."""
-    # Load chord list from metadata
     lessons_dir = PROJECT_ROOT / "data" / "lessons"
-    fingerings = []
-
+    entries = []
     for chord_dir in sorted(lessons_dir.iterdir()):
         meta_path = chord_dir / "metadata.json"
-        if not meta_path.exists():
-            continue
-
-        with open(meta_path) as f:
-            meta = json.load(f)
-
-        chord_name = meta["chord"]
-        root = meta.get("root", chord_name.split("_")[0])
-        quality = meta.get("quality", "major")
-
-        # Special case: power chords with root on 5th string
-        if quality == "power" and root in POWER_A_ROOTS:
-            base_shape, base_root = A5_SHAPE, "A"
-        else:
-            shape_info = QUALITY_SHAPES.get(quality)
-            if shape_info is None:
-                continue
-            base_shape, base_root, _ = shape_info
-
-        positions = transpose_shape(base_shape, base_root, root)
-
-        fingerings.append({
-            "chord": chord_name,
-            "display_name": meta.get("display_name", chord_name),
-            "root": root,
-            "quality": quality,
-            "notes": meta.get("notes", []),
-            "positions": positions,
-        })
-
-    return fingerings
+        if meta_path.exists():
+            entries.append(build_entry(json.loads(meta_path.read_text())))
+    return entries
 
 
 def main() -> None:
     fingerings = generate_all_fingerings()
     out_path = PROJECT_ROOT / "data" / "chords" / "fingerings.json"
-    with open(out_path, "w") as f:
-        json.dump(fingerings, f, indent=2)
+    out_path.write_text(json.dumps(fingerings, indent=2) + "\n")
     print(f"Generated fingerings for {len(fingerings)} chords -> {out_path}")
 
 

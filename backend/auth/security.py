@@ -2,18 +2,31 @@
 from __future__ import annotations
 
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-secret-change-in-production-use-64-chars")
-if SECRET_KEY == "dev-secret-change-in-production-use-64-chars":
+_DEV_SECRET = "dev-secret-change-in-production-use-64-chars"
+
+
+def _is_production() -> bool:
+    # Cloud Run always sets K_SERVICE; APP_ENV lets other hosts opt in.
+    return bool(os.environ.get("K_SERVICE")) or os.environ.get("APP_ENV") == "production"
+
+
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")
+if not SECRET_KEY:
+    if _is_production():
+        # Fail closed: a guessable signing key would let anyone mint admin tokens.
+        raise RuntimeError("JWT_SECRET_KEY must be set in production.")
     import warnings
     warnings.warn(
-        "JWT_SECRET_KEY is using the default dev value — set a real secret in production!",
+        "JWT_SECRET_KEY is not set; using an insecure dev value.",
         stacklevel=1,
     )
+    SECRET_KEY = _DEV_SECRET
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
@@ -42,6 +55,9 @@ def verify_password(plain: str, hashed: str) -> bool:
 def _make_token(data: dict, expire_delta: timedelta) -> str:
     payload = data.copy()
     payload["exp"] = datetime.now(timezone.utc) + expire_delta
+    # Unique per token: without it, two tokens for one user in the same second are
+    # identical, so revoking one (logout, reset) could be undone by the next login.
+    payload["jti"] = secrets.token_urlsafe(16)
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 

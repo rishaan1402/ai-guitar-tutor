@@ -32,10 +32,10 @@ export default function ModeToggle({ mode, onChange }: ModeToggleProps) {
         <div
           className="absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-in-out"
           style={{
-            background: "linear-gradient(135deg, #7c3aed, #2563eb, #0891b2)",
+            background: "linear-gradient(135deg, #d98b2b, #527a5e, #6a9576)",
             width: "calc(33.333% - 5px)",
             left: idx === 0 ? "4px" : idx === 1 ? "calc(33.333% + 1px)" : "calc(66.666% + 2px)",
-            boxShadow: "0 0 16px rgba(124, 58, 237, 0.5)",
+            boxShadow: "0 0 16px rgba(var(--accent-rgb), 0.5)",
           }}
         />
         {MODES.map((m) => (

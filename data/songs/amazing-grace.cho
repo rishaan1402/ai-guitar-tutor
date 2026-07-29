@@ -1,0 +1,15 @@
+{title: Amazing Grace}
+{artist: Traditional}
+{key: G}
+{time: 3/4}
+{tempo: 76}
+{difficulty: beginner}
+{strumming: D - D U D U}
+{comment: Hymn tune, public domain. One chord per bar; "." holds the chord for a beat.}
+
+{start_of_verse: Verse}
+| G . . | G . . | G7 . . | C . . |
+| G . . | G . . | Em . . | D . . |
+| G . . | G . . | G7 . . | C . . |
+| G . . | Em . D | G . . | G . . |
+{end_of_verse}

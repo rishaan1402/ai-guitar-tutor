@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "cwd": "${workspaceFolder}/frontend"
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "uvicorn", "main:app", "--port", "8001", "--reload"],
+      "port": 8001,
+      "cwd": "${workspaceFolder}/backend"
+    }
+  ]
+}

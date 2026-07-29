@@ -161,9 +161,9 @@ export default function FeedbackDisplay({
               title={speaking ? "Stop reading" : "Read aloud"}
               className="shrink-0 mt-0.5 rounded-lg px-2 py-1 text-sm transition-all duration-200"
               style={{
-                background: speaking ? "rgba(124,58,237,0.2)" : "rgba(255,255,255,0.06)",
-                border: speaking ? "1px solid rgba(124,58,237,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                color: speaking ? "#a78bfa" : "rgba(255,255,255,0.5)",
+                background: speaking ? "rgba(var(--accent-rgb),0.2)" : "rgba(255,255,255,0.06)",
+                border: speaking ? "1px solid rgba(var(--accent-rgb),0.5)" : "1px solid rgba(255,255,255,0.1)",
+                color: speaking ? "#efc27a" : "rgba(255,255,255,0.5)",
               }}
             >
               {speaking ? "⏹" : "🔊"}
@@ -282,7 +282,7 @@ export default function FeedbackDisplay({
                 onClick={onRetry}
                 className="w-full px-4 py-2 rounded-lg font-semibold text-white transition-all"
                 style={{
-                  background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                  background: "linear-gradient(135deg, #d98b2b, #6a9576)",
                 }}
               >
                 🎸 Retry This Chord
@@ -311,7 +311,7 @@ export default function FeedbackDisplay({
                   onClick={onMoveOn}
                   className="px-4 py-2 rounded-lg font-semibold text-white"
                   style={{
-                    background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                    background: "linear-gradient(135deg, #d98b2b, #6a9576)",
                   }}
                 >
                   → Next
@@ -329,7 +329,7 @@ export default function FeedbackDisplay({
                 onClick={onMoveOn}
                 className="w-full px-4 py-2 rounded-lg font-semibold text-white transition-all"
                 style={{
-                  background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                  background: "linear-gradient(135deg, #d98b2b, #6a9576)",
                 }}
               >
                 → Move On
@@ -351,7 +351,7 @@ export default function FeedbackDisplay({
         <div
           className="rounded-xl p-4 border border-purple-500/30 space-y-1"
           style={{
-            background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(56,189,248,0.1))",
+            background: "linear-gradient(135deg, rgba(var(--accent-rgb),0.1), rgba(var(--sage-rgb),0.1))",
             animation: "pulse-glow 2s ease-in-out infinite",
           }}
         >

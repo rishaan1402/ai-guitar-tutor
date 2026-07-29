@@ -64,7 +64,7 @@ export default function PracticeChordCard({ chord, score, scoreHistory = [], cho
       {chordFunction && (
         <div
           className="text-center leading-tight"
-          style={{ color: "rgba(167,139,250,0.7)", fontSize: "10px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          style={{ color: "rgba(var(--accent-soft-rgb),0.7)", fontSize: "10px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
           title={chordFunction}
         >
           {chordFunction}

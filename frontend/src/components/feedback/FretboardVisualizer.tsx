@@ -145,8 +145,8 @@ export function FretboardVisualizer({
           const isMissing = missingNotes.includes(note);
           const isExtra = extraNotes.includes(note);
 
-          let fillColor = "#a78bfa"; // purple - untested
-          let strokeColor = "rgba(167,139,250,0.5)";
+          let fillColor = "#efc27a"; // amber - untested
+          let strokeColor = "rgba(239,194,122,0.5)";
 
           if (isDetected && !isMissing) {
             fillColor = "#22c55e"; // green - correct

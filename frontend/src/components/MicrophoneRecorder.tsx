@@ -102,9 +102,9 @@ export default function MicrophoneRecorder({ onRecordingComplete, disabled, onLi
 
       // Create horizontal gradient purple→cyan
       const gradient = ctx.createLinearGradient(0, 0, w, 0);
-      gradient.addColorStop(0, "#a78bfa");
-      gradient.addColorStop(0.5, "#38bdf8");
-      gradient.addColorStop(1, "#22d3ee");
+      gradient.addColorStop(0, "#efc27a");
+      gradient.addColorStop(0.5, "#a3c6ab");
+      gradient.addColorStop(1, "#a3c6ab");
 
       for (let i = 0; i < BAR_COUNT; i++) {
         let sumSq = 0;

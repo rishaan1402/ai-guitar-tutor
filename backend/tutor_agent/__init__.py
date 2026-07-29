@@ -1,3 +1,3 @@
-from .agent import TutorAgent, SessionState
+from .agent import TutorAgent, SessionState, grade_attempt
 
-__all__ = ["TutorAgent", "SessionState"]
+__all__ = ["TutorAgent", "SessionState", "grade_attempt"]

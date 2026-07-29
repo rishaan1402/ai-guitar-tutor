@@ -1,0 +1,17 @@
+{title: House of the Rising Sun}
+{artist: Traditional}
+{key: Am}
+{time: 6/8}
+{tempo: 72}
+{difficulty: beginner}
+{strumming: Arpeggiate: bass - 3 - 2 - 1 - 2 - 3 per bar}
+{comment: Folk melody, public domain. One chord per bar of 6/8.}
+
+{start_of_verse: Verse}
+| Am | C | D | F |
+| Am | C | E | E |
+| Am | C | D | F |
+| Am | E | Am | E |
+{end_of_verse}
+
+{comment: Repeat the verse for each verse. Practice the E to Am change on its own first.}

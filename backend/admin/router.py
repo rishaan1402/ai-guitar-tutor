@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.account import delete_user_and_data
 from auth.dependencies import require_role
 from db.engine import get_db
 from db.models import ChordAttempt, TransitionDrill, User
@@ -81,8 +82,7 @@ async def delete_user(user_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     user = await db.get(User, user_id)
     if user is None:
         raise HTTPException(404, "User not found")
-    await db.delete(user)
-    await db.commit()
+    await delete_user_and_data(db, user)
 
 
 @router.get("/stats")

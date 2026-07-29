@@ -110,9 +110,9 @@ function StudyStage({
               <span
                 className="text-xs px-2 py-1 rounded-full"
                 style={{
-                  background: "rgba(124,58,237,0.15)",
-                  border: "1px solid rgba(124,58,237,0.3)",
-                  color: "rgba(167,139,250,0.9)",
+                  background: "rgba(var(--accent-rgb),0.15)",
+                  border: "1px solid rgba(var(--accent-rgb),0.3)",
+                  color: "rgba(var(--accent-soft-rgb),0.9)",
                 }}
               >
                 🎵 {lesson.key}
@@ -122,9 +122,9 @@ function StudyStage({
               <span
                 className="text-xs px-2 py-1 rounded-full"
                 style={{
-                  background: "rgba(37,99,235,0.15)",
-                  border: "1px solid rgba(37,99,235,0.3)",
-                  color: "rgba(147,197,253,0.9)",
+                  background: "rgba(var(--sage-rgb),0.15)",
+                  border: "1px solid rgba(var(--sage-rgb),0.3)",
+                  color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
                 ⏱ {lesson.time_signature}
@@ -134,9 +134,9 @@ function StudyStage({
               <span
                 className="text-xs px-2 py-1 rounded-full"
                 style={{
-                  background: "rgba(8,145,178,0.15)",
-                  border: "1px solid rgba(8,145,178,0.3)",
-                  color: "rgba(103,232,249,0.9)",
+                  background: "rgba(var(--sage-rgb),0.15)",
+                  border: "1px solid rgba(var(--sage-rgb),0.3)",
+                  color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
                 🎸 {lesson.tempo_feel}
@@ -149,8 +149,8 @@ function StudyStage({
         <div
           className="mt-4 p-4 rounded-xl text-sm leading-relaxed"
           style={{
-            background: "rgba(124,58,237,0.1)",
-            border: "1px solid rgba(124,58,237,0.25)",
+            background: "rgba(var(--accent-rgb),0.1)",
+            border: "1px solid rgba(var(--accent-rgb),0.25)",
             color: "rgba(255,255,255,0.8)",
             whiteSpace: "pre-wrap",
           }}
@@ -195,7 +195,7 @@ function StudyStage({
         <button
           onClick={onComplete}
           className="btn-gradient px-8 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200"
-          style={{ background: "linear-gradient(135deg, #7c3aed, #0891b2)" }}
+          style={{ background: "linear-gradient(135deg, #d98b2b, #6a9576)" }}
         >
           I&apos;ve studied this →
         </button>
@@ -250,7 +250,7 @@ function PracticeStage({
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${(attemptedCount / available.length) * 100}%`,
-                background: "linear-gradient(90deg, #7c3aed, #0891b2)",
+                background: "linear-gradient(90deg, #d98b2b, #6a9576)",
               }}
             />
           </div>

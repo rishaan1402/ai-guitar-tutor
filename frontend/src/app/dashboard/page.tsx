@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { TodaysPlan } from "./_components/TodaysPlan";
 import { StreakHeatmap } from "./_components/StreakHeatmap";
 import { QuickStats } from "./_components/QuickStats";
+import { MyClass } from "./_components/MyClass";
 import { LoadingSkeleton, CardSkeleton, StatCardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
@@ -25,6 +26,9 @@ export default function DashboardPage() {
             <TodaysPlan />
           </Suspense>
         </section>
+
+        {/* Teacher assignments + class membership (signed-in students only) */}
+        <MyClass />
 
         {/* Quick Stats */}
         <section>

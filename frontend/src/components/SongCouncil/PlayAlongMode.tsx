@@ -195,7 +195,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     ctx.fill();
 
     // Marker line
-    ctx.strokeStyle = "#22d3ee";
+    ctx.strokeStyle = "#a3c6ab";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(MARKER_X, LANE_Y);
@@ -242,8 +242,8 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       const isCurrent = i === clampedIdx;
       const result = blockResultsRef.current[i];
 
-      let fillColor = "rgba(124,58,237,0.22)";
-      if (isCurrent) fillColor = "rgba(124,58,237,0.50)";
+      let fillColor = "rgba(232,165,75,0.22)";
+      if (isCurrent) fillColor = "rgba(232,165,75,0.50)";
       if (result === "great") fillColor = "rgba(34,197,94,0.30)";
       else if (result === "ok") fillColor = "rgba(234,179,8,0.28)";
       else if (result === "miss") fillColor = "rgba(239,68,68,0.22)";
@@ -255,7 +255,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       ctx.strokeStyle = result === "great" ? "#22c55e"
         : result === "ok" ? "#eab308"
         : result === "miss" ? "#ef4444"
-        : isCurrent ? "#a78bfa" : "rgba(124,58,237,0.35)";
+        : isCurrent ? "#efc27a" : "rgba(232,165,75,0.35)";
       ctx.lineWidth = isCurrent ? 2 : 1;
       ctx.stroke();
 

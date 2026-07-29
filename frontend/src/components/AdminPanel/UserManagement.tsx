@@ -59,7 +59,7 @@ export default function UserManagement({ users, onRoleChange }: Props) {
                   }`}
                 >
                   {ROLES.map((r) => (
-                    <option key={r} value={r} className="bg-[#0a0a0e] text-gray-200">
+                    <option key={r} value={r} className="bg-[#080a09] text-gray-200">
                       {r}
                     </option>
                   ))}

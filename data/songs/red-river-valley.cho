@@ -1,0 +1,17 @@
+{title: Red River Valley}
+{artist: Traditional}
+{key: G}
+{time: 4/4}
+{tempo: 96}
+{difficulty: beginner}
+{strumming: Bass - D U, alternate bass note each beat}
+
+{start_of_verse: Verse}
+| G | G | G | D |
+| D | D | D | G |
+{end_of_verse}
+
+{start_of_chorus: Chorus}
+| G | G7 | C | C |
+| G | D | D7 | G |
+{end_of_chorus}

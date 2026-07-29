@@ -9,6 +9,7 @@ import LessonQuiz from "./LessonQuiz";
 import PlayAlongMode from "./PlayAlongMode";
 import { ChordPracticeDrawer } from "./ChordPracticeDrawer";
 import { SongCouncilContext } from "./index";
+import { lessonToChordPro, storeDraft } from "@/lib/songDraft";
 
 interface IntegratedLessonViewProps {
   lesson: LessonDocument;
@@ -126,9 +127,9 @@ export function IntegratedLessonView({
               <span
                 className="text-xs px-2 py-1 rounded-full"
                 style={{
-                  background: "rgba(124,58,237,0.15)",
-                  border: "1px solid rgba(124,58,237,0.3)",
-                  color: "rgba(167,139,250,0.9)",
+                  background: "rgba(var(--accent-rgb),0.15)",
+                  border: "1px solid rgba(var(--accent-rgb),0.3)",
+                  color: "rgba(var(--accent-soft-rgb),0.9)",
                 }}
               >
                 🎵 {lesson.key}
@@ -138,9 +139,9 @@ export function IntegratedLessonView({
               <span
                 className="text-xs px-2 py-1 rounded-full"
                 style={{
-                  background: "rgba(37,99,235,0.15)",
-                  border: "1px solid rgba(37,99,235,0.3)",
-                  color: "rgba(147,197,253,0.9)",
+                  background: "rgba(var(--sage-rgb),0.15)",
+                  border: "1px solid rgba(var(--sage-rgb),0.3)",
+                  color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
                 ⏱ {lesson.time_signature}
@@ -150,9 +151,9 @@ export function IntegratedLessonView({
               <span
                 className="text-xs px-2 py-1 rounded-full"
                 style={{
-                  background: "rgba(8,145,178,0.15)",
-                  border: "1px solid rgba(8,145,178,0.3)",
-                  color: "rgba(103,232,249,0.9)",
+                  background: "rgba(var(--sage-rgb),0.15)",
+                  border: "1px solid rgba(var(--sage-rgb),0.3)",
+                  color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
                 🎸 {lesson.tempo_feel}
@@ -165,8 +166,8 @@ export function IntegratedLessonView({
         <div
           className="mt-4 p-4 rounded-xl text-sm leading-relaxed"
           style={{
-            background: "rgba(124,58,237,0.1)",
-            border: "1px solid rgba(124,58,237,0.25)",
+            background: "rgba(var(--accent-rgb),0.1)",
+            border: "1px solid rgba(var(--accent-rgb),0.25)",
             color: "rgba(255,255,255,0.8)",
             whiteSpace: "pre-wrap",
           }}
@@ -177,7 +178,18 @@ export function IntegratedLessonView({
         {/* Song structure timeline */}
         {lesson.song_sections && lesson.song_sections.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-gray-400 uppercase font-mono mb-2">Structure</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-gray-400 uppercase font-mono">Structure</p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (storeDraft(lessonToChordPro(lesson))) window.location.assign("/songs/view?draft=1");
+                }}
+                className="text-xs text-purple-300 hover:text-purple-200"
+              >
+                Open as chord sheet →
+              </button>
+            </div>
             <SongTimeline
               lesson={lesson}
               chordScores={chordScores}
@@ -247,9 +259,9 @@ export function IntegratedLessonView({
                 disabled={revising}
                 className="w-full px-6 py-3 rounded-xl font-semibold text-white disabled:opacity-50"
                 style={{
-                  background: "rgba(167,139,250,0.1)",
-                  border: "1px solid rgba(167,139,250,0.3)",
-                  color: "rgba(196,181,253,0.9)",
+                  background: "rgba(var(--accent-soft-rgb),0.1)",
+                  border: "1px solid rgba(var(--accent-soft-rgb),0.3)",
+                  color: "rgba(var(--accent-soft-rgb),0.9)",
                 }}
               >
                 {revising ? "Revising lesson…" : "✨ Revise Lesson Plan"}

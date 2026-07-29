@@ -80,7 +80,7 @@ export default function EnhancedPracticeChordCard({
         {chordFunction && (
           <div
             className="text-center leading-tight text-xs"
-            style={{ color: "rgba(167,139,250,0.7)" }}
+            style={{ color: "rgba(var(--accent-soft-rgb),0.7)" }}
             title={chordFunction}
           >
             {chordFunction}

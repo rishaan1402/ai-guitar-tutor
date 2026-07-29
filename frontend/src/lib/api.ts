@@ -1,4 +1,4 @@
-import { getAccessToken, refreshAccessToken, setTokens, clearTokens } from "./auth";
+import { getAccessToken, getRefreshToken, refreshAccessToken, setTokens, clearTokens } from "./auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -9,6 +9,18 @@ function getSessionId(): string {
     sessionId = crypto.randomUUID();
   }
   return sessionId;
+}
+
+/** FastAPI sends `detail` as a string, or as a list of field errors on 422. */
+export function errorMessage(body: { detail?: unknown }, fallback: string): string {
+  const d = body.detail;
+  if (typeof d === "string") return d;
+  if (Array.isArray(d) && d.length > 0) {
+    const msg = String(d[0]?.msg ?? "");
+    // Pydantic prefixes validator messages with "Value error, "
+    return msg.replace(/^Value error, /, "") || fallback;
+  }
+  return fallback;
 }
 
 async function request<T>(path: string, options?: RequestInit, retry = true): Promise<T> {
@@ -37,8 +49,9 @@ async function request<T>(path: string, options?: RequestInit, retry = true): Pr
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Request failed: ${res.status}`);
+    throw new Error(errorMessage(body, `Request failed: ${res.status}`));
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
@@ -58,9 +71,16 @@ export function learnChord(chordName: string): Promise<Record<string, unknown>> 
   });
 }
 
-export function submitAudio(audioBlob: Blob): Promise<Record<string, unknown>> {
+export function submitAudio(
+  audioBlob: Blob,
+  chordName: string,
+  previousScores: number[] = [],
+): Promise<Record<string, unknown>> {
   const form = new FormData();
   form.append("audio", audioBlob, "recording.wav");
+  // Sending the chord and earlier scores keeps scoring stateless on the server
+  form.append("chord_name", chordName);
+  form.append("previous_scores", JSON.stringify(previousScores));
   return request("/submit_audio", { method: "POST", body: form });
 }
 
@@ -80,19 +100,24 @@ export function getAudioUrl(chord: string): string {
   return `${API_BASE}/audio/${encodeURIComponent(chord)}`;
 }
 
+export interface FretPosition {
+  string: number;
+  fret?: number;
+  note?: string;
+  finger?: number;
+  action?: string;
+}
+
 export interface ChordFingering {
   chord: string;
   display_name: string;
   root: string;
   quality: string;
   notes: string[];
-  positions: {
-    string: number;
-    fret?: number;
-    note?: string;
-    finger?: number;
-    action?: string;
-  }[];
+  /** The voicing to teach first (open shape where one exists). */
+  positions: FretPosition[];
+  /** Lowest barre voicing, for players moving up the neck. */
+  alt_positions?: FretPosition[];
 }
 
 export function getFingering(chord: string): Promise<ChordFingering> {
@@ -130,7 +155,7 @@ export async function signup(
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Signup failed: ${res.status}`);
+    throw new Error(errorMessage(body, `Signup failed: ${res.status}`));
   }
   const tokens: TokenResponse = await res.json();
   setTokens(tokens.access_token, tokens.refresh_token);
@@ -149,7 +174,7 @@ export async function login(
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Login failed: ${res.status}`);
+    throw new Error(errorMessage(body, `Login failed: ${res.status}`));
   }
   const tokens: TokenResponse = await res.json();
   setTokens(tokens.access_token, tokens.refresh_token);
@@ -173,12 +198,49 @@ export function updateProfile(data: {
 }
 
 export async function logout(): Promise<void> {
+  const refreshToken = getRefreshToken();
   try {
-    await request("/api/auth/logout", { method: "POST" });
+    // The backend revokes this refresh token so it can't be reused
+    if (refreshToken) {
+      await request("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+    }
   } catch {
     // ignore errors on logout
   }
   clearTokens();
+}
+
+export async function deleteAccount(password: string): Promise<void> {
+  await request("/api/auth/me", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  clearTokens();
+}
+
+async function postPublic(path: string, payload: unknown): Promise<void> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(errorMessage(body, `Request failed: ${res.status}`));
+  }
+}
+
+export function requestPasswordReset(email: string): Promise<void> {
+  return postPublic("/api/auth/password-reset/request", { email });
+}
+
+export function confirmPasswordReset(token: string, newPassword: string): Promise<void> {
+  return postPublic("/api/auth/password-reset/confirm", { token, new_password: newPassword });
 }
 
 // ---------------------------------------------------------------------------
@@ -411,9 +473,10 @@ export function getStudentReport(studentId: string): Promise<{ report: string }>
   return request(`/api/teacher/students/${studentId}/report`);
 }
 
+// Field names match backend teacher/router.py class_analytics()
 export interface ClassAnalytics {
-  most_practiced: { chord_name: string; total_attempts: number }[];
-  lowest_avg_score: { chord_name: string; avg_score: number }[];
+  most_practiced_chords: { chord: string; total_attempts: number }[];
+  lowest_avg_score_chords: { chord: string; avg_score: number }[];
   total_students: number;
 }
 
@@ -539,4 +602,101 @@ export function submitTipFeedback(tipId: string, helpful: boolean): Promise<{ st
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ helpful }),
   });
+}
+
+export function getInviteCode(): Promise<{ code: string }> {
+  return request("/api/teacher/invite-code");
+}
+
+export function rotateInviteCode(): Promise<{ code: string }> {
+  return request("/api/teacher/invite-code/rotate", { method: "POST" });
+}
+
+export function removeStudent(studentId: string): Promise<void> {
+  return request(`/api/teacher/students/${studentId}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------------------
+// Class membership (student side)
+// ---------------------------------------------------------------------------
+
+export interface TeacherInfo {
+  id: string;
+  display_name: string;
+}
+
+export interface Assignment {
+  id: string;
+  teacher_name: string;
+  chord_name: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export function joinClass(code: string): Promise<TeacherInfo> {
+  return request("/api/class/join", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+}
+
+export function getMyTeachers(): Promise<TeacherInfo[]> {
+  return request("/api/class/teachers");
+}
+
+export function leaveClass(teacherId: string): Promise<void> {
+  return request(`/api/class/teachers/${teacherId}`, { method: "DELETE" });
+}
+
+export function getMyAssignments(): Promise<Assignment[]> {
+  return request("/api/class/assignments");
+}
+
+// ---------------------------------------------------------------------------
+// Song sheets (ChordPro)
+// ---------------------------------------------------------------------------
+
+export interface SongSummary {
+  id: string;
+  title: string;
+  artist: string | null;
+  key: string | null;
+  difficulty: string | null;
+  source: "library" | "mine" | "class";
+  owner_name?: string | null;
+  visibility?: "private" | "class" | null;
+}
+
+export interface SongDetail extends SongSummary {
+  content: string;
+  can_edit: boolean;
+}
+
+export function listSongs(params: { q?: string; difficulty?: string } = {}): Promise<SongSummary[]> {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set("q", params.q);
+  if (params.difficulty) qs.set("difficulty", params.difficulty);
+  const suffix = qs.toString() ? `?${qs}` : "";
+  return request(`/api/songs${suffix}`);
+}
+
+export function getSong(id: string): Promise<SongDetail> {
+  return request(`/api/songs/${encodeURIComponent(id)}`);
+}
+
+export function saveSong(
+  content: string,
+  visibility: "private" | "class",
+  id?: string,
+): Promise<SongDetail> {
+  return request(id ? `/api/songs/${encodeURIComponent(id)}` : "/api/songs", {
+    method: id ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, visibility }),
+  });
+}
+
+export function deleteSong(id: string): Promise<void> {
+  return request(`/api/songs/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

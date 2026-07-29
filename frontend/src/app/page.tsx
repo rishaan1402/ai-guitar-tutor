@@ -140,7 +140,7 @@ export default function LandingPage() {
                     style={{
                       background:
                         [2, 8, 15, 20].includes(i)
-                          ? "rgba(139,92,246,0.7)"
+                          ? "rgba(var(--accent-rgb),0.7)"
                           : "rgba(255,255,255,0.06)",
                     }}
                   />

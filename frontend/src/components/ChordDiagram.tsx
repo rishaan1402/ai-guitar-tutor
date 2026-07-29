@@ -19,11 +19,12 @@ const SVG_W = FRETBOARD_W + LEFT_MARGIN + 12;
 const SVG_H = FRETBOARD_H + TOP_MARGIN + 12;
 const DOT_R = 5;
 
+// Warm, distinct per finger; kept clear of the green/red used for scoring
 const FINGER_COLORS: Record<number, string> = {
-  1: "#3b82f6",
-  2: "#22c55e",
-  3: "#f59e0b",
-  4: "#ef4444",
+  1: "#e8a54b",
+  2: "#86b092",
+  3: "#e9d9b8",
+  4: "#de7a5c",
 };
 
 export default function ChordDiagram({ fingering, liveNotes }: Props) {
@@ -172,17 +173,23 @@ export default function ChordDiagram({ fingering, liveNotes }: Props) {
               : baseColor;
 
             return (
-              <circle
-                key={`d-${i}`}
-                cx={x}
-                cy={y}
-                r={isLive ? DOT_R + 1 : DOT_R}
-                fill={fill}
-                stroke={isLive ? "#22c55e" : "#fff"}
-                strokeWidth={isLive ? 1.5 : 0.8}
-                filter={isLive ? "url(#liveGlow)" : undefined}
-                style={{ transition: "fill 0.15s, r 0.1s" }}
-              />
+              <g key={`d-${i}`}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={isLive ? DOT_R + 1 : DOT_R}
+                  fill={fill}
+                  stroke={isLive ? "#22c55e" : "rgba(28,18,6,0.6)"}
+                  strokeWidth={isLive ? 1.5 : 0.8}
+                  filter={isLive ? "url(#liveGlow)" : undefined}
+                  style={{ transition: "fill 0.15s, r 0.1s" }}
+                />
+                {pos.finger && !isLiveMode && (
+                  <text x={x} y={y + 2.2} fontSize={6} fill="#1c1206" textAnchor="middle" fontWeight="bold" aria-hidden>
+                    {pos.finger}
+                  </text>
+                )}
+              </g>
             );
           })}
       </svg>

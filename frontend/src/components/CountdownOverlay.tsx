@@ -51,7 +51,7 @@ export default function CountdownOverlay({ onComplete }: Props) {
           animation: "countdown-pulse 800ms ease-out forwards",
           textShadow: isGo
             ? "0 0 40px rgba(34,197,94,0.5)"
-            : "0 0 40px rgba(139,92,246,0.4)",
+            : "0 0 40px rgba(var(--accent-rgb),0.4)",
         }}
       >
         {current}
