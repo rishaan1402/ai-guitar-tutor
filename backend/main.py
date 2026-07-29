@@ -16,10 +16,11 @@ import time
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,6 +52,10 @@ logger = logging.getLogger(__name__)
 lesson_service = LessonService()
 evaluator = ChordEvaluator()
 feedback_generator = FeedbackGenerator()
+
+# When set, lesson audio/video is served by redirecting to this base URL
+# (a public GCS bucket) instead of streaming the local copy in the image.
+LESSON_ASSETS_BASE_URL = os.environ.get("LESSON_ASSETS_BASE_URL", "").rstrip("/")
 
 # Load fingering data for chord diagrams and feedback tips
 _fingerings_path = Path(__file__).resolve().parents[1] / "data" / "chords" / "fingerings.json"
@@ -164,14 +169,16 @@ def get_lesson(chord: str) -> Dict[str, Any]:
 
 
 @app.get("/video/{chord}")
-def get_video(chord: str) -> FileResponse:
-    """Stream the lesson video for a chord."""
+def get_video(chord: str):
+    """Stream the lesson video for a chord (or redirect to its CDN-cacheable copy)."""
     lesson = lesson_service.get_lesson(chord)
     if lesson is None:
         raise HTTPException(status_code=404, detail=f"No lesson found for '{chord}'.")
     video_path = lesson.lesson_video_path
     if video_path is None or not video_path.exists() or video_path.stat().st_size == 0:
         raise HTTPException(status_code=404, detail=f"No video available for '{chord}'.")
+    if LESSON_ASSETS_BASE_URL:
+        return RedirectResponse(f"{LESSON_ASSETS_BASE_URL}/{quote(chord, safe='')}/lesson.mp4")
     return FileResponse(str(video_path), media_type="video/mp4", filename=f"{chord}.mp4")
 
 
@@ -184,14 +191,16 @@ def get_fingering(chord: str) -> Dict[str, Any]:
 
 
 @app.get("/audio/{chord}")
-def get_audio(chord: str) -> FileResponse:
-    """Stream the reference audio for a chord."""
+def get_audio(chord: str):
+    """Stream the reference audio for a chord (or redirect to its CDN-cacheable copy)."""
     lesson = lesson_service.get_lesson(chord)
     if lesson is None:
         raise HTTPException(status_code=404, detail=f"No lesson found for '{chord}'.")
     audio_path = lesson.reference_audio_path
     if audio_path is None or not audio_path.exists() or audio_path.stat().st_size == 0:
         raise HTTPException(status_code=404, detail=f"No audio available for '{chord}'.")
+    if LESSON_ASSETS_BASE_URL:
+        return RedirectResponse(f"{LESSON_ASSETS_BASE_URL}/{quote(chord, safe='')}/reference.wav")
     return FileResponse(str(audio_path), media_type="audio/wav", filename=f"{chord}.wav")
 
 
