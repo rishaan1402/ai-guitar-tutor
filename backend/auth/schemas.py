@@ -7,6 +7,16 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, field_validator
 
 
+MIN_PASSWORD_LENGTH = 8
+
+
+def _check_password(v: str) -> str:
+    # Matches the signup form; existing shorter passwords still log in
+    if len(v) < MIN_PASSWORD_LENGTH:
+        raise ValueError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters")
+    return v
+
+
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
@@ -15,9 +25,7 @@ class SignupRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def password_length(cls, v: str) -> str:
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
-        return v
+        return _check_password(v)
 
     @field_validator("display_name")
     @classmethod
@@ -64,3 +72,21 @@ class UpdateProfileRequest(BaseModel):
         if v is not None and v not in ("beginner", "intermediate", "advanced"):
             raise ValueError("skill_level must be beginner, intermediate, or advanced")
         return v
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def password_length(cls, v: str) -> str:
+        return _check_password(v)

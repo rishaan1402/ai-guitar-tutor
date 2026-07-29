@@ -36,7 +36,7 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
           <div
             className="w-16 h-16 rounded-full"
             style={{
-              background: "conic-gradient(from 0deg, #7c3aed, #2563eb, #0891b2, transparent)",
+              background: "conic-gradient(from 0deg, #d98b2b, #527a5e, #6a9576, transparent)",
               animation: "spin 1.2s linear infinite",
             }}
           />
@@ -59,14 +59,14 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                       background: done
                         ? "rgba(34,197,94,0.25)"
                         : active_
-                        ? "rgba(124,58,237,0.3)"
+                        ? "rgba(var(--accent-rgb),0.3)"
                         : "rgba(255,255,255,0.05)",
                       border: done
                         ? "1px solid rgba(34,197,94,0.5)"
                         : active_
-                        ? "1px solid rgba(124,58,237,0.6)"
+                        ? "1px solid rgba(var(--accent-rgb),0.6)"
                         : "1px solid rgba(255,255,255,0.1)",
-                      boxShadow: active_ ? "0 0 16px rgba(124,58,237,0.4)" : "none",
+                      boxShadow: active_ ? "0 0 16px rgba(var(--accent-rgb),0.4)" : "none",
                       animation: active_ ? "step-pulse 2s ease-in-out infinite" : "none",
                     }}
                   >
@@ -75,7 +75,7 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                   <span
                     className="text-xs text-center max-w-20"
                     style={{
-                      color: done ? "#22c55e" : active_ ? "#a78bfa" : "rgba(255,255,255,0.35)",
+                      color: done ? "#22c55e" : active_ ? "#efc27a" : "rgba(255,255,255,0.35)",
                     }}
                   >
                     {step.label}

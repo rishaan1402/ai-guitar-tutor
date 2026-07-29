@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote
 
-from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
@@ -29,13 +29,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audio_engine import ChordEvaluator
 from feedback_engine import FeedbackGenerator
 from lesson_service import LessonService
-from tutor_agent import TutorAgent
+from tutor_agent import TutorAgent, grade_attempt
 from council.router import router as council_router
 from auth.router import router as auth_router
 from auth.dependencies import get_current_user_optional
 from auth.profile_context import build_user_context
 from progress.router import router as progress_router
 from teacher.router import router as teacher_router
+from teacher.classes import router as class_router
+from songs.router import router as songs_router
 from admin.router import router as admin_router
 from personalization.router import router as plan_router
 from db.engine import get_db
@@ -137,6 +139,8 @@ app.include_router(council_router)
 app.include_router(auth_router)
 app.include_router(progress_router)
 app.include_router(teacher_router)
+app.include_router(class_router)
+app.include_router(songs_router)
 app.include_router(admin_router)
 app.include_router(plan_router)
 
@@ -221,21 +225,49 @@ def learn_chord(
     return result
 
 
+def _parse_previous_scores(raw: Optional[str]) -> List[float]:
+    """Parse the client's earlier scores for this chord (JSON list of floats)."""
+    if not raw:
+        return []
+    try:
+        values = json.loads(raw)
+        return [float(v) for v in values][:TutorAgent.MAX_ATTEMPTS]
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=422, detail="previous_scores must be a JSON list of numbers.")
+
+
 @app.post("/submit_audio")
 async def submit_audio(
     audio: UploadFile = File(...),
+    chord_name: Optional[str] = Form(None),
+    previous_scores: Optional[str] = Form(None),
     x_session_id: Optional[str] = Header(None),
     user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Accept audio recording and return evaluation feedback."""
-    sid, agent = _resolve_session(x_session_id)
+    """Accept audio recording and return evaluation feedback.
 
-    if agent.state.value not in ("WAITING_FOR_PLAY", "FEEDBACK"):
-        raise HTTPException(
-            status_code=400,
-            detail="Not ready for audio. Start a lesson first.",
-        )
+    Stateless when the client sends ``chord_name`` (and optionally
+    ``previous_scores``): any instance can grade the request. Without it,
+    falls back to the legacy in-memory session started by /learn_chord.
+    """
+    sid = x_session_id or str(uuid.uuid4())
+    agent: Optional[TutorAgent] = None
+    lesson = None
+    prior: List[float] = []
+
+    if chord_name:
+        lesson = lesson_service.get_lesson(chord_name)
+        if lesson is None:
+            raise HTTPException(status_code=404, detail=f"No lesson found for '{chord_name}'.")
+        prior = _parse_previous_scores(previous_scores)
+    else:
+        sid, agent = _resolve_session(x_session_id)
+        if agent.state.value not in ("WAITING_FOR_PLAY", "FEEDBACK"):
+            raise HTTPException(
+                status_code=400,
+                detail="Not ready for audio. Start a lesson first.",
+            )
 
     suffix = Path(audio.filename or "recording.wav").suffix or ".wav"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -245,12 +277,28 @@ async def submit_audio(
 
     # Build user profile context for personalized feedback
     user_context = await build_user_context(db, user.id if user else None)
-    result = agent.submit_audio(tmp_path, user_context=user_context)
-
     try:
-        Path(tmp_path).unlink()
-    except OSError:
-        pass
+        if agent is not None:
+            result = agent.submit_audio(tmp_path, user_context=user_context)
+            chord_key = agent.current_chord or ""
+        else:
+            chord_key = lesson.chord_name
+            result = grade_attempt(
+                lesson,
+                evaluator,
+                feedback_generator,
+                tmp_path,
+                attempt=len(prior) + 1,
+                previous_scores=prior,
+                fingering_positions=_fingerings_by_chord.get(chord_key, {}).get("positions", []),
+                user_context=user_context,
+            )
+            result.pop("_evaluation", None)
+    finally:
+        try:
+            Path(tmp_path).unlink()
+        except OSError:
+            pass
 
     # Persist chord attempt for authenticated users
     if user is not None:
@@ -260,7 +308,7 @@ async def submit_audio(
             feedback_text = result.get("feedback", "")
             db.add(ChordAttempt(
                 user_id=user.id,
-                chord_name=agent.current_chord or "unknown",
+                chord_name=chord_key or "unknown",
                 score=float(eval_data.get("score", 0.0)),
                 detected_notes=eval_data.get("detected_notes", []),
                 missing_notes=eval_data.get("missing_notes", []),
@@ -275,7 +323,6 @@ async def submit_audio(
     if isinstance(eval_data, dict):
         result["analysis"] = feedback_generator.generate_analysis_summary(eval_data)
         missing = eval_data.get("missing_notes", [])
-        chord_key = agent.current_chord or ""
         fingering_data = _fingerings_by_chord.get(chord_key, {})
         if missing and fingering_data:
             result["fingering_tips"] = feedback_generator.generate_fingering_tips(

@@ -22,6 +22,57 @@ class SessionState(str, Enum):
     COMPLETED = "COMPLETED"
 
 
+def grade_attempt(
+    lesson: Lesson,
+    evaluator: ChordEvaluator,
+    feedback_generator: FeedbackGenerator,
+    audio_path: str,
+    attempt: int,
+    previous_scores: Optional[list] = None,
+    fingering_positions: Optional[list] = None,
+    user_context: str = "",
+) -> Dict[str, Any]:
+    """
+    Score one attempt at a chord with no server-side session state.
+
+    The caller supplies the attempt number and earlier scores, so any
+    instance can grade any request. The returned dict carries the raw
+    EvaluationResult under "_evaluation"; callers pop it before responding.
+    """
+    previous_scores = list(previous_scores or [])
+    expected_notes = list(lesson.metadata.get("notes", []))
+    evaluation = evaluator.evaluate(audio_path, expected_notes)
+
+    feedback_text = feedback_generator.generate(
+        evaluation.to_dict(),
+        chord_name=lesson.chord_name,
+        attempt=attempt,
+        score_history=previous_scores + [evaluation.score],
+        fingering_positions=list(fingering_positions or []),
+        user_context=user_context,
+    )
+
+    result: Dict[str, Any] = {
+        "status": "ok",
+        "evaluation": evaluation.to_dict(),
+        "feedback": feedback_text,
+        "attempt": attempt,
+        "_evaluation": evaluation,
+    }
+
+    if evaluation.score >= 1.0:
+        result["state"] = SessionState.COMPLETED.value
+        result["message"] = "Congratulations! You've completed this lesson."
+    elif attempt >= TutorAgent.MAX_ATTEMPTS:
+        result["state"] = SessionState.COMPLETED.value
+        result["message"] = "You've used all attempts. Review the lesson and try again later."
+    else:
+        result["state"] = SessionState.FEEDBACK.value
+        result["attempts_remaining"] = TutorAgent.MAX_ATTEMPTS - attempt
+        result["message"] = "Try again! You can do it."
+    return result
+
+
 class TutorAgent:
     """
     Orchestrates a guitar tutoring session.
@@ -122,52 +173,20 @@ class TutorAgent:
         self._state = SessionState.ANALYZING
         self._attempt_count += 1
 
-        expected_notes = list(self._current_lesson.metadata.get("notes", []))
-        evaluation = self._evaluator.evaluate(audio_path, expected_notes)
-        self._last_evaluation = evaluation
-        self._score_history.append(evaluation.score)
-
-        feedback_text = self._feedback_generator.generate(
-            evaluation.to_dict(),
-            chord_name=self._current_lesson.chord_name,
+        result = grade_attempt(
+            self._current_lesson,
+            self._evaluator,
+            self._feedback_generator,
+            audio_path,
             attempt=self._attempt_count,
-            score_history=list(self._score_history),
+            previous_scores=list(self._score_history),
             fingering_positions=list(self._fingering_positions),
             user_context=user_context,
         )
-
-        if evaluation.score >= 1.0:
-            self._state = SessionState.COMPLETED
-            return {
-                "status": "ok",
-                "state": self._state.value,
-                "evaluation": evaluation.to_dict(),
-                "feedback": feedback_text,
-                "attempt": self._attempt_count,
-                "message": "Congratulations! You've completed this lesson.",
-            }
-
-        if self._attempt_count >= self.MAX_ATTEMPTS:
-            self._state = SessionState.COMPLETED
-            return {
-                "status": "ok",
-                "state": self._state.value,
-                "evaluation": evaluation.to_dict(),
-                "feedback": feedback_text,
-                "attempt": self._attempt_count,
-                "message": "You've used all attempts. Review the lesson and try again later.",
-            }
-
-        self._state = SessionState.FEEDBACK
-        return {
-            "status": "ok",
-            "state": self._state.value,
-            "evaluation": evaluation.to_dict(),
-            "feedback": feedback_text,
-            "attempt": self._attempt_count,
-            "attempts_remaining": self.MAX_ATTEMPTS - self._attempt_count,
-            "message": "Try again! You can do it.",
-        }
+        self._last_evaluation = result.pop("_evaluation")
+        self._score_history.append(self._last_evaluation.score)
+        self._state = SessionState(result["state"])
+        return result
 
     def get_session_info(self) -> Dict[str, Any]:
         """Return current session state and details."""

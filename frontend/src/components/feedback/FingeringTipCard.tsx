@@ -42,7 +42,7 @@ export function FingeringTipCard({
             style={{
               background:
                 finger === 1
-                  ? "rgba(59,130,246,0.4)"
+                  ? "rgba(var(--sage-rgb),0.4)"
                   : finger === 2
                   ? "rgba(34,197,94,0.4)"
                   : finger === 3
@@ -50,7 +50,7 @@ export function FingeringTipCard({
                   : "rgba(239,68,68,0.4)",
               border:
                 finger === 1
-                  ? "1px solid rgba(59,130,246,0.7)"
+                  ? "1px solid rgba(var(--sage-rgb),0.7)"
                   : finger === 2
                   ? "1px solid rgba(34,197,94,0.7)"
                   : finger === 3

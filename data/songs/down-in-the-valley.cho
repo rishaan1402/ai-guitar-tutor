@@ -1,0 +1,15 @@
+{title: Down in the Valley}
+{artist: Traditional}
+{key: G}
+{time: 3/4}
+{tempo: 92}
+{difficulty: beginner}
+{strumming: Bass - D - D}
+{comment: Only two chords. A good first song.}
+
+{start_of_verse: Verse}
+| G | G | G | D |
+| D | D | D | G |
+| G | G | G | D |
+| D | D | D | G |
+{end_of_verse}

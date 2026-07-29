@@ -81,7 +81,7 @@ export default function MetronomeWidget({ tempoFeel, timeSignature }: Props) {
                   height: 8,
                   borderRadius: "50%",
                   background: isActive
-                    ? i === 0 ? "#a78bfa" : "#7c3aed"
+                    ? i === 0 ? "#efc27a" : "#d98b2b"
                     : "rgba(255,255,255,0.2)",
                   transition: "background 0.1s",
                 }}
@@ -95,9 +95,9 @@ export default function MetronomeWidget({ tempoFeel, timeSignature }: Props) {
           onClick={(e) => { e.stopPropagation(); state.isRunning ? controls.stop() : controls.start(); }}
           className="text-sm px-2 py-0.5 rounded-lg transition-all"
           style={{
-            background: state.isRunning ? "rgba(124,58,237,0.25)" : "rgba(255,255,255,0.07)",
-            border: state.isRunning ? "1px solid rgba(124,58,237,0.5)" : "1px solid rgba(255,255,255,0.15)",
-            color: state.isRunning ? "#a78bfa" : "rgba(255,255,255,0.6)",
+            background: state.isRunning ? "rgba(var(--accent-rgb),0.25)" : "rgba(255,255,255,0.07)",
+            border: state.isRunning ? "1px solid rgba(var(--accent-rgb),0.5)" : "1px solid rgba(255,255,255,0.15)",
+            color: state.isRunning ? "#efc27a" : "rgba(255,255,255,0.6)",
           }}
         >
           {state.isRunning ? "⏹" : "▶"}
@@ -159,9 +159,9 @@ export default function MetronomeWidget({ tempoFeel, timeSignature }: Props) {
                     height: isAccent ? 14 : 12,
                     borderRadius: "50%",
                     background: isActive
-                      ? isAccent ? "#a78bfa" : "#7c3aed"
+                      ? isAccent ? "#efc27a" : "#d98b2b"
                       : "rgba(255,255,255,0.15)",
-                    border: isAccent ? "1px solid rgba(167,139,250,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                    border: isAccent ? "1px solid rgba(var(--accent-soft-rgb),0.4)" : "1px solid rgba(255,255,255,0.1)",
                     transition: "background 0.05s",
                   }}
                 />
@@ -178,9 +178,9 @@ export default function MetronomeWidget({ tempoFeel, timeSignature }: Props) {
                   onClick={() => setPatternIdx(i)}
                   className="flex-1 text-xs py-1 rounded-lg transition-all"
                   style={{
-                    background: i === patternIdx ? "rgba(124,58,237,0.25)" : "rgba(255,255,255,0.05)",
-                    border: i === patternIdx ? "1px solid rgba(124,58,237,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                    color: i === patternIdx ? "#a78bfa" : "rgba(255,255,255,0.5)",
+                    background: i === patternIdx ? "rgba(var(--accent-rgb),0.25)" : "rgba(255,255,255,0.05)",
+                    border: i === patternIdx ? "1px solid rgba(var(--accent-rgb),0.5)" : "1px solid rgba(255,255,255,0.1)",
+                    color: i === patternIdx ? "#efc27a" : "rgba(255,255,255,0.5)",
                   }}
                 >
                   {p.name}
@@ -198,7 +198,7 @@ export default function MetronomeWidget({ tempoFeel, timeSignature }: Props) {
                     className="text-base font-bold transition-all duration-100"
                     style={{
                       color: isActiveArrow
-                        ? arrow === "down" ? "#22d3ee" : "#a78bfa"
+                        ? arrow === "down" ? "#a3c6ab" : "#efc27a"
                         : "rgba(255,255,255,0.25)",
                       transform: isActiveArrow ? "scale(1.3)" : "scale(1)",
                       display: "inline-block",
@@ -220,9 +220,9 @@ export default function MetronomeWidget({ tempoFeel, timeSignature }: Props) {
               onClick={handleTap}
               className="flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all duration-100"
               style={{
-                background: tapFlash ? "rgba(124,58,237,0.35)" : "rgba(255,255,255,0.07)",
-                border: tapFlash ? "1px solid rgba(124,58,237,0.6)" : "1px solid rgba(255,255,255,0.12)",
-                color: tapFlash ? "#a78bfa" : "rgba(255,255,255,0.6)",
+                background: tapFlash ? "rgba(var(--accent-rgb),0.35)" : "rgba(255,255,255,0.07)",
+                border: tapFlash ? "1px solid rgba(var(--accent-rgb),0.6)" : "1px solid rgba(255,255,255,0.12)",
+                color: tapFlash ? "#efc27a" : "rgba(255,255,255,0.6)",
               }}
             >
               Tap ♩

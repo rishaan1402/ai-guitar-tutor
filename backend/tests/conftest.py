@@ -15,6 +15,27 @@ from fastapi.testclient import TestClient
 # Ensure backend root is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+# Point the app at a throwaway SQLite DB *before* db.engine is imported,
+# so tests never touch the developer's local guitar_tutor.db.
+import asyncio
+import os
+import tempfile
+
+_TEST_DB = Path(tempfile.mkdtemp(prefix="guitar-tests-")) / "test.db"
+os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_TEST_DB}"
+os.environ.pop("RESEND_API_KEY", None)
+
+
+async def _create_schema() -> None:
+    import db.models  # noqa: F401 (registers tables)
+    from db.engine import Base, engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    await engine.dispose()  # don't carry pooled connections into TestClient's loop
+
+
+asyncio.run(_create_schema())
+
 
 # ---------------------------------------------------------------------------
 # Canned LLM responses
@@ -99,3 +120,11 @@ def app_client():
                return_value=_make_groq_mock(_CANNED_SUMMARY)):
         with TestClient(app) as client:
             yield client
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    from auth.rate_limit import login_limiter, reset_limiter, signup_limiter
+    for limiter in (login_limiter, reset_limiter, signup_limiter):
+        limiter.clear()
+    yield

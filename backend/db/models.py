@@ -79,6 +79,9 @@ class User(Base):
     quiz_results: Mapped[list[QuizResult]] = relationship(
         "QuizResult", back_populates="user", cascade="all, delete-orphan"
     )
+    password_reset_tokens: Mapped[list[PasswordResetToken]] = relationship(
+        "PasswordResetToken", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +109,28 @@ class RefreshToken(Base):
     )
 
     user: Mapped[User] = relationship("User", back_populates="refresh_tokens")
+
+
+class PasswordResetToken(Base):
+    """Single-use token emailed to a user who forgot their password."""
+
+    __tablename__ = "password_reset_tokens"
+    __table_args__ = (Index("idx_password_reset_user", "user_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=_uuid
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now
+    )
+
+    user: Mapped[User] = relationship("User", back_populates="password_reset_tokens")
 
 
 # ---------------------------------------------------------------------------
@@ -280,4 +305,82 @@ class TeacherAssignment(Base):
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now
+    )
+
+
+# ---------------------------------------------------------------------------
+# Classes (teacher <-> student links)
+# ---------------------------------------------------------------------------
+
+
+class TeacherInviteCode(Base):
+    """The code a teacher shares so students can join their class."""
+
+    __tablename__ = "teacher_invite_codes"
+
+    teacher_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    code: Mapped[str] = mapped_column(String(16), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now
+    )
+
+
+class TeacherStudent(Base):
+    """A student who joined a teacher's class. Teachers only see linked students."""
+
+    __tablename__ = "teacher_students"
+    __table_args__ = (
+        UniqueConstraint("teacher_id", "student_id", name="uq_teacher_student"),
+        Index("idx_teacher_students_teacher", "teacher_id"),
+        Index("idx_teacher_students_student", "student_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=_uuid
+    )
+    teacher_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    student_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now
+    )
+
+
+# ---------------------------------------------------------------------------
+# Song sheets (ChordPro chord charts and tabs)
+# ---------------------------------------------------------------------------
+
+
+class SongSheet(Base):
+    """A user- or teacher-written chord sheet. The built-in library lives in data/songs/."""
+
+    __tablename__ = "song_sheets"
+    __table_args__ = (
+        CheckConstraint("visibility IN ('private','class')", name="ck_song_sheets_visibility"),
+        Index("idx_song_sheets_owner", "owner_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=_uuid
+    )
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    # title/artist/key/difficulty are copied out of the ChordPro directives on save
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    artist: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    song_key: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    difficulty: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    visibility: Mapped[str] = mapped_column(String(20), nullable=False, default="private")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now
     )

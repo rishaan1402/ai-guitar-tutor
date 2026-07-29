@@ -75,7 +75,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
       <div className="w-full max-w-2xl mx-auto py-12 flex flex-col items-center gap-4 fade-in-up">
         <div
           className="w-10 h-10 rounded-full border-2 animate-spin"
-          style={{ borderColor: "rgba(124,58,237,0.3)", borderTopColor: "#7c3aed" }}
+          style={{ borderColor: "rgba(var(--accent-rgb),0.3)", borderTopColor: "#d98b2b" }}
         />
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
           Generating quiz questions…
@@ -186,9 +186,9 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
                 let optColor = "rgba(255,255,255,0.7)";
 
                 if (!submitted && isSelected) {
-                  optBg = "rgba(124,58,237,0.25)";
-                  optBorder = "rgba(124,58,237,0.6)";
-                  optColor = "#c4b5fd";
+                  optBg = "rgba(var(--accent-rgb),0.25)";
+                  optBorder = "rgba(var(--accent-rgb),0.6)";
+                  optColor = "#f4d69f";
                 } else if (isCorrectOption) {
                   optBg = "rgba(34,197,94,0.15)";
                   optBorder = "rgba(34,197,94,0.5)";

@@ -109,6 +109,10 @@ export default function Home() {
   useEffect(() => {
     setProgress(loadProgress());
     listChords().then((data) => setTotalChords(data.chords.length)).catch(() => {});
+    // Deep link from "Assigned to you": /practice?chord=G_major
+    const chord = new URLSearchParams(window.location.search).get("chord");
+    if (chord) handleChordSelect(chord);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function markStepDone(step: number) {
@@ -157,7 +161,7 @@ export default function Home() {
     setError("");
 
     try {
-      const result = await submitAudio(blob);
+      const result = await submitAudio(blob, chordName, scoreHistory.map((h) => h.score));
       const evalResult = result.evaluation as Evaluation;
       const attemptNum = result.attempt as number;
       setSessionState(result.state as string);
@@ -315,7 +319,7 @@ export default function Home() {
                     Step {currentStep + 1} of {STEPS.length} — {STEPS[currentStep]?.label}
                   </p>
                   {fromSong && (
-                    <p className="text-xs mt-1" style={{ color: "#a78bfa" }}>
+                    <p className="text-xs mt-1" style={{ color: "#efc27a" }}>
                       📖 Song practice mode — advisor tip after each attempt
                     </p>
                   )}
@@ -326,8 +330,8 @@ export default function Home() {
                       onClick={handleBackToSong}
                       className="glass text-sm px-3 py-1.5 rounded-lg border transition-colors"
                       style={{
-                        color: "#a78bfa",
-                        borderColor: "rgba(124,58,237,0.4)",
+                        color: "#efc27a",
+                        borderColor: "rgba(var(--accent-rgb),0.4)",
                       }}
                     >
                       ← Song

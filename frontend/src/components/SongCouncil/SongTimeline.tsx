@@ -58,14 +58,14 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
                 className="px-4 py-2 rounded-lg transition-all flex-shrink-0 text-sm font-medium"
                 style={{
                   background: isActive
-                    ? "rgba(124,58,237,0.35)"
+                    ? "rgba(var(--accent-rgb),0.35)"
                     : getSectionColor(section.chords),
                   border: isActive
-                    ? "2px solid rgba(167,139,250,0.9)"
+                    ? "2px solid rgba(var(--accent-soft-rgb),0.9)"
                     : "1px solid rgba(255,255,255,0.2)",
                   color: "rgba(255,255,255,0.95)",
                   transform: isActive ? "scale(1.08)" : undefined,
-                  boxShadow: isActive ? "0 0 12px rgba(124,58,237,0.4)" : undefined,
+                  boxShadow: isActive ? "0 0 12px rgba(var(--accent-rgb),0.4)" : undefined,
                 }}
               >
                 {section.name}
@@ -92,9 +92,9 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
               key={chord}
               className="text-xs px-2.5 py-1 rounded-full font-semibold"
               style={{
-                background: "rgba(124,58,237,0.2)",
-                border: "1px solid rgba(167,139,250,0.5)",
-                color: "#c4b5fd",
+                background: "rgba(var(--accent-rgb),0.2)",
+                border: "1px solid rgba(var(--accent-soft-rgb),0.5)",
+                color: "#f4d69f",
               }}
             >
               {chord}

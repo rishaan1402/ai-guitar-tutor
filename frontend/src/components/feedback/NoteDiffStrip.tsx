@@ -37,9 +37,9 @@ export function NoteDiffStrip({
                   key={`expected-${note}`}
                   className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
                   style={{
-                    background: "rgba(147,197,253,0.15)",
-                    border: "1px solid rgba(147,197,253,0.4)",
-                    color: "#93c5fd",
+                    background: "rgba(var(--sage-soft-rgb),0.15)",
+                    border: "1px solid rgba(var(--sage-soft-rgb),0.4)",
+                    color: "#c0d9c6",
                   }}
                   onMouseEnter={() => onNoteHover?.(note)}
                   onMouseLeave={() => onNoteHover?.(null)}

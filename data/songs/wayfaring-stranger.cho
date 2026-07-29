@@ -1,0 +1,20 @@
+{title: Wayfaring Stranger}
+{artist: Traditional}
+{key: Em}
+{time: 3/4}
+{tempo: 84}
+{difficulty: intermediate}
+{strumming: D - D U D U}
+{comment: B7 is the hard one. Practice Em to B7 until it is smooth.}
+
+{start_of_verse: Verse}
+| Em | Em | Am | Em |
+| Em | Em | B7 | B7 |
+| Em | Em | Am | Em |
+| Em | B7 | Em | Em |
+{end_of_verse}
+
+{start_of_bridge: Bridge}
+| G | G | C | G |
+| G | G | B7 | B7 |
+{end_of_bridge}

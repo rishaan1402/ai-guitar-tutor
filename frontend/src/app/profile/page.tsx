@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
-import { updateProfile, getProgress, type ProgressResponse } from "@/lib/api";
+import { updateProfile, getProgress, deleteAccount, type ProgressResponse } from "@/lib/api";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
 const SKILL_LEVELS = ["beginner", "intermediate", "advanced"];
@@ -18,6 +18,10 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [progress, setProgress] = useState<ProgressResponse | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -44,6 +48,24 @@ export default function ProfilePage() {
       setSaveMsg(err instanceof Error ? err.message : "Update failed");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount(deletePassword);
+      // Drop local copies too, so nothing re-uploads into a future account
+      for (const key of ["guitar-tutor-progress", "guitar-tutor-transitions", "guitar_tutor_migrated"]) {
+        localStorage.removeItem(key);
+      }
+      // Full reload to "/" so the signed-out redirect to /login doesn't win the race
+      window.location.assign("/");
+    } catch (err: unknown) {
+      setDeleteError(err instanceof Error ? err.message : "Could not delete account");
+      setDeleting(false);
     }
   };
 
@@ -164,6 +186,58 @@ export default function ProfilePage() {
             )}
           </div>
         )}
+        {/* Danger zone */}
+        <div className="glass-card border border-red-500/20">
+          <h2 className="text-lg font-semibold text-white mb-1">Delete account</h2>
+          <p className="text-sm text-gray-400 mb-4">
+            Permanently deletes your account and all practice history. This can&apos;t be undone.
+          </p>
+          {confirmingDelete ? (
+            <form onSubmit={handleDelete} className="space-y-3">
+              <div>
+                <label htmlFor="delete-password" className="field-label">Enter your password to confirm</label>
+                <input
+                  id="delete-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  required
+                  className="field-input"
+                />
+              </div>
+              {deleteError && (
+                <p className="text-red-300 text-sm bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+                  {deleteError}
+                </p>
+              )}
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={deleting}
+                  className="py-2 px-4 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Delete permanently"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setConfirmingDelete(false); setDeletePassword(""); setDeleteError(null); }}
+                  className="py-2 px-4 rounded-lg border border-white/10 text-gray-300 text-sm hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              className="py-2 px-4 rounded-lg border border-red-500/40 text-red-300 text-sm hover:bg-red-500/10"
+            >
+              Delete my account
+            </button>
+          )}
+        </div>
       </div>
     </AppShell>
   );
