@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -23,9 +23,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", authRequired: true },
-  { href: "/practice",          label: "Practice" },
-  { href: "/practice?mode=song",label: "Songs" },
-  { href: "/practice?mode=transitions", label: "Transitions" },
+  { href: "/practice",  label: "Practice" },
   { href: "/progress",  label: "Progress", authRequired: true },
   { href: "/teacher",   label: "Class",    authRequired: true, teacherOnly: true },
   { href: "/admin",     label: "Admin",    authRequired: true, adminOnly: true },
@@ -48,32 +46,15 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
 }
 
 export default function NavBar() {
-  return (
-    <Suspense fallback={<div className="sticky top-0 z-50 w-full glass border-b border-white/10 h-14" />}>
-      <NavBarInner />
-    </Suspense>
-  );
-}
-
-function NavBarInner() {
   const { user, loading, logout, isTeacher, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     router.push("/");
     setMobileOpen(false);
-  };
-
-  const currentMode = searchParams.get("mode");
-  const isItemActive = (href: string) => {
-    const [path, query] = href.split("?");
-    if (path !== pathname) return false;
-    const itemMode = query ? new URLSearchParams(query).get("mode") : null;
-    return itemMode === currentMode;
   };
 
   const visibleItems = NAV_ITEMS.filter(item => {
@@ -100,7 +81,7 @@ function NavBarInner() {
               key={item.href}
               href={item.href}
               label={item.label}
-              active={isItemActive(item.href)}
+              active={pathname === item.href}
             />
           ))}
         </div>

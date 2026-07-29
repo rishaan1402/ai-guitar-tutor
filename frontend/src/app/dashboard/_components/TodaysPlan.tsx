@@ -60,16 +60,16 @@ function PlanItemCard({ item, index }: PlanItemCardProps) {
   const icon = ITEM_ICONS[item.type] || "📝";
   const colors = ITEM_COLORS[item.type] || "border-gray-500/30 bg-gray-500/5";
 
-  let actionHref = "/";
+  let actionHref = "/practice";
   let actionLabel = "Start";
   let actionDesc = "";
 
   if (item.type === "warmup" || item.type === "focus" || item.type === "new") {
-    actionHref = `/?chord=${encodeURIComponent(item.chord_key || "")}`;
+    actionHref = "/practice";
     actionLabel = "Practice";
     actionDesc = `${item.chord_symbol} ${item.best_score ? `(${(item.best_score * 100).toFixed(0)}%)` : ""}`;
   } else if (item.type === "transition") {
-    actionHref = `/?mode=transitions`;
+    actionHref = "/practice";
     actionLabel = "Drill";
     actionDesc = `${item.chord_a_symbol} → ${item.chord_b_symbol}`;
   }
