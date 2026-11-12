@@ -145,8 +145,11 @@ def _apply_meta(sheet: SongSheet, content: str) -> None:
 
 
 async def _teacher_ids_of(db: AsyncSession, user: User) -> list[uuid.UUID]:
+    # only linked users who still hold a teaching role
     rows = await db.execute(
-        select(TeacherStudent.teacher_id).where(TeacherStudent.student_id == user.id)
+        select(TeacherStudent.teacher_id)
+        .join(User, User.id == TeacherStudent.teacher_id)
+        .where(TeacherStudent.student_id == user.id, User.role.in_(("teacher", "admin")))
     )
     return [r[0] for r in rows.all()]
 

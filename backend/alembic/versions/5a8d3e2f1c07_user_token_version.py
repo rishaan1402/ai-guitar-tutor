@@ -1,4 +1,4 @@
-"""user token_version
+"""user token_version + lower(email) index
 
 Revision ID: 5a8d3e2f1c07
 Revises: 4e1a7b3c6d52
@@ -24,7 +24,10 @@ def upgrade() -> None:
         'users',
         sa.Column('token_version', sa.Integer(), nullable=False, server_default='0'),
     )
+    # case-insensitive login lookups
+    op.create_index('ix_users_email_lower', 'users', [sa.text('lower(email)')])
 
 
 def downgrade() -> None:
+    op.drop_index('ix_users_email_lower', table_name='users')
     op.drop_column('users', 'token_version')

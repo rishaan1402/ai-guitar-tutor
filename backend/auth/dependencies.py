@@ -20,24 +20,38 @@ async def get_current_user_optional(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: AsyncSession = Depends(get_db),
 ) -> User | None:
-    """Return the authenticated User or None (never raises)."""
+    """Return the authenticated User, or None when no credentials were sent.
+
+    A token that IS sent but is invalid, expired or revoked raises 401 rather
+    than silently downgrading to anonymous: otherwise a signed-in learner's
+    takes would quietly stop being saved, and the client would never know to
+    refresh its token.
+    """
     if credentials is None:
         return None
     try:
         payload = decode_token(credentials.credentials)
         if payload.get("type") != "access":
-            return None
+            raise ValueError("not an access token")
         user_id = uuid.UUID(payload["sub"])
     except (JWTError, KeyError, ValueError):
-        return None
+        raise _unauthorized()
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    # Tokens minted before token versioning have no "tv"; accept them for one
-    # release (they expire within 30 minutes anyway), reject stale versions.
-    if user is not None and "tv" in payload and payload["tv"] != (user.token_version or 0):
-        return None
+    # A missing "tv" means version 0, so pre-versioning tokens stop working
+    # as soon as the user's version is bumped (logout, reset, role change).
+    if user is None or payload.get("tv", 0) != (user.token_version or 0):
+        raise _unauthorized()
     return user
+
+
+def _unauthorized() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Session expired. Please sign in again.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 async def get_current_user(

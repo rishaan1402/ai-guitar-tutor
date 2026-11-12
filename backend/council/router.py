@@ -155,9 +155,10 @@ async def practice_tip(
     valid_keys = {c.chord_key for c in session.lesson.practice_chords if c.chord_key}
     if body.chord_key not in valid_keys:
         raise HTTPException(status_code=422, detail="chord_key is not part of this lesson.")
-    session.record_attempt(body.chord_key, body.score)
-    await session_store.save_session(db, session)
-    user_context = await build_user_context(db, user.id if user else None)
+    user_id = user.id if user else None
+    await session_store.append_score(db, session, body.chord_key, body.score)
+    user_context = await build_user_context(db, user_id)
+    await db.rollback()  # release the connection during the LLM call
     tip = await get_tip(body, session, user_context=user_context)
 
     # Build evaluation dict from tip request for structured analysis
@@ -211,6 +212,7 @@ async def practice_revise(
         )
 
     user_context = await build_user_context(db, user.id if user else None)
+    await db.rollback()  # release the connection during the LLM call
     updated_lesson = await revise_lesson(session, user_context=user_context)
     await session_store.save_session(db, session)
     return updated_lesson
@@ -232,6 +234,7 @@ async def get_quiz(
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
     user_context = await build_user_context(db, user.id if user else None)
+    await db.rollback()  # release the connection during the LLM call
     quiz = await generate_quiz(session, user_context=user_context)
     await session_store.save_session(db, session)
     return quiz

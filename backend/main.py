@@ -13,16 +13,14 @@ try:
 except ImportError:
     pass
 import tempfile
-import time
-import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
-from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
-from pydantic import BaseModel
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -30,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audio_engine import ChordEvaluator
 from feedback_engine import FeedbackGenerator
 from lesson_service import LessonService
-from tutor_agent import TutorAgent, grade_attempt
+from tutor_agent import grade_attempt
 from tutor_agent.agent import HISTORY_LIMIT
 from council.router import router as council_router
 from auth.router import router as auth_router
@@ -77,48 +75,6 @@ if _fingerings_path.exists():
     logger.info("Loaded fingerings for %d chords", len(_fingerings_by_chord))
 
 # ---------------------------------------------------------------------------
-# Session management
-# ---------------------------------------------------------------------------
-SESSION_TTL_SECONDS = 3600  # 1 hour
-
-_sessions: Dict[str, Dict[str, Any]] = {}
-
-
-def _get_or_create_session(session_id: str) -> TutorAgent:
-    """Get an existing session or create a new one."""
-    now = time.time()
-
-    if session_id in _sessions:
-        _sessions[session_id]["last_access"] = now
-        return _sessions[session_id]["agent"]
-
-    agent = TutorAgent(lesson_service, evaluator, feedback_generator)
-    _sessions[session_id] = {"agent": agent, "last_access": now}
-    logger.info("Created session: %s (total: %d)", session_id, len(_sessions))
-    return agent
-
-
-def _cleanup_stale_sessions() -> None:
-    """Remove sessions older than TTL."""
-    now = time.time()
-    stale = [
-        sid for sid, data in _sessions.items()
-        if now - data["last_access"] > SESSION_TTL_SECONDS
-    ]
-    for sid in stale:
-        del _sessions[sid]
-    if stale:
-        logger.info("Cleaned up %d stale sessions", len(stale))
-
-
-def _resolve_session(session_id: Optional[str]) -> Tuple[str, TutorAgent]:
-    """Resolve session ID from header, creating if needed."""
-    _cleanup_stale_sessions()
-    sid = session_id or str(uuid.uuid4())
-    return sid, _get_or_create_session(sid)
-
-
-# ---------------------------------------------------------------------------
 # FastAPI app
 # ---------------------------------------------------------------------------
 _ON_CLOUD_RUN = bool(os.environ.get("K_SERVICE"))
@@ -142,6 +98,14 @@ _allowed_origins: list[str] = (
 )
 logger.info("CORS allowed origins: %s", _allowed_origins)
 
+# Body caps enforced while streaming (before multipart spooling to /tmp).
+# Added before CORS so CORS is the outer layer and decorates our 413s too.
+app.add_middleware(
+    BodySizeLimitMiddleware,
+    default_limit=256 * 1024,
+    path_limits=[("/submit_audio", MAX_UPLOAD_BYTES + 64 * 1024)],
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
@@ -149,15 +113,18 @@ app.add_middleware(
     allow_credentials=_allowed_origins != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-Session-Id"],
 )
 
-# Body caps enforced while streaming (before multipart spooling to /tmp).
-app.add_middleware(
-    BodySizeLimitMiddleware,
-    default_limit=256 * 1024,
-    path_limits=[("/submit_audio", MAX_UPLOAD_BYTES + 64 * 1024)],
-)
+@app.exception_handler(RequestValidationError)
+async def _validation_error(request: Request, exc: RequestValidationError):
+    # Default handler echoes the offending input; a JSON NaN/Infinity there
+    # can't be serialised and turned every bad request into a 500.
+    errors = [
+        {k: v for k, v in err.items() if k in ("loc", "msg", "type")}
+        for err in exc.errors()
+    ]
+    return JSONResponse(status_code=422, content={"detail": errors})
+
 
 app.include_router(council_router)
 app.include_router(auth_router)
@@ -167,10 +134,6 @@ app.include_router(class_router)
 app.include_router(songs_router)
 app.include_router(admin_router)
 app.include_router(plan_router)
-
-
-class LearnChordRequest(BaseModel):
-    chord_name: str
 
 
 # ---------------------------------------------------------------------------
@@ -232,23 +195,6 @@ def get_audio(chord: str):
     return FileResponse(str(audio_path), media_type="audio/wav", filename=f"{chord}.wav")
 
 
-@app.post("/learn_chord")
-def learn_chord(
-    request: LearnChordRequest,
-    x_session_id: Optional[str] = Header(None),
-) -> Dict[str, Any]:
-    """Start a tutoring session for the given chord."""
-    sid, agent = _resolve_session(x_session_id)
-    result = agent.start_lesson(request.chord_name)
-    if result["status"] == "error":
-        raise HTTPException(status_code=404, detail=result["message"])
-    # Pass fingering positions so the feedback generator can reference specific fingers/strings
-    fingering_data = _fingerings_by_chord.get(request.chord_name, {})
-    agent.set_fingering_positions(fingering_data.get("positions", []))
-    result["session_id"] = sid
-    return result
-
-
 def _parse_previous_scores(raw: Optional[str]) -> List[float]:
     """Parse the client's earlier scores for this chord (JSON list of floats)."""
     if not raw:
@@ -270,17 +216,15 @@ _user_submit_limiter = RateLimiter(max_hits=120, window_seconds=60)
 async def submit_audio(
     request: Request,
     audio: UploadFile = File(...),
-    chord_name: Optional[str] = Form(None),
+    chord_name: str = Form(..., max_length=40),
     previous_scores: Optional[str] = Form(None),
-    x_session_id: Optional[str] = Header(None),
     user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """Accept audio recording and return evaluation feedback.
 
-    Stateless when the client sends ``chord_name`` (and optionally
-    ``previous_scores``): any instance can grade the request. Without it,
-    falls back to the legacy in-memory session started by /learn_chord.
+    Stateless: the client sends ``chord_name`` and its earlier graded scores
+    (``previous_scores``), so any instance can grade any request.
     """
     limiter, key = (
         (_user_submit_limiter, f"user:{user.id}") if user is not None
@@ -289,23 +233,10 @@ async def submit_audio(
     limiter.check(key)
     limiter.hit(key)
 
-    sid = x_session_id or str(uuid.uuid4())
-    agent: Optional[TutorAgent] = None
-    lesson = None
-    prior: List[float] = []
-
-    if chord_name:
-        lesson = lesson_service.get_lesson(chord_name)
-        if lesson is None:
-            raise HTTPException(status_code=404, detail=f"No lesson found for '{chord_name}'.")
-        prior = _parse_previous_scores(previous_scores)
-    else:
-        sid, agent = _resolve_session(x_session_id)
-        if agent.state.value not in ("WAITING_FOR_PLAY", "FEEDBACK"):
-            raise HTTPException(
-                status_code=400,
-                detail="Not ready for audio. Start a lesson first.",
-            )
+    lesson = lesson_service.get_lesson(chord_name)
+    if lesson is None:
+        raise HTTPException(status_code=404, detail=f"No lesson found for '{chord_name}'.")
+    prior = _parse_previous_scores(previous_scores)
 
     suffix = Path(audio.filename or "recording.wav").suffix or ".wav"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -330,24 +261,20 @@ async def submit_audio(
     # Release the DB connection while we analyse and wait on the LLM (up to ~8 s);
     # the pool is small and graded takes are the busiest request.
     await db.rollback()
+    chord_key = lesson.chord_name
     try:
-        if agent is not None:
-            result = await agent.submit_audio(tmp_path, user_context=user_context)
-            chord_key = agent.current_chord or ""
-        else:
-            chord_key = lesson.chord_name
-            result = await grade_attempt(
-                lesson,
-                evaluator,
-                feedback_generator,
-                tmp_path,
-                attempt=len(prior) + 1,
-                previous_scores=prior,
-                fingering_positions=_fingerings_by_chord.get(chord_key, {}).get("positions", []),
-                user_context=user_context,
-                chord_lookup=lesson_service.find_chord_by_notes,
-            )
-            result.pop("_evaluation", None)
+        result = await grade_attempt(
+            lesson,
+            evaluator,
+            feedback_generator,
+            tmp_path,
+            attempt=len(prior) + 1,
+            previous_scores=prior,
+            fingering_positions=_fingerings_by_chord.get(chord_key, {}).get("positions", []),
+            user_context=user_context,
+            chord_lookup=lesson_service.find_chord_by_notes,
+        )
+        result.pop("_evaluation", None)
     finally:
         try:
             Path(tmp_path).unlink()
@@ -388,22 +315,6 @@ async def submit_audio(
                 missing, fingering_data.get("positions", [])
             )
 
-    result["session_id"] = sid
     return result
 
 
-@app.get("/session")
-def get_session(x_session_id: Optional[str] = Header(None)) -> Dict[str, Any]:
-    """Get current session state."""
-    sid, agent = _resolve_session(x_session_id)
-    info = agent.get_session_info()
-    info["session_id"] = sid
-    return info
-
-
-@app.post("/reset")
-def reset_session(x_session_id: Optional[str] = Header(None)) -> Dict[str, str]:
-    """Reset the tutoring session."""
-    sid, agent = _resolve_session(x_session_id)
-    agent.reset()
-    return {"status": "ok", "message": "Session reset.", "session_id": sid}

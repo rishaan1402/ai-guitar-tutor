@@ -1,7 +1,7 @@
 """Personalised practice plan endpoints."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import get_current_user
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/api/plan", tags=["personalization"])
 
 @router.get("/next")
 async def get_daily_plan(
+    tz: str | None = Query(default=None, max_length=64),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
@@ -21,10 +22,12 @@ async def get_daily_plan(
     Today's recommended practice plan (5-7 items depending on skill level).
     Each item has: type, chord_key, chord_symbol, description + type-specific extras.
     """
-    items = await build_daily_plan(db, user)
+    # read before the planner runs queries (keeps attribute access simple)
+    skill, name = user.skill_level, user.display_name
+    items = await build_daily_plan(db, user, tz)
     return {
-        "skill_level": user.skill_level,
-        "display_name": user.display_name,
+        "skill_level": skill,
+        "display_name": name,
         "items": items,
         "total": len(items),
     }

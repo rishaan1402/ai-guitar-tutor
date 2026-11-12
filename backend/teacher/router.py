@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
 from lesson_service import validate_chord_name
-from personalization.thresholds import MASTERY
+from personalization.mastery import GRADED, mastery_map
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -120,48 +120,34 @@ async def list_students(
     )
     students = result.scalars().all()
 
+    ids = [st.id for st in students]
+    # 2 queries for the whole page (was 1 + 3 per student)
+    stats_rows = await db.execute(
+        select(
+            ChordAttempt.user_id,
+            func.avg(ChordAttempt.score).label("avg"),
+            func.max(ChordAttempt.created_at).label("last_active"),
+            func.count(ChordAttempt.chord_name.distinct()).label("chords"),
+        )
+        .where(ChordAttempt.user_id.in_(ids), GRADED)
+        .group_by(ChordAttempt.user_id)
+    ) if ids else None
+    stats = {r.user_id: r for r in (stats_rows.all() if stats_rows is not None else [])}
+    mastery = await mastery_map(db, ids)
+
     summaries = []
     for student in students:
-        stats = await db.execute(
-            select(
-                func.count().label("attempts"),
-                func.max(ChordAttempt.score).label("best"),
-                func.avg(ChordAttempt.score).label("avg"),
-                func.max(ChordAttempt.created_at).label("last_active"),
-            ).where(ChordAttempt.user_id == student.id)
-        )
-        row = stats.one()
-
-        # Count mastered chords
-        mastered_q = await db.execute(
-            select(ChordAttempt.chord_name, func.max(ChordAttempt.score).label("best"))
-            .where(ChordAttempt.user_id == student.id)
-            .group_by(ChordAttempt.chord_name)
-            .having(func.max(ChordAttempt.score) >= MASTERY)
-        )
-        mastered_count = len(mastered_q.all())
-
-        # Count unique chords practiced
-        practiced_q = await db.execute(
-            select(func.count(ChordAttempt.chord_name.distinct())).where(
-                ChordAttempt.user_id == student.id
-            )
-        )
-        chords_practiced = practiced_q.scalar() or 0
-
-        last_active = row.last_active
-        last_str = last_active.isoformat() if last_active else None
-
+        row = stats.get(student.id)
         summaries.append(
             StudentSummary(
                 id=student.id,
                 display_name=student.display_name,
                 email=student.email,
                 skill_level=student.skill_level,
-                chords_practiced=chords_practiced,
-                mastered_count=mastered_count,
-                avg_score=round(float(row.avg), 3) if row.avg else None,
-                last_active=last_str,
+                chords_practiced=row.chords if row else 0,
+                mastered_count=sum(1 for m in mastery[student.id].values() if m.is_mastered),
+                avg_score=round(float(row.avg), 3) if row and row.avg is not None else None,
+                last_active=row.last_active.isoformat() if row and row.last_active else None,
             )
         )
 
@@ -186,16 +172,19 @@ async def get_student_progress(
         .where(ChordAttempt.user_id == student_id)
         .group_by(ChordAttempt.chord_name)
     )
-    chord_stats = [
-        {
+    mastery = (await mastery_map(db, [student_id]))[student_id]
+    chord_stats = []
+    for r in rows.all():
+        m = mastery.get(r.chord_name)
+        chord_stats.append({
             "chord_name": r.chord_name,
             "total_attempts": r.attempts,
             "best_score": round(float(r.best), 3) if r.best else 0.0,
             "avg_score": round(float(r.avg), 3) if r.avg else 0.0,
-            "status": "mastered" if (r.best or 0) >= MASTERY else "in_progress",
-        }
-        for r in rows.all()
-    ]
+            "status": "mastered" if m and m.is_mastered else "in_progress",
+            "stage": m.stage if m else "learning",
+            "clean_days": m.clean_days if m else 0,
+        })
 
     drills = await db.execute(
         select(TransitionDrill)
@@ -319,11 +308,14 @@ async def assign_work(
 
 
 async def _code_for(db: AsyncSession, teacher: User, rotate: bool = False) -> str:
-    row = await db.get(TeacherInviteCode, teacher.id)
+    # Plain id captured up front: the rollback below expires `teacher`, and
+    # reading teacher.id afterwards would lazy-load outside the async context.
+    teacher_id = teacher.id
+    row = await db.get(TeacherInviteCode, teacher_id)
     if row is not None and not rotate:
         return row.code
     if row is None:
-        row = TeacherInviteCode(teacher_id=teacher.id, code=_new_code())
+        row = TeacherInviteCode(teacher_id=teacher_id, code=_new_code())
         db.add(row)
     else:
         row.code = _new_code()
@@ -332,7 +324,7 @@ async def _code_for(db: AsyncSession, teacher: User, rotate: bool = False) -> st
     except IntegrityError:
         # A concurrent first request created the code already; use that one
         await db.rollback()
-        row = await db.get(TeacherInviteCode, teacher.id, populate_existing=True)
+        row = await db.get(TeacherInviteCode, teacher_id, populate_existing=True)
         if row is None:
             raise
     return row.code

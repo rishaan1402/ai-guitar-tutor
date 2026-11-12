@@ -524,3 +524,45 @@ class TestSignedInSubmit:
               "detected_notes": ["A", "C#", "E"]}
         text = FeedbackGenerator().generate(ev)
         assert "stray G" in text and "Listen for" not in text
+
+
+class TestRound3Auth:
+    def test_revoked_token_on_optional_endpoint_is_401_not_anonymous(self, client):
+        # a signed-in learner whose token expired must be told, not silently
+        # downgraded to anonymous (their takes would stop being saved)
+        email = f"r3-{uuid.uuid4().hex[:8]}@example.com"
+        t = client.post("/api/auth/signup", json={
+            "email": email, "password": "guitar123", "display_name": "R"}).json()
+        h = {"Authorization": f"Bearer {t['access_token']}"}
+        client.post("/api/auth/logout", json={"refresh_token": t["refresh_token"]}, headers=h)
+        wav = (LESSONS / "C_major" / "reference.wav").read_bytes()
+        r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                        files={"audio": ("c.wav", wav, "audio/wav")}, headers=h)
+        assert r.status_code == 401
+
+    def test_garbage_token_is_401(self, client):
+        r = client.get("/api/songs/", headers={"Authorization": "Bearer not-a-jwt"})
+        assert r.status_code == 401
+
+    def test_no_token_is_still_anonymous(self, client):
+        wav = (LESSONS / "C_major" / "reference.wav").read_bytes()
+        r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                        files={"audio": ("c.wav", wav, "audio/wav")})
+        assert r.status_code == 200
+
+
+class TestRound3Requests:
+    def test_json_nan_is_422(self, client):
+        r = client.post("/api/auth/login", content=b'{"email":"a@b.co","password":NaN}',
+                        headers={"content-type": "application/json"})
+        assert r.status_code == 422
+
+    def test_chunked_oversize_is_413_with_cors(self, client):
+        def gen():
+            for _ in range(40):
+                yield b"x" * 65536
+        r = client.post("/submit_audio", content=gen(),
+                        headers={"content-type": "multipart/form-data; boundary=zz",
+                                 "Origin": "https://example.org"})
+        assert r.status_code == 413
+        assert r.headers.get("access-control-allow-origin")

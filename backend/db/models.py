@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import (
+    text,
     Boolean,
     CheckConstraint,
     DateTime,
@@ -40,6 +41,8 @@ def _uuid() -> uuid.UUID:
 class User(Base):
     __tablename__ = "users"
     __table_args__ = (
+        # logins look users up by lower(email)
+        Index("ix_users_email_lower", text("lower(email)")),
         CheckConstraint("role IN ('student','teacher','admin')", name="ck_users_role"),
         CheckConstraint(
             "skill_level IN ('beginner','intermediate','advanced')",

@@ -140,13 +140,33 @@ async def get_session(db: AsyncSession, lesson_id: str, user_id: Any = None) -> 
     return _from_row(row)
 
 
+async def append_score(db: AsyncSession, session: LessonSession, chord_key: str, score: float) -> None:
+    """Record one attempt atomically.
+
+    Concurrent tips for the same lesson used to read-modify-write the whole
+    JSON blob and lose updates. Lock the row (Postgres; SQLite serialises
+    writers anyway), merge into the stored scores, then commit.
+    """
+    result = await db.execute(
+        select(LessonSessionDB)
+        .where(LessonSessionDB.lesson_id == session.lesson_id)
+        .with_for_update()
+    )
+    row = result.scalars().first()
+    if row is None:
+        return
+    scores = {k: list(v) for k, v in (row.chord_scores or {}).items()}
+    scores.setdefault(chord_key, []).append(score)
+    scores[chord_key] = scores[chord_key][-MAX_SCORES_PER_CHORD:]
+    row.chord_scores = scores
+    await db.commit()
+    session.chord_scores = scores
+
+
 async def save_session(db: AsyncSession, session: LessonSession) -> None:
     row = await _get_row(db, session.lesson_id)
     if row is None:
         return
-    row.chord_scores = {
-        k: v[-MAX_SCORES_PER_CHORD:] for k, v in session.chord_scores.items()
-    }
     row.lesson_data = session.lesson.model_dump(mode="json")
     row.cached_quiz = session.cached_quiz.model_dump(mode="json") if session.cached_quiz else None
     await db.commit()

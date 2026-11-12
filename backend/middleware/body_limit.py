@@ -46,19 +46,28 @@ class BodySizeLimitMiddleware:
                     return
 
         received = 0
+        too_large = False
         response_started = False
 
         async def counting_receive():
-            nonlocal received
+            nonlocal received, too_large
             message = await receive()
             if message["type"] == "http.request":
                 received += len(message.get("body", b""))
                 if received > limit:
+                    too_large = True
                     raise _TooLarge()
             return message
 
         async def tracking_send(message):
             nonlocal response_started
+            if too_large:
+                # The app (e.g. the multipart parser) caught our exception and is
+                # answering with its own 400; replace that with a proper 413.
+                if message["type"] == "http.response.start" and not response_started:
+                    response_started = True
+                    await self._reject(send)
+                return
             if message["type"] == "http.response.start":
                 response_started = True
             await send(message)

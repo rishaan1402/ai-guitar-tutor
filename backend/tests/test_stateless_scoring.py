@@ -81,15 +81,12 @@ class TestStatelessSubmit:
         assert resp.status_code == 422
 
 
-class TestLegacySessionPath:
-    def test_without_chord_name_still_requires_lesson(self, client):
+class TestLegacySessionPathRemoved:
+    def test_without_chord_name_is_422(self, client):
         resp = _submit(client)
-        assert resp.status_code == 400
+        assert resp.status_code == 422
 
-    def test_learn_then_submit_still_works(self, client):
-        sid = str(uuid.uuid4())
-        r = client.post("/learn_chord", json={"chord_name": "G_major"}, headers={"X-Session-Id": sid})
-        assert r.status_code == 200
-        resp = _submit(client, session_id=sid)
-        assert resp.status_code == 200, resp.text
-        assert resp.json()["attempt"] == 1
+    def test_learn_chord_endpoint_is_gone(self, client):
+        assert client.post("/learn_chord", json={"chord_name": "G_major"}).status_code in (404, 405)
+        assert client.get("/session").status_code in (404, 405)
+        assert client.post("/reset").status_code in (404, 405)
