@@ -153,6 +153,13 @@ class FeedbackGenerator:
             return random.choice(self._UNSUPPORTED_RESPONSES)
         if issue == "no_sound":
             return random.choice(self._NO_SOUND_RESPONSES)
+        if issue == "out_of_tune":
+            cents = float(evaluation.get("tuning_cents") or 0.0)
+            direction = "sharp" if cents > 0 else "flat"
+            return (
+                f"Your chord shape sounds right, but your guitar is about {abs(round(cents))} cents "
+                f"{direction}. Tune up and strum it again."
+            )
         if issue == "unclear":
             # Not a judgement: the evidence was borderline. Never blame the learner.
             notes = evaluation.get("unclear_notes") or []
@@ -169,7 +176,7 @@ class FeedbackGenerator:
 
     @staticmethod
     def _with_tuning_note(evaluation: Dict[str, Any], text: str) -> str:
-        if not evaluation.get("tuning_warning"):
+        if not evaluation.get("tuning_warning") or evaluation.get("issue") == "out_of_tune":
             return text
         cents = float(evaluation.get("tuning_cents") or 0.0)
         direction = "sharp" if cents > 0 else "flat"

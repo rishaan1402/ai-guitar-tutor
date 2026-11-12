@@ -67,6 +67,11 @@ class ChordEvaluator:
     MAX_SECONDS = 2.0                  # analyse at most this much audio after the strum
     FLAT_MAX = 0.8                     # spectral flatness above this = noise, not a chord
     ONSET_FLAT_MAX = 0.7
+    # onset must be followed by sustained sound: a click / key press / tap has big flux, no sustain
+    SUS_THR = 0.1                      # flux peaks >= SUS_THR * max are scored for sustain
+    SUS_REL = 0.5                      # sustained = 20th-pct RMS over SUS_S >= SUS_REL * best peak's
+    SUS_S = 0.25
+    TUNE_WRAP_CENTS = 35.0             # |tuning| beyond this may be the next semitone's -/+ (100-|t|)
     BPS = 3                            # log-frequency bins per semitone
     HARM_DECAY = 0.6                   # partial amplitude ratio in the note templates
     NNLS_HARM = 10
@@ -96,7 +101,19 @@ class ChordEvaluator:
         except Exception:
             logger.exception("Failed to process audio: %s", audio_path)
             return EvaluationResult(0.0, [], exp, exp, issue="processing_error")
-        return self._decide(strengths, info, exp)
+        res = self._decide(strengths, info, exp)
+        t = float(info.get("tuning", 0.0))
+        if strengths is not None and res.issue is not None and abs(t) > self.TUNE_WRAP_CENTS:
+            # The tuning estimate is only known modulo a semitone: a guitar 60 c sharp reads as
+            # 40 c flat of the chord a semitone up. If the target passes one semitone over, the
+            # learner played the right shape on an out-of-tune guitar.
+            k = -1 if t < 0 else 1
+            alt = self._decide(np.roll(strengths, k), info, exp)
+            if alt.issue is None:
+                res.issue = "out_of_tune"
+                res.score = min(res.score, 0.99)
+                res.tuning_cents = round(t + 100.0 if t < 0 else t - 100.0, 1)
+        return res
 
     # ------------------------------------------------------------------ analysis
     def analyse(self, path: Path) -> Tuple[Optional[np.ndarray], Dict[str, Any]]:
@@ -160,9 +177,22 @@ class ChordEvaluator:
 
         on = 0
         if flux.max() > 0:
-            thr = 0.35 * flux.max()
+            lag = max(1, int(np.ceil(nfs / hop)))  # first frame lying wholly after the peak
+            nsus = max(2, int(self.SUS_S * sr / hop))
+
+            def sus(i: int) -> float:
+                return float(np.percentile(rms[i + lag: i + lag + nsus], 20)) if i + lag < len(rms) else 0.0
+
+            peaks = [i for i in range(len(flux)) if flux[i] >= self.SUS_THR * flux.max()
+                     and flux[i] == flux[max(0, i - 2): i + 3].max()]
+            best = max((sus(i) for i in peaks), default=0.0)
+            sustained = [i for i in peaks if sus(i) >= self.SUS_REL * best]
+            # flux threshold relative to the strongest SUSTAINED peak, not to a click
+            thr = 0.35 * (max(flux[i] for i in sustained) if sustained else flux.max())
             cand = [i for i in range(len(flux))
                     if flux[i] >= thr and flux[i] == flux[max(0, i - 2): i + 3].max()]
+            if sustained:
+                cand = [i for i in cand if sus(i) >= self.SUS_REL * best]
             picked: List[int] = []
             for i in cand:
                 if not picked or i - picked[-1] > int(0.1 * sr / hop):
@@ -182,6 +212,8 @@ class ChordEvaluator:
                     while chosen > 0 and flux[chosen - 1] >= thr:
                         chosen -= 1  # back up to the rising edge
                     break
+            if chosen is None and sustained:
+                chosen = max(sustained, key=lambda i: flux[i])
             on = chosen if chosen is not None else int(np.argmax(flux))
 
         start = on + max(1, int(0.04 * sr / hop))  # skip ~40 ms pick transient
@@ -292,6 +324,14 @@ class ChordEvaluator:
         return strengths
 
     # ------------------------------------------------------------------ decision
+    def passes(self, pc_strength: Dict[str, float], notes: List[str]) -> bool:
+        """Would these pitch-class strengths pass as ``notes``? (Used to name the
+        chord a learner actually played.)"""
+        if not pc_strength:
+            return False
+        strengths = np.array([pc_strength.get(n, 0.0) for n in NOTE_NAMES], dtype=float)
+        return self._decide(strengths, {}, list(notes)).issue is None
+
     def _compare_notes(self, detected: List[str], expected: List[str]) -> EvaluationResult:
         """Score a detected pitch-class set against the expected chord (no audio)."""
         if not detected:

@@ -566,3 +566,60 @@ class TestRound3Requests:
                                  "Origin": "https://example.org"})
         assert r.status_code == 413
         assert r.headers.get("access-control-allow-origin")
+
+
+class TestRound3Chord:
+    @staticmethod
+    def _ref(chord):
+        import soundfile as sf
+        y, sr = sf.read(str(LESSONS / chord / "reference.wav"), dtype="float32")
+        return (y.mean(axis=1) if y.ndim > 1 else y), sr
+
+    def test_sixty_cents_sharp_is_out_of_tune_not_wrong(self, tmp_path):
+        import soundfile as sf
+        from scipy.signal import resample
+        from audio_engine import ChordEvaluator
+        y, sr = self._ref("G_major")
+        sharp = resample(y, int(len(y) / 2 ** (60 / 1200))).astype(np.float32)
+        p = tmp_path / "sharp.wav"
+        sf.write(str(p), sharp, sr)
+        r = ChordEvaluator().evaluate(str(p), ["G", "B", "D"])
+        assert r.issue in ("out_of_tune", None)
+        if r.issue == "out_of_tune":
+            assert r.tuning_cents > 30 and r.score < 1.0
+
+    def test_tap_before_strum_still_grades(self, tmp_path):
+        import soundfile as sf
+        from audio_engine import ChordEvaluator
+        y, sr = self._ref("C_major")
+        lead = np.zeros(int(0.6 * sr), dtype=np.float32)
+        click = np.zeros(int(0.15 * sr), dtype=np.float32)
+        click[:40] = 0.9 * np.hanning(40)               # sharp key tap
+        take = np.concatenate([lead[: int(0.3 * sr)], click, lead[: int(0.0 * sr)], y])
+        p = tmp_path / "tap.wav"
+        sf.write(str(p), take, sr)
+        r = ChordEvaluator().evaluate(str(p), ["C", "E", "G"])
+        assert r.issue in (None, "unclear"), (r.issue, r.detected_notes)
+
+    def test_out_of_tune_is_not_saved(self, client):
+        from audio_engine import EvaluationResult
+        _, headers = _signup(client)
+        fake = EvaluationResult(0.99, ["C", "E", "G"], ["C", "E", "G"], [], [],
+                                issue="out_of_tune", tuning_cents=58.0)
+        wav = _wav_bytes(np.zeros(22050, dtype=np.float32))
+        with patch("main.evaluator.evaluate", return_value=fake):
+            r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                            files={"audio": ("a.wav", wav, "audio/wav")}, headers=headers)
+        body = r.json()
+        assert body["verdict"] == "out_of_tune" and body["state"] == "FEEDBACK"
+        assert "58 cents sharp" in body["feedback"]
+        assert client.get("/api/progress/chord/C_major/history", headers=headers).json() == []
+
+    def test_played_chord_is_named_from_strengths(self, client):
+        wav = (LESSONS / "G_major" / "reference.wav").read_bytes()
+        r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                        files={"audio": ("g.wav", wav, "audio/wav")})
+        body = r.json()
+        assert body["verdict"] == "fail"
+        assert body["evaluation"].get("sounds_like") == "G major"
+        assert "G major, not C major" in body["feedback"]

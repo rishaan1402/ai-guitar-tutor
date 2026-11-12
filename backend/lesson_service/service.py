@@ -131,6 +131,19 @@ class LessonService:
         """
         return sorted(self._lessons_by_chord.keys())
 
+    def find_chord_by_strengths(self, passes, exclude: Optional[str] = None) -> Optional[str]:
+        """Name the one library chord that ``passes(notes)`` accepts, if exactly one does.
+
+        ``passes`` is a predicate over a chord's note list (the evaluator's own
+        decision rule on the take's pitch-class strengths), so a quiet 3rd that
+        was below the "detected" threshold still counts.
+        """
+        hits = [name for name, lesson in sorted(self._lessons_by_chord.items())
+                if name != exclude and passes(lesson.metadata.get("notes", []))]
+        if len(hits) != 1:
+            return None
+        return friendly_chord_name(hits[0])
+
     def find_chord_by_notes(self, notes: list[str], exclude: Optional[str] = None) -> Optional[str]:
         """Return the display name of a library chord whose note set equals ``notes``.
 

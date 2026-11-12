@@ -61,7 +61,7 @@ feedback_generator = FeedbackGenerator()
 # (a public GCS bucket) instead of streaming the local copy in the image.
 # Upload cap: ~2 MB is ~45 s of 16-bit mono audio at 22 kHz, far more than a strum.
 MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_BYTES", str(2 * 1024 * 1024)))
-UNGRADED_ISSUES = {"no_sound", "processing_error", "unsupported_format", "missing_audio", "unclear"}
+UNGRADED_ISSUES = {"no_sound", "processing_error", "unsupported_format", "missing_audio", "unclear", "out_of_tune"}
 
 LESSON_ASSETS_BASE_URL = os.environ.get("LESSON_ASSETS_BASE_URL", "").rstrip("/")
 
@@ -273,6 +273,7 @@ async def submit_audio(
             fingering_positions=_fingerings_by_chord.get(chord_key, {}).get("positions", []),
             user_context=user_context,
             chord_lookup=lesson_service.find_chord_by_notes,
+            chord_lookup_by_strengths=lesson_service.find_chord_by_strengths,
         )
         result.pop("_evaluation", None)
     finally:

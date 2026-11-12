@@ -39,6 +39,8 @@ def _verdict(issue: Optional[str], score: float) -> str:
         return "pass"
     if issue == "unclear":
         return "unclear"
+    if issue == "out_of_tune":
+        return "out_of_tune"
     if issue == "no_sound":
         return "no_sound"
     if issue in _ERROR_ISSUES:
@@ -56,6 +58,7 @@ async def grade_attempt(
     fingering_positions: Optional[list] = None,
     user_context: str = "",
     chord_lookup: Optional[Callable[[List[str], str], Optional[str]]] = None,
+    chord_lookup_by_strengths: Optional[Callable[[Callable[[List[str]], bool], str], Optional[str]]] = None,
 ) -> Dict[str, Any]:
     """
     Score one attempt at a chord with no server-side session state.
@@ -71,12 +74,21 @@ async def grade_attempt(
 
     eval_dict = evaluation.to_dict()
     eval_dict["chord_display"] = friendly_chord_name(lesson.chord_name)
-    eval_dict["tuning_warning"] = (
+    eval_dict["tuning_warning"] = evaluation.issue == "out_of_tune" or (
         evaluation.issue != "no_sound" and abs(evaluation.tuning_cents) > TUNING_WARN_CENTS
     )
-    if (chord_lookup is not None and evaluation.issue not in (None, "unclear")
-            and evaluation.detected_notes):
-        sounds_like = chord_lookup(evaluation.detected_notes, lesson.chord_name)
+    if evaluation.issue not in (None, "unclear", "out_of_tune", "no_sound"):
+        sounds_like = None
+        # preferred: the one library chord the evaluator's own rule would PASS on
+        # these strengths (a quiet 3rd still counts); fallback: exact note match
+        if chord_lookup_by_strengths is not None and evaluation.pc_strength:
+            sounds_like = await run_in_threadpool(
+                chord_lookup_by_strengths,
+                lambda notes: evaluator.passes(evaluation.pc_strength, notes),
+                lesson.chord_name,
+            )
+        if sounds_like is None and chord_lookup is not None and evaluation.detected_notes:
+            sounds_like = chord_lookup(evaluation.detected_notes, lesson.chord_name)
         if sounds_like:
             # the learner cleanly played a different real chord: say which one
             eval_dict["sounds_like"] = sounds_like
@@ -108,7 +120,8 @@ async def grade_attempt(
         result["message"] = "Congratulations! You've completed this lesson."
     else:
         result["state"] = SessionState.FEEDBACK.value
-        graded = previous_scores + ([] if evaluation.issue == "unclear" else [evaluation.score])
+        graded = previous_scores + ([] if evaluation.issue in ("unclear", "out_of_tune")
+                                    else [evaluation.score])
         result["best_score"] = max(graded) if graded else None
         result["message"] = (
             "Strum once more and let it ring." if evaluation.issue == "unclear"
