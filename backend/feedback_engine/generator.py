@@ -158,7 +158,7 @@ class FeedbackGenerator:
             direction = "sharp" if cents > 0 else "flat"
             return (
                 f"Your chord shape sounds right, but your guitar is about {abs(round(cents))} cents "
-                f"{direction}. Tune up and strum it again."
+                f"{direction}. Tune {'down' if cents > 0 else 'up'} and strum it again."
             )
         if issue == "unclear":
             # Not a judgement: the evidence was borderline. Never blame the learner.
@@ -182,7 +182,7 @@ class FeedbackGenerator:
         direction = "sharp" if cents > 0 else "flat"
         return (
             f"Your guitar sounds about {abs(round(cents))} cents {direction} — "
-            f"tune up for the most accurate grading. {text}"
+            f"tune {'down' if cents > 0 else 'up'} for the most accurate grading. {text}"
         )
 
     async def _generate_with_groq(

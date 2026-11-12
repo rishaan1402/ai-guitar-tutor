@@ -17,6 +17,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import ChordAttempt, TeacherAssignment, TeacherStudent, TransitionDrill, User
+from personalization.changes import ranked_pairs
 from personalization.mastery import DUE, MASTERED, REQUIRED_DAYS, VERIFYING, user_mastery
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ ITEM_TYPES = {
     "warmup":     "Warm-up (mastered chord — keep it fluent)",
     "focus":      "Focus chord (needs the most work)",
     "new":        "New challenge (just above your current level)",
-    "transition": "Transition drill (chord pair with highest miss rate)",
+    "transition": "One-minute changes (the pair furthest from its next target)",
     "assignment": "Assigned by your teacher",
     "review":     "Re-check: keep it solid",
 }
@@ -180,37 +181,25 @@ async def build_daily_plan(db: AsyncSession, user: User, tz: str | None = None) 
             difficulty=_chord_difficulties.get(key, "beginner"),
         ))
 
-    # ── Transition drill (pair with highest miss rate) ────────────────────────
+    # ── Transition drill: the pair most below its next clean-changes target ──
     if len(plan) < max_items:
-        trans_rows = await db.execute(
-            select(
-                TransitionDrill.chord_a,
-                TransitionDrill.chord_b,
-                TransitionDrill.chord_a_symbol,
-                TransitionDrill.chord_b_symbol,
-                func.sum(TransitionDrill.miss_count).label("total_misses"),
-                func.sum(TransitionDrill.got_count).label("total_got"),
-            )
-            .where(TransitionDrill.user_id == user.id)
-            .group_by(
-                TransitionDrill.chord_a, TransitionDrill.chord_b,
-                TransitionDrill.chord_a_symbol, TransitionDrill.chord_b_symbol,
-            )
-            .order_by(func.sum(TransitionDrill.miss_count).desc())
-            .limit(1)
-        )
-        trans = trans_rows.first()
-        if trans and trans.total_misses and trans.total_misses > 0:
-            total = (trans.total_misses or 0) + (trans.total_got or 0)
-            miss_rate = round(trans.total_misses / total, 2) if total else 0
+        pairs = await ranked_pairs(db, user.id, zone, mastery, _learning_order())
+        if pairs:
+            p = pairs[0]
+            a, b = p.pair
             plan.append({
                 "type": "transition",
-                "chord_a": trans.chord_a,
-                "chord_b": trans.chord_b,
-                "chord_a_symbol": trans.chord_a_symbol,
-                "chord_b_symbol": trans.chord_b_symbol,
+                "chord_a": a,
+                "chord_b": b,
+                "chord_a_symbol": _key_to_symbol(a),
+                "chord_b_symbol": _key_to_symbol(b),
                 "description": ITEM_TYPES["transition"],
-                "miss_rate": miss_rate,
+                "target": p.target,
+                "last": p.last,
+                "best": p.best,
+                "reason": (f"{_key_to_symbol(a)} → {_key_to_symbol(b)}: {p.last} clean changes "
+                           f"last time, aiming for {p.target}") if p.last is not None
+                          else f"New pair: aim for {p.target} clean changes in a minute",
             })
 
     return plan[:max_items]

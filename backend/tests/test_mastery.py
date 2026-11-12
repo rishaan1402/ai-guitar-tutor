@@ -170,3 +170,51 @@ class TestRecap:
 
     def test_anonymous_401(self, client):
         assert client.get("/api/progress/recap").status_code == 401
+
+
+class TestChanges:
+    def _m(self, chord, stage):
+        from personalization.mastery import ChordMastery
+        return ChordMastery(chord=chord, stage=stage, attempts=1)
+
+    def test_pairs_merge_regardless_of_direction(self):
+        from personalization.changes import score_pairs
+        z = ZoneInfo("UTC")
+        old = datetime(2026, 6, 1, tzinfo=timezone.utc)
+        ranked = score_pairs([("E_minor", "A_minor", 10, old), ("A_minor", "E_minor", 14, old)],
+                             [], {}, D, z)
+        assert len(ranked) == 1 and ranked[0].drills == 2 and ranked[0].best == 14
+
+    def test_undrilled_path_neighbours_offered_when_both_under_way(self):
+        from personalization.changes import score_pairs
+        m = {"E_minor": self._m("E_minor", "verifying"), "A_minor": self._m("A_minor", "verifying")}
+        ranked = score_pairs([], ["E_minor", "A_minor", "E_major"], m, D, ZoneInfo("UTC"))
+        assert [p.pair for p in ranked] == [("A_minor", "E_minor")]
+
+    def test_pair_drilled_today_is_demoted(self):
+        from personalization.changes import score_pairs
+        today = datetime(D.year, D.month, D.day, 12, tzinfo=timezone.utc)
+        old = today - timedelta(days=3)
+        ranked = score_pairs([("C_major", "G_major", 10, today), ("A_minor", "E_minor", 12, old)],
+                             [], {}, D, ZoneInfo("UTC"))
+        assert ranked[0].pair == ("A_minor", "E_minor")
+
+    def test_target_rung_advances_after_two_hits(self):
+        from personalization.changes import score_pairs
+        old = datetime(2026, 6, 1, tzinfo=timezone.utc)
+        ranked = score_pairs([("C_major", "G_major", 21, old), ("C_major", "G_major", 22, old)],
+                             [], {}, D, ZoneInfo("UTC"))
+        assert ranked[0].target == 30
+
+    def test_endpoint_and_planner_agree(self, client):
+        email, h = _signup(client)
+        _seed(email, [])
+        client.post("/api/progress/transitions", headers=h, json={
+            "chord_a": "E_minor", "chord_b": "A_minor", "chord_a_symbol": "x", "chord_b_symbol": "y",
+            "tpm": 20, "got_count": 12, "miss_count": 8, "date": "2026-06-01"})
+        top = client.get("/api/plan/changes", headers=h).json()
+        assert {top["chord_a"], top["chord_b"]} == {"E_minor", "A_minor"} and top["target"] == 20
+        plan = client.get("/api/plan/next", headers=h).json()["items"]
+        tr = [i for i in plan if i["type"] == "transition"]
+        assert tr and {tr[0]["chord_a"], tr[0]["chord_b"]} == {"E_minor", "A_minor"}
+        assert tr[0]["chord_a_symbol"] in ("Em", "Am")

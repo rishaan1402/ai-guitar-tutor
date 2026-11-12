@@ -575,18 +575,25 @@ class TestRound3Chord:
         y, sr = sf.read(str(LESSONS / chord / "reference.wav"), dtype="float32")
         return (y.mean(axis=1) if y.ndim > 1 else y), sr
 
-    def test_sixty_cents_sharp_is_out_of_tune_not_wrong(self, tmp_path):
+    @pytest.mark.parametrize("cents", [-60, 60])
+    def test_sixty_cents_off_is_out_of_tune_with_right_sign(self, tmp_path, cents):
         import soundfile as sf
         from scipy.signal import resample
         from audio_engine import ChordEvaluator
-        y, sr = self._ref("G_major")
-        sharp = resample(y, int(len(y) / 2 ** (60 / 1200))).astype(np.float32)
-        p = tmp_path / "sharp.wav"
-        sf.write(str(p), sharp, sr)
-        r = ChordEvaluator().evaluate(str(p), ["G", "B", "D"])
-        assert r.issue in ("out_of_tune", None)
-        if r.issue == "out_of_tune":
-            assert r.tuning_cents > 30 and r.score < 1.0
+        y, sr = self._ref("C_major")
+        z = resample(y, int(len(y) / 2 ** (cents / 1200))).astype(np.float32)
+        p = tmp_path / "detuned.wav"
+        sf.write(str(p), z, sr)
+        r = ChordEvaluator().evaluate(str(p), ["C", "E", "G"])
+        assert r.issue == "out_of_tune"
+        assert np.sign(r.tuning_cents) == np.sign(cents) and abs(r.tuning_cents) > 40
+        assert r.score < 1.0 and r.missing_notes == [] and r.extra_notes == []
+
+    def test_sharp_guitar_told_to_tune_down(self):
+        from feedback_engine import FeedbackGenerator
+        ev = {"issue": "out_of_tune", "tuning_cents": 55.0, "score": 0.99,
+              "expected_notes": ["C", "E", "G"], "missing_notes": [], "extra_notes": []}
+        assert "Tune down" in FeedbackGenerator().generate(ev)
 
     def test_tap_before_strum_still_grades(self, tmp_path):
         import soundfile as sf

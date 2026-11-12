@@ -110,8 +110,12 @@ class ChordEvaluator:
             k = -1 if t < 0 else 1
             alt = self._decide(np.roll(strengths, k), info, exp)
             if alt.issue is None:
+                # report what the learner actually fingered (the target), not the
+                # semitone-shifted misreading
                 res.issue = "out_of_tune"
-                res.score = min(res.score, 0.99)
+                res.score = min(alt.score, 0.99)
+                res.detected_notes = list(alt.detected_notes)
+                res.missing_notes, res.extra_notes, res.unclear_notes = [], [], []
                 res.tuning_cents = round(t + 100.0 if t < 0 else t - 100.0, 1)
         return res
 
