@@ -23,6 +23,31 @@ export function errorMessage(body: { detail?: unknown }, fallback: string): stri
   return fallback;
 }
 
+/** Error from the API, carrying the HTTP status so callers can tailor the message. */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+/** The browser's IANA time zone (e.g. "America/Denver"), or null if unavailable. */
+export function localTimeZone(): string | null {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  } catch {
+    return null;
+  }
+}
+
+/** `?tz=<zone>` so the server buckets days (streak, calendar) in local time. */
+function tzQuery(): string {
+  const tz = localTimeZone();
+  return tz ? `?tz=${encodeURIComponent(tz)}` : "";
+}
+
 async function request<T>(path: string, options?: RequestInit, retry = true): Promise<T> {
   const headers = new Headers(options?.headers);
   headers.set("X-Session-Id", getSessionId());
@@ -49,7 +74,7 @@ async function request<T>(path: string, options?: RequestInit, retry = true): Pr
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(errorMessage(body, `Request failed: ${res.status}`));
+    throw new ApiError(errorMessage(body, `Request failed: ${res.status}`), res.status);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
@@ -71,17 +96,41 @@ export function learnChord(chordName: string): Promise<Record<string, unknown>> 
   });
 }
 
-export function submitAudio(
+export const MAX_UPLOAD_MB = 2;
+
+export async function submitAudio(
   audioBlob: Blob,
   chordName: string,
   previousScores: number[] = [],
 ): Promise<Record<string, unknown>> {
+  if (audioBlob.size > MAX_UPLOAD_MB * 1024 * 1024) {
+    throw new Error(submitErrorMessage(new ApiError("", 413)));
+  }
   const form = new FormData();
   form.append("audio", audioBlob, "recording.wav");
   // Sending the chord and earlier scores keeps scoring stateless on the server
   form.append("chord_name", chordName);
   form.append("previous_scores", JSON.stringify(previousScores));
-  return request("/submit_audio", { method: "POST", body: form });
+  try {
+    return await request("/submit_audio", { method: "POST", body: form });
+  } catch (err) {
+    throw new Error(submitErrorMessage(err));
+  }
+}
+
+/** Friendly copy for upload failures (size cap, unreadable format). */
+export function submitErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 413) {
+      return `That recording was too large to upload (over ${MAX_UPLOAD_MB} MB). Record a shorter take — one strum is enough.`;
+    }
+    if (err.status === 422) {
+      return err.message && !err.message.startsWith("Request failed")
+        ? err.message
+        : "We couldn't read that audio. Please record again.";
+    }
+  }
+  return err instanceof Error ? err.message : "Failed to submit audio";
 }
 
 export function getSession(): Promise<Record<string, unknown>> {
@@ -264,7 +313,7 @@ export interface ProgressResponse {
 }
 
 export function getProgress(): Promise<ProgressResponse> {
-  return request("/api/progress/");
+  return request(`/api/progress/${tzQuery()}`);
 }
 
 export interface TransitionHistoryItem {
@@ -579,7 +628,7 @@ export interface CalendarDay {
 }
 
 export function getCalendar(): Promise<CalendarDay[]> {
-  return request("/api/progress/calendar");
+  return request(`/api/progress/calendar${tzQuery()}`);
 }
 
 export interface ChordAttempt {

@@ -5,6 +5,9 @@ import type { ChordFingering } from "@/lib/api";
 interface Props {
   fingering: ChordFingering | null;
   liveNotes?: string[]; // pitch-class names currently detected (e.g. ["G", "B", "D"])
+  /** Scale to the container width (capped) instead of the fixed 100px thumbnail. */
+  fluid?: boolean;
+  className?: string;
 }
 
 const STRINGS = 6;
@@ -27,7 +30,7 @@ const FINGER_COLORS: Record<number, string> = {
   4: "#de7a5c",
 };
 
-export default function ChordDiagram({ fingering, liveNotes }: Props) {
+export default function ChordDiagram({ fingering, liveNotes, fluid, className }: Props) {
   if (!fingering) return null;
 
   const positions = fingering.positions || [];
@@ -52,15 +55,15 @@ export default function ChordDiagram({ fingering, liveNotes }: Props) {
   const fretY = (f: number) => TOP_MARGIN + (f - startFret) * FRET_SPACING + FRET_SPACING / 2;
 
   return (
-    <div className="glass-card w-fit self-start">
+    <div className={`glass-card ${fluid ? "w-full" : "w-fit self-start"} ${className ?? ""}`}>
       <p className="text-[10px] font-semibold gradient-text text-center mb-0.5">
         {fingering.display_name}
       </p>
       <svg
         viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        width={SVG_W}
-        height={SVG_H}
-        className="mx-auto"
+        width={fluid ? undefined : SVG_W}
+        height={fluid ? undefined : SVG_H}
+        className={fluid ? "mx-auto block w-full h-auto" : "mx-auto"}
         aria-label={`Chord diagram for ${fingering.display_name}`}
       >
         {/* Glow filter for live-detected notes */}

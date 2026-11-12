@@ -1,64 +1,65 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import CountdownOverlay from "./CountdownOverlay";
+import RingButton from "./stage/RingButton";
 import { detectPeaks, stabilizeNotes } from "@/lib/noteDetection";
+import {
+  AutoStopDetector,
+  CLIP_DBFS,
+  DB_FLOOR,
+  dbfsToLevel,
+  encodeWav,
+  frameStats,
+  levelHint,
+  mergeChunks,
+  sameNotes,
+  toDbfs,
+  type LevelHint,
+} from "@/lib/audioCapture";
+import { useReducedMotion } from "@/lib/motion";
+import { isActivationKey, isInteractiveTarget } from "@/lib/hotkeys";
 
 interface Props {
   onRecordingComplete: (blob: Blob) => void;
   disabled?: boolean;
   onLiveNotes?: (notes: string[]) => void;
+  /** Bind Space / Enter to record/stop (ignored while typing or on other controls). */
+  hotkeys?: boolean;
+  size?: number;
 }
 
-const SAMPLE_RATE = 22050;
-const BUFFER_SIZE = 4096;
-const BAR_COUNT = 32;
+const BUFFER_SIZE = 2048;
+const MAX_SECONDS = 6;
+const BAR_PX = 3;
+const GAP_PX = 1;
+/** "Good level" band drawn behind the meter. */
+const GOOD_LOW_DB = -30;
+const GOOD_HIGH_DB = -6;
 
-function encodeWav(samples: Float32Array, sampleRate: number): Blob {
-  const numSamples = samples.length;
-  const buffer = new ArrayBuffer(44 + numSamples * 2);
-  const view = new DataView(buffer);
-
-  writeString(view, 0, "RIFF");
-  view.setUint32(4, 36 + numSamples * 2, true);
-  writeString(view, 8, "WAVE");
-  writeString(view, 12, "fmt ");
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(view, 36, "data");
-  view.setUint32(40, numSamples * 2, true);
-
-  let offset = 44;
-  for (let i = 0; i < numSamples; i++) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-    offset += 2;
-  }
-  return new Blob([buffer], { type: "audio/wav" });
-}
-
-function writeString(view: DataView, offset: number, str: string) {
-  for (let i = 0; i < str.length; i++) {
-    view.setUint8(offset + i, str.charCodeAt(i));
-  }
-}
+const HINT_TEXT: Record<Exclude<LevelHint, null>, string> = {
+  too_quiet: "Too quiet — move closer to the mic or strum harder.",
+  clipping: "Clipping — back off from the mic a little.",
+};
 
 function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-  const s = (seconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
+  const s = Math.floor(seconds);
+  return `0:${s.toString().padStart(2, "0")}`;
 }
 
-export default function MicrophoneRecorder({ onRecordingComplete, disabled, onLiveNotes }: Props) {
+export default function MicrophoneRecorder({
+  onRecordingComplete,
+  disabled,
+  onLiveNotes,
+  hotkeys = true,
+  size = 148,
+}: Props) {
+  const reduceMotion = useReducedMotion();
   const [recording, setRecording] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const [error, setError] = useState("");
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [hint, setHint] = useState<LevelHint>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -66,101 +67,194 @@ export default function MicrophoneRecorder({ onRecordingComplete, disabled, onLi
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Float32Array[]>([]);
+  const samplesRef = useRef(0);
+  const peakRef = useRef(0);
+  const hintRef = useRef<LevelHint>(null);
+  const historyRef = useRef<number[]>([]);
   const rafRef = useRef(0);
   const activeRef = useRef(false);
+  const mountedRef = useRef(true);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const liveNotesIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rollingWindowRef = useRef<string[][]>([]);
+  const lastNotesRef = useRef<string[]>([]);
+  const onLiveNotesRef = useRef(onLiveNotes);
+  onLiveNotesRef.current = onLiveNotes;
+  const onCompleteRef = useRef(onRecordingComplete);
+  onCompleteRef.current = onRecordingComplete;
 
-  // Canvas-based waveform with gradient
+  /** Release every audio resource. Safe to call repeatedly; never emits a recording. */
+  const teardown = useCallback(() => {
+    activeRef.current = false;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+    if (liveNotesIntervalRef.current) clearInterval(liveNotesIntervalRef.current);
+    liveNotesIntervalRef.current = null;
+
+    const processor = processorRef.current;
+    if (processor) {
+      processor.onaudioprocess = null;
+      processor.disconnect();
+    }
+    sourceRef.current?.disconnect();
+    analyserRef.current?.disconnect();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    const ctx = audioContextRef.current;
+    if (ctx && ctx.state !== "closed") ctx.close().catch(() => {});
+
+    processorRef.current = null;
+    sourceRef.current = null;
+    analyserRef.current = null;
+    streamRef.current = null;
+    audioContextRef.current = null;
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    if (!activeRef.current) return;
+    const sampleRate = audioContextRef.current?.sampleRate ?? 48000;
+    const chunks = chunksRef.current;
+    chunksRef.current = [];
+    teardown();
+    if (lastNotesRef.current.length) {
+      lastNotesRef.current = [];
+      onLiveNotesRef.current?.([]);
+    }
+    setRecording(false);
+    setElapsed(0);
+    onCompleteRef.current(encodeWav(mergeChunks(chunks), sampleRate));
+  }, [teardown]);
+
+  // Full teardown on unmount (navigating away mid-recording must free the mic).
   useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      teardown();
+    };
+  }, [teardown]);
+
+  // Scrolling dBFS level meter.
+  useEffect(() => {
+    if (!recording) return;
+
     function draw() {
       if (!activeRef.current) return;
       const analyser = analyserRef.current;
       const canvas = canvasRef.current;
-      if (!analyser || !canvas) {
-        rafRef.current = requestAnimationFrame(draw);
-        return;
-      }
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const w = canvas.width;
-      const h = canvas.height;
-
-      const dataArray = new Uint8Array(analyser.fftSize);
-      analyser.getByteTimeDomainData(dataArray);
-
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "rgba(0,0,0,0)";
-      ctx.fillRect(0, 0, w, h);
-
-      const seg = Math.floor(dataArray.length / BAR_COUNT);
-      const barW = (w - (BAR_COUNT - 1)) / BAR_COUNT;
-
-      // Create horizontal gradient purple→cyan
-      const gradient = ctx.createLinearGradient(0, 0, w, 0);
-      gradient.addColorStop(0, "#efc27a");
-      gradient.addColorStop(0.5, "#a3c6ab");
-      gradient.addColorStop(1, "#a3c6ab");
-
-      for (let i = 0; i < BAR_COUNT; i++) {
-        let sumSq = 0;
-        for (let j = 0; j < seg; j++) {
-          const v = (dataArray[i * seg + j] - 128) / 128;
-          sumSq += v * v;
+      if (analyser && canvas) {
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = canvas.clientWidth || 300;
+        const cssH = canvas.clientHeight || 48;
+        if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+          canvas.width = Math.round(cssW * dpr);
+          canvas.height = Math.round(cssH * dpr);
         }
-        const rms = Math.sqrt(sumSq / seg);
-        const level = Math.min(1, rms * 40);
-        const barH = Math.max(3, level * h * 0.9);
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          const frame = new Float32Array(analyser.fftSize);
+          analyser.getFloatTimeDomainData(frame);
+          const { rms } = frameStats(frame);
+          const level = dbfsToLevel(toDbfs(rms));
 
-        ctx.fillStyle = gradient;
-        const x = i * (barW + 1);
-        const y = (h - barH) / 2;
-        ctx.beginPath();
-        ctx.roundRect(x, y, barW, barH, 2);
-        ctx.fill();
+          const maxBars = Math.max(1, Math.floor(cssW / (BAR_PX + GAP_PX)));
+          const hist = historyRef.current;
+          hist.push(level);
+          if (hist.length > maxBars) hist.splice(0, hist.length - maxBars);
+
+          ctx.clearRect(0, 0, cssW, cssH);
+          // Target band
+          const yFor = (db: number) => cssH - dbfsToLevel(db) * cssH;
+          ctx.fillStyle = "rgba(163,198,171,0.10)";
+          ctx.fillRect(0, yFor(GOOD_HIGH_DB), cssW, yFor(GOOD_LOW_DB) - yFor(GOOD_HIGH_DB));
+          // Clip line
+          ctx.fillStyle = "rgba(222,122,92,0.55)";
+          ctx.fillRect(0, yFor(CLIP_DBFS), cssW, 1);
+
+          const bars = reduceMotion ? [level] : hist;
+          const barW = reduceMotion ? cssW : BAR_PX;
+          const startX = reduceMotion ? 0 : cssW - bars.length * (BAR_PX + GAP_PX);
+          for (let i = 0; i < bars.length; i++) {
+            const l = bars[i];
+            const h = Math.max(1, l * cssH);
+            const db = DB_FLOOR * (1 - l);
+            ctx.fillStyle = db > CLIP_DBFS - 2 ? "#de7a5c" : db >= GOOD_LOW_DB ? "#a3c6ab" : "#efc27a";
+            ctx.fillRect(startX + i * (BAR_PX + GAP_PX), cssH - h, barW, h);
+          }
+        }
+
+        const peakDb = toDbfs(peakRef.current);
+        const t = samplesRef.current / (audioContextRef.current?.sampleRate || 48000);
+        const next = levelHint(peakDb, t);
+        if (next !== hintRef.current) {
+          hintRef.current = next;
+          setHint(next);
+        }
       }
-
       rafRef.current = requestAnimationFrame(draw);
     }
 
-    if (recording) {
-      rafRef.current = requestAnimationFrame(draw);
-    }
+    rafRef.current = requestAnimationFrame(draw);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [recording]);
+  }, [recording, reduceMotion]);
 
   async function startRecording() {
     setError("");
+    let stream: MediaStream;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // No sampleRate constraint: use the device's native rate and encode at it.
+      stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false,
-          sampleRate: SAMPLE_RATE,
           channelCount: 1,
         },
       });
+    } catch (err) {
+      const name = err instanceof DOMException ? err.name : "";
+      setError(
+        name === "NotFoundError"
+          ? "No microphone found. Plug one in and try again."
+          : "Microphone access denied. Please allow microphone permissions.",
+      );
+      return;
+    }
+    if (!mountedRef.current) {
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
 
-      const audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+    try {
+      const audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(stream);
       const processor = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
-
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.5;
 
+      const detector = new AutoStopDetector({ maxSeconds: MAX_SECONDS });
       chunksRef.current = [];
+      samplesRef.current = 0;
+      peakRef.current = 0;
+      hintRef.current = null;
+      historyRef.current = [];
 
       processor.onaudioprocess = (e) => {
+        if (!activeRef.current) return;
         const input = e.inputBuffer.getChannelData(0);
         chunksRef.current.push(new Float32Array(input));
+        samplesRef.current += input.length;
+        const { rms, peak } = frameStats(input);
+        if (peak > peakRef.current) peakRef.current = peak;
+        if (detector.update(rms, samplesRef.current / audioContext.sampleRate)) {
+          stopRecording();
+        }
       };
 
       source.connect(analyser);
@@ -172,135 +266,121 @@ export default function MicrophoneRecorder({ onRecordingComplete, disabled, onLi
       sourceRef.current = source;
       processorRef.current = processor;
       streamRef.current = stream;
-
       activeRef.current = true;
       rollingWindowRef.current = [];
-      setElapsedSeconds(0);
+      lastNotesRef.current = [];
+      setElapsed(0);
+      setHint(null);
       setRecording(true);
 
+      const startedAt = performance.now();
       timerRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
+        setElapsed((performance.now() - startedAt) / 1000);
+      }, 250);
 
-      // Live note detection: poll analyser every 80ms
-      if (onLiveNotes) {
+      if (onLiveNotesRef.current) {
         liveNotesIntervalRef.current = setInterval(() => {
-          if (!analyserRef.current || !audioContextRef.current) return;
-          const freqData = new Float32Array(analyserRef.current.frequencyBinCount);
-          analyserRef.current.getFloatFrequencyData(freqData);
-          // -52 dB threshold — more sensitive for real guitar at mic distance
-          // Use actual AudioContext sampleRate (device may not honour 22050 constraint)
-          const peaks = detectPeaks(freqData, audioContextRef.current.sampleRate, 2048, -52, 8);
-          rollingWindowRef.current = [
-            ...rollingWindowRef.current.slice(-2),
-            peaks.map((p) => p.noteName),
-          ];
-          // minVotes=1 for snappier real-time response
-          onLiveNotes(stabilizeNotes(rollingWindowRef.current, 1));
+          const an = analyserRef.current;
+          const ctx = audioContextRef.current;
+          if (!an || !ctx) return;
+          const freqData = new Float32Array(an.frequencyBinCount);
+          an.getFloatFrequencyData(freqData);
+          const peaks = detectPeaks(freqData, ctx.sampleRate, an.fftSize, -52, 8);
+          rollingWindowRef.current = [...rollingWindowRef.current.slice(-2), peaks.map((p) => p.noteName)];
+          const notes = stabilizeNotes(rollingWindowRef.current, 1);
+          if (!sameNotes(notes, lastNotesRef.current)) {
+            lastNotesRef.current = notes;
+            onLiveNotesRef.current?.(notes);
+          }
         }, 80);
       }
     } catch {
-      setError("Microphone access denied. Please allow microphone permissions.");
+      stream.getTracks().forEach((t) => t.stop());
+      teardown();
+      setError("Couldn't start audio capture in this browser.");
     }
   }
 
-  function stopRecording() {
-    if (!activeRef.current) return;
-    activeRef.current = false;
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (liveNotesIntervalRef.current) {
-      clearInterval(liveNotesIntervalRef.current);
-      liveNotesIntervalRef.current = null;
-    }
-    onLiveNotes?.([]);
-
-    processorRef.current?.disconnect();
-    sourceRef.current?.disconnect();
-    analyserRef.current?.disconnect();
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    audioContextRef.current?.close();
-    analyserRef.current = null;
-
-    const totalLength = chunksRef.current.reduce((sum, c) => sum + c.length, 0);
-    const merged = new Float32Array(totalLength);
-    let offset = 0;
-    for (const chunk of chunksRef.current) {
-      merged.set(chunk, offset);
-      offset += chunk.length;
-    }
-
-    const wavBlob = encodeWav(merged, SAMPLE_RATE);
-    onRecordingComplete(wavBlob);
-    setRecording(false);
-    setElapsedSeconds(0);
-  }
-
-  function handleRecordClick() {
+  const handleRecordClick = useCallback(() => {
+    setError("");
     setShowCountdown(true);
-  }
+  }, []);
 
-  function handleCountdownComplete() {
+  const handleCountdownComplete = useCallback(() => {
     setShowCountdown(false);
     startRecording();
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggle = useCallback(() => {
+    if (activeRef.current) stopRecording();
+    else if (!disabled && !showCountdown) handleRecordClick();
+  }, [disabled, showCountdown, stopRecording, handleRecordClick]);
+
+  useEffect(() => {
+    if (!hotkeys) return;
+    function onKey(e: KeyboardEvent) {
+      if (showCountdown && e.key === "Escape") {
+        setShowCountdown(false);
+        return;
+      }
+      if (!isActivationKey(e)) return;
+      if (isInteractiveTarget(e.target)) return; // native activation handles buttons
+      e.preventDefault();
+      toggle();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hotkeys, toggle, showCountdown]);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col items-center gap-3">
       {showCountdown && <CountdownOverlay onComplete={handleCountdownComplete} />}
 
-      <div className="flex gap-3 items-center">
-        {!recording ? (
-          <button
-            onClick={handleRecordClick}
-            disabled={disabled}
-            className="glass flex items-center gap-2 text-red-300 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-xl px-5 py-2.5 transition-all"
-            style={{ boxShadow: "0 0 12px rgba(239,68,68,0.15)" }}
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-            Record
-          </button>
-        ) : (
-          <button
-            onClick={stopRecording}
-            className="glass flex items-center gap-2 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/20 font-semibold rounded-xl px-5 py-2.5 transition-all"
-            style={{ boxShadow: "0 0 12px rgba(245,158,11,0.15)" }}
-          >
-            <span className="w-2.5 h-2.5 rounded-sm bg-yellow-400" />
-            Stop
-          </button>
-        )}
+      <RingButton
+        label={recording ? "Stop" : "Record"}
+        sublabel={recording ? `${formatTime(elapsed)} / 0:0${MAX_SECONDS}` : undefined}
+        onClick={recording ? stopRecording : handleRecordClick}
+        disabled={!recording && (disabled || showCountdown)}
+        active={recording}
+        size={size}
+        ariaLabel={recording ? "Stop recording" : "Record your chord"}
+        ariaPressed={recording}
+      />
 
-        {recording && (
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2 h-2 rounded-full bg-red-500"
-              style={{ animation: "recording-pulse 1s ease-in-out infinite" }}
-            />
-            <span className="text-red-400 text-sm font-medium tabular-nums">
-              {formatTime(elapsedSeconds)}
-            </span>
-            <span className="text-gray-400 text-sm">— play now!</span>
-          </div>
-        )}
-      </div>
+      <p className="text-xs text-gray-400 text-center min-h-[1rem]" aria-live="polite">
+        {recording
+          ? "Strum once and let it ring — stops automatically."
+          : showCountdown
+          ? "Get ready… (Esc to cancel)"
+          : hotkeys
+          ? "Press Record or hit Space, then strum once."
+          : "Press Record, then strum once."}
+      </p>
 
-      {recording && (
-        <div
-          className="glass rounded-xl overflow-hidden p-2"
-          style={{ animation: "fade-in-up 0.2s ease-out both" }}
-        >
+      <div className="w-full max-w-sm">
+        <div className="glass rounded-xl overflow-hidden px-2 py-1.5">
           <canvas
             ref={canvasRef}
-            width={400}
-            height={48}
-            className="w-full h-12 rounded-lg"
-            style={{ background: "transparent" }}
+            className="block w-full h-12"
+            role="img"
+            aria-label="Input level meter"
+            style={{ opacity: recording ? 1 : 0.35 }}
           />
         </div>
-      )}
+        <p
+          className={`mt-1.5 text-xs text-center min-h-[1rem] ${hint === "clipping" ? "text-[#de7a5c]" : "text-amber-300"}`}
+          role="status"
+        >
+          {recording && hint ? HINT_TEXT[hint] : ""}
+        </p>
+      </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && (
+        <p className="text-red-400 text-sm text-center" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

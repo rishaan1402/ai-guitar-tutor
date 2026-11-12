@@ -1,5 +1,7 @@
 "use client";
 
+import { formatChord } from "@/lib/chordName";
+
 interface Props {
   videoPath: string | null;
   audioUrl: string | null;
@@ -15,7 +17,7 @@ export default function LessonVideoPlayer({ videoPath, audioUrl, chordName, onVi
     <div className="glass rounded-2xl overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10">
         <h3 className="text-lg font-semibold gradient-text">
-          {chordName.replace("_", " ")}
+          {formatChord(chordName)}
         </h3>
       </div>
 

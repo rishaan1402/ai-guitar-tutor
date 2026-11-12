@@ -1,5 +1,6 @@
 "use client";
 
+import { formatChord } from "@/lib/chordName";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -71,7 +72,7 @@ export function MyClass() {
               <li key={a.id} className="flex items-start justify-between gap-3 text-sm">
                 <div>
                   <p className="text-gray-200">
-                    {a.chord_name ? a.chord_name.replace(/_/g, " ") : "Practice"}
+                    {a.chord_name ? formatChord(a.chord_name) : "Practice"}
                     <span className="text-gray-500"> · {a.teacher_name}</span>
                   </p>
                   {a.note && <p className="text-gray-400 text-xs mt-0.5">{a.note}</p>}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "@/lib/motion";
 
 interface Props {
   score: number;
@@ -23,6 +24,8 @@ export default function ScoreRing({
   animate = true,
   previousBest,
 }: Props) {
+  const reduceMotion = useReducedMotion();
+  const shouldAnimate = animate && !reduceMotion;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
@@ -34,7 +37,7 @@ export default function ScoreRing({
   const target = Math.round(score * 100);
 
   useEffect(() => {
-    if (!animate) {
+    if (!shouldAnimate) {
       setOffset(circumference * (1 - score));
       setDisplayValue(target);
       return;
@@ -52,8 +55,8 @@ export default function ScoreRing({
     function animateCount(timestamp: number) {
       if (!start) start = timestamp;
       const progress = Math.min((timestamp - start) / duration, 1);
-      // Ease-out
-      const eased = 1 - Math.pow(1 - progress, 3);
+      // Expo ease-out
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       setDisplayValue(Math.round(eased * target));
       if (progress < 1) {
         animRef.current = requestAnimationFrame(animateCount);
@@ -66,15 +69,21 @@ export default function ScoreRing({
       clearTimeout(timer);
       cancelAnimationFrame(animRef.current);
     };
-  }, [score, animate, circumference, target]);
+  }, [score, shouldAnimate, circumference, target]);
 
   const color = colorForScore(score);
 
   return (
-    <div className="relative inline-flex items-center justify-center">
+    <div
+      className="relative inline-flex items-center justify-center shrink-0"
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={`Score ${target}%`}
+    >
       <svg
         width={size}
         height={size}
+        aria-hidden
         style={{ transform: "rotate(-90deg)" }}
       >
         {/* Background track */}
@@ -98,7 +107,7 @@ export default function ScoreRing({
           strokeDashoffset={offset}
           strokeLinecap="round"
           style={{
-            transition: animate
+            transition: shouldAnimate
               ? "stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease"
               : "none",
           }}
@@ -106,10 +115,12 @@ export default function ScoreRing({
       </svg>
 
       {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center" aria-hidden>
+        {/* Font scales with the ring so "100%" always fits inside the track */}
         <span
-          className="text-3xl font-bold"
-          style={{ color }}
+          data-testid="score-ring-value"
+          className="font-bold tabular-nums leading-none whitespace-nowrap"
+          style={{ color, fontSize: Math.round(size * 0.25) }}
         >
           {displayValue}%
         </span>

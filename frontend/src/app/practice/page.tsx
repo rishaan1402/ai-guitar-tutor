@@ -6,6 +6,7 @@ import LessonVideoPlayer from "@/components/LessonVideoPlayer";
 import MicrophoneRecorder from "@/components/MicrophoneRecorder";
 import FeedbackDisplay from "@/components/FeedbackDisplay";
 import ChordDiagram from "@/components/ChordDiagram";
+import type { Evaluation } from "@/components/FeedbackDisplay";
 import ProgressDashboard from "@/components/ProgressDashboard";
 import StepIndicator from "@/components/StepIndicator";
 import ModeToggle, { AppMode } from "@/components/ModeToggle";
@@ -22,19 +23,13 @@ import {
   getAudioUrl,
   getFingering,
   listChords,
+  getPlan,
 } from "@/lib/api";
+import { getAccessToken } from "@/lib/auth";
+import { formatChord, nextBeginnerChord } from "@/lib/chordName";
 import type { ChordFingering } from "@/lib/api";
 import { loadProgress, recordAttempt } from "@/lib/progress";
 import type { ProgressData } from "@/lib/progress";
-
-interface Evaluation {
-  score: number;
-  detected_notes: string[];
-  expected_notes: string[];
-  missing_notes: string[];
-  extra_notes?: string[];
-  issue: string | null;
-}
 
 const STEPS = [
   {
@@ -72,6 +67,29 @@ const STEPS = [
   },
 ];
 
+
+interface NextChord {
+  key: string;
+  label: string;
+}
+
+/** First chord on the user's plan that isn't the current one, else the next beginner chord. */
+async function suggestNextChord(current: string): Promise<NextChord> {
+  if (getAccessToken()) {
+    try {
+      const plan = await getPlan();
+      const item = plan.items.find((i) => i.chord_key && i.chord_key !== current && i.type !== "transition");
+      if (item?.chord_key) {
+        return { key: item.chord_key, label: item.chord_symbol || formatChord(item.chord_key) };
+      }
+    } catch {
+      // fall through to the beginner path
+    }
+  }
+  const key = nextBeginnerChord(current);
+  return { key, label: formatChord(key) };
+}
+
 export default function Home() {
   const [mode, setMode] = useState<AppMode>("chords");
   const [progress, setProgress] = useState<ProgressData>({ chords: {}, practiceStreak: 0, lastPracticeDate: null });
@@ -86,13 +104,14 @@ export default function Home() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const [attemptsRemaining, setAttemptsRemaining] = useState<number | undefined>();
+  const [tuning, setTuning] = useState<{ cents: number | null; warning: boolean }>({ cents: null, warning: false });
   const [scoreHistory, setScoreHistory] = useState<{ attempt: number; score: number }[]>([]);
   const [fingeringTips, setFingeringTips] = useState<
     { note: string; string: number; fret: number; finger?: number | null; tip: string }[]
   >([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analysis, setAnalysis] = useState<any>(null);
+  const [nextChord, setNextChord] = useState<NextChord | null>(null);
 
   // Stepper state
   const [currentStep, setCurrentStep] = useState(0);
@@ -115,19 +134,41 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Work out the "next" suggestion once per chord, so Review can name it.
+  useEffect(() => {
+    if (!chordName) {
+      setNextChord(null);
+      return;
+    }
+    let cancelled = false;
+    suggestNextChord(chordName).then((n) => {
+      if (!cancelled) setNextChord(n);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [chordName]);
+
   function markStepDone(step: number) {
     setCompletedSteps((prev) => { const s = new Set(prev); s.add(step); return s; });
     setCurrentStep(step + 1);
   }
 
+  function clearAttemptState() {
+    setFeedback(null);
+    setEvaluation(null);
+    setFingeringTips([]);
+    setAnalysis(null);
+    setTuning({ cents: null, warning: false });
+    setLiveNotes([]);
+  }
+
   async function handleChordSelect(chord: string) {
     setLoading(true);
     setError("");
-    setFeedback(null);
-    setEvaluation(null);
+    clearAttemptState();
     setScoreHistory([]);
-    setFingeringTips([]);
-    setAnalysis(null);
+    setAttempt(0);
     setCurrentStep(0);
     setCompletedSteps(new Set());
 
@@ -141,11 +182,41 @@ export default function Home() {
       setVideoPath(getVideoUrl(chord));
       setAudioUrl(getAudioUrl(chord));
       setFingering(fingeringData);
+      if (typeof window !== "undefined") window.scrollTo({ top: 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start lesson");
     } finally {
       setLoading(false);
     }
+  }
+
+  /** "Play it again": restart the same chord and jump straight to the Play step. */
+  async function handlePlayAgain() {
+    if (!chordName) return;
+    setLoading(true);
+    setError("");
+    try {
+      const result = await learnChord(chordName);
+      setSessionState(result.state as string);
+      clearAttemptState();
+      setCompletedSteps(new Set([0, 1]));
+      setCurrentStep(2);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to restart lesson");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleRetry() {
+    setError("");
+    setLiveNotes([]);
+    setCurrentStep(2);
+  }
+
+  function handleNextChord() {
+    const key = nextChord?.key ?? nextBeginnerChord(chordName);
+    handleChordSelect(key);
   }
 
   // Called from SongCouncil when user clicks "Practice" on a chord card
@@ -168,7 +239,10 @@ export default function Home() {
       setFeedback(result.feedback as string);
       setEvaluation(evalResult);
       setAttempt(attemptNum);
-      setAttemptsRemaining(result.attempts_remaining as number | undefined);
+      setTuning({
+        cents: typeof result.tuning_cents === "number" ? result.tuning_cents : evalResult.tuning_cents ?? null,
+        warning: Boolean(result.tuning_warning ?? evalResult.tuning_warning),
+      });
       setScoreHistory((prev) => [...prev, { attempt: attemptNum, score: evalResult.score }]);
       setFingeringTips((result.fingering_tips as typeof fingeringTips) || []);
       setAnalysis(result.analysis || null);
@@ -204,18 +278,15 @@ export default function Home() {
   }
 
   async function handleReset() {
-    await resetSession();
+    await resetSession().catch(() => {});
     setSessionState("IDLE");
     setChordName("");
     setVideoPath(null);
     setAudioUrl(null);
     setFingering(null);
-    setFeedback(null);
-    setEvaluation(null);
+    clearAttemptState();
     setAttempt(0);
     setScoreHistory([]);
-    setFingeringTips([]);
-    setAnalysis(null);
     setError("");
     setCurrentStep(0);
     setCompletedSteps(new Set());
@@ -237,33 +308,36 @@ export default function Home() {
     setMode(newMode);
   }
 
-  const canRecord =
-    sessionState === "WAITING_FOR_PLAY" || sessionState === "FEEDBACK";
-
   const chordStatuses = Object.fromEntries(
     Object.entries(progress.chords).map(([k, v]) => [k, v.status])
   );
 
-  const isSessionActive = sessionState !== "IDLE" && chordName;
+  const isSessionActive = sessionState !== "IDLE" && !!chordName;
+  // Grading is stateless (chord + history are sent), so any active session can record.
+  const canRecord = isSessionActive;
+  const chordLabel = formatChord(chordName);
 
   return (
     <main className="min-h-screen">
       <NavBar />
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* Header */}
-        <header className="text-center space-y-2" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
-          <h1 className="text-4xl sm:text-5xl font-black gradient-text tracking-tight">
-            AI Guitar Tutor
-          </h1>
-          <p className="text-gray-400 max-w-md mx-auto">
-            Select a chord, follow the guided steps, and get AI-powered feedback on your playing.
-          </p>
-        </header>
+      <div className={`max-w-4xl mx-auto px-4 space-y-8 ${isSessionActive && mode === "chords" ? "py-4 sm:py-8" : "py-8"}`}>
+        {/* Brand hero + progress: hidden while a chord is active (focus mode) */}
+        {!(isSessionActive && mode === "chords") && (
+          <>
+            <header className="text-center space-y-2" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+              <h1 className="text-4xl sm:text-5xl font-black gradient-text tracking-tight">
+                AI Guitar Tutor
+              </h1>
+              <p className="text-gray-400 max-w-md mx-auto">
+                Select a chord, follow the guided steps, and get AI-powered feedback on your playing.
+              </p>
+            </header>
 
-        {/* Progress Dashboard */}
-        <div style={{ animation: "fade-in-up 0.4s ease-out 0.1s both" }}>
-          <ProgressDashboard progress={progress} totalChords={totalChords} />
-        </div>
+            <div style={{ animation: "fade-in-up 0.4s ease-out 0.1s both" }}>
+              <ProgressDashboard progress={progress} totalChords={totalChords} />
+            </div>
+          </>
+        )}
 
         {/* Mode Toggle — only show when not actively practicing a chord */}
         {!isSessionActive && (
@@ -289,9 +363,9 @@ export default function Home() {
             </section>
           )}
 
-          {/* Error */}
-          {error && (
-            <div className="glass rounded-xl p-4 border border-red-500/30 text-red-300 mt-4">
+          {/* Error (outside the Play step; there it sits next to Record) */}
+          {error && !(isSessionActive && currentStep === 2) && (
+            <div className="glass rounded-xl p-4 border border-red-500/30 text-red-300 mt-4" role="alert">
               {error}
             </div>
           )}
@@ -308,13 +382,13 @@ export default function Home() {
 
           {/* Session: stepper + content */}
           {isSessionActive && (
-            <div className="space-y-6" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+            <div className="space-y-4 sm:space-y-6" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
               {/* Chord title + navigation */}
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold gradient-text">
-                    {chordName.replace(/_/g, " ")}
-                  </h2>
+              <div className="flex justify-between items-start gap-3">
+                <div className="min-w-0">
+                  <h1 className="text-3xl sm:text-4xl font-black gradient-text tracking-tight leading-tight">
+                    {chordLabel}
+                  </h1>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Step {currentStep + 1} of {STEPS.length} — {STEPS[currentStep]?.label}
                   </p>
@@ -324,7 +398,7 @@ export default function Home() {
                     </p>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                   {fromSong && (
                     <button
                       onClick={handleBackToSong}
@@ -353,8 +427,8 @@ export default function Home() {
                 completedSteps={completedSteps}
               />
 
-              {/* Metronome Widget — outside key= div so it persists across steps */}
-              {(currentStep === 1 || currentStep === 2) && (
+              {/* Metronome Widget — on Listen it sits above; on Play it moves below Record */}
+              {currentStep === 1 && (
                 <div className="flex justify-end">
                   <MetronomeWidget />
                 </div>
@@ -386,14 +460,17 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Step 2: Play */}
+                {/* Step 2: Play — diagram and Record share the viewport */}
                 {currentStep === 2 && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-start">
-                      <div className="glass-card">
-                        <h3 className="text-base font-semibold gradient-text mb-3">
-                          Your Turn — Play the {chordName.replace(/_/g, " ")} chord
-                        </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,220px)_1fr] gap-4 items-center">
+                      <ChordDiagram
+                        fingering={fingering}
+                        liveNotes={liveNotes}
+                        fluid
+                        className="mx-auto w-[58%] max-w-[210px] md:w-full md:max-w-[220px]"
+                      />
+                      <section className="glass-card" aria-label={`Record ${chordLabel}`}>
                         {canRecord ? (
                           <MicrophoneRecorder
                             onRecordingComplete={handleRecordingComplete}
@@ -401,31 +478,57 @@ export default function Home() {
                             onLiveNotes={setLiveNotes}
                           />
                         ) : (
-                          <p className="text-gray-400 text-sm">Session not ready for recording.</p>
+                          <div className="flex justify-center">
+                            <button onClick={handlePlayAgain} className="btn-gradient px-5 py-2.5 rounded-xl text-sm font-semibold">
+                              Restart lesson
+                            </button>
+                          </div>
                         )}
                         {loading && (
-                          <div className="flex items-center gap-2 text-gray-400 text-sm mt-3">
+                          <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mt-3" role="status">
                             <div className="w-3 h-3 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
                             {songContext ? "Getting advisor tip..." : "Analyzing your playing..."}
                           </div>
                         )}
-                      </div>
-                      <ChordDiagram fingering={fingering} liveNotes={liveNotes} />
+                        {error && (
+                          <p className="mt-3 text-sm text-red-300 text-center rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2" role="alert">
+                            {error}
+                          </p>
+                        )}
+                      </section>
+                    </div>
+                    <div className="flex justify-end">
+                      <MetronomeWidget />
                     </div>
                   </div>
                 )}
 
                 {/* Step 3: Review */}
+                {currentStep === 3 && !evaluation && !feedback && (
+                  <div className="glass-card text-center space-y-3">
+                    <p className="text-gray-300">No take yet — record one to get feedback.</p>
+                    <button onClick={handleRetry} className="btn-gradient px-5 py-2.5 rounded-xl text-sm font-semibold">
+                      Record a take
+                    </button>
+                  </div>
+                )}
                 {currentStep === 3 && (
                   <FeedbackDisplay
                     feedback={feedback}
                     evaluation={evaluation}
                     attempt={attempt}
-                    attemptsRemaining={attemptsRemaining}
                     sessionState={sessionState}
                     fingeringTips={fingeringTips}
                     scoreHistory={scoreHistory}
                     analysis={analysis}
+                    fingering={fingering}
+                    tuningCents={tuning.cents}
+                    tuningWarning={tuning.warning}
+                    onRetry={handleRetry}
+                    onPlayAgain={handlePlayAgain}
+                    onNext={handleNextChord}
+                    nextLabel={nextChord?.label ?? null}
+                    busy={loading}
                   />
                 )}
               </div>
@@ -440,28 +543,24 @@ export default function Home() {
                   ← Back
                 </button>
 
-                <div className="flex gap-2">
-                  {currentStep === 3 && canRecord && (
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="glass px-4 py-2 rounded-xl text-sm font-medium text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/10 transition-all"
-                    >
-                      Try Again
-                    </button>
-                  )}
-                  {currentStep < 3 && (
-                    <button
-                      onClick={() => {
-                        setCompletedSteps((prev) => { const s = new Set(prev); s.add(currentStep); return s; });
-                        setCurrentStep((s) => s + 1);
-                      }}
-                      disabled={loading}
-                      className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {currentStep === 2 ? "Skip →" : "Next →"}
-                    </button>
-                  )}
-                </div>
+                {currentStep < 2 && (
+                  <button
+                    onClick={() => markStepDone(currentStep)}
+                    disabled={loading}
+                    className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next →
+                  </button>
+                )}
+                {currentStep === 2 && (
+                  <button
+                    onClick={() => markStepDone(2)}
+                    disabled={loading}
+                    className="text-sm text-gray-400 hover:text-gray-200 underline-offset-4 hover:underline disabled:opacity-40 transition-colors"
+                  >
+                    {evaluation ? "See last result →" : "Skip →"}
+                  </button>
+                )}
               </div>
             </div>
           )}

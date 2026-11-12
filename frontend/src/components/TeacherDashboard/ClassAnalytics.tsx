@@ -1,5 +1,6 @@
 "use client";
 
+import { formatChord } from "@/lib/chordName";
 import { type ClassAnalytics } from "@/lib/api";
 
 interface Props {
@@ -26,7 +27,7 @@ export default function ClassAnalyticsView({ analytics }: Props) {
               <li key={item.chord} className="flex items-center justify-between text-sm">
                 <span className="text-gray-300">
                   <span className="text-gray-500 mr-2">{i + 1}.</span>
-                  {item.chord.replace(/_/g, " ")}
+                  {formatChord(item.chord)}
                 </span>
                 <span className="text-gray-400">{item.total_attempts} attempts</span>
               </li>
@@ -46,7 +47,7 @@ export default function ClassAnalyticsView({ analytics }: Props) {
               <li key={item.chord} className="flex items-center justify-between text-sm">
                 <span className="text-gray-300">
                   <span className="text-gray-500 mr-2">{i + 1}.</span>
-                  {item.chord.replace(/_/g, " ")}
+                  {formatChord(item.chord)}
                 </span>
                 <span className="text-red-400">{Math.round(item.avg_score * 100)}%</span>
               </li>
