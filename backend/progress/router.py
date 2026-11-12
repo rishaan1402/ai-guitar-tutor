@@ -4,15 +4,18 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import get_current_user
 from db.engine import get_db
 from db.models import ChordAttempt, QuizResult, TransitionDrill, User
+from lesson_service import validate_chord_name
+from personalization.thresholds import MASTERY
 
 router = APIRouter(prefix="/api/progress", tags=["progress"])
 
@@ -38,14 +41,16 @@ class ProgressResponse(BaseModel):
 
 
 class TransitionResultIn(BaseModel):
-    chord_a: str
-    chord_b: str
-    chord_a_symbol: str
-    chord_b_symbol: str
-    tpm: int
-    got_count: int
-    miss_count: int
-    date: str
+    chord_a: str = Field(max_length=40)
+    chord_b: str = Field(max_length=40)
+    chord_a_symbol: str = Field(max_length=16)
+    chord_b_symbol: str = Field(max_length=16)
+    tpm: int = Field(ge=0, le=300)
+    got_count: int = Field(ge=0, le=500)
+    miss_count: int = Field(ge=0, le=500)
+    date: str = Field(max_length=32)
+
+    _known_chords = field_validator("chord_a", "chord_b")(validate_chord_name)
 
 
 class TransitionResultOut(BaseModel):
@@ -60,19 +65,21 @@ class TransitionResultOut(BaseModel):
 
 
 class QuizSubmitBody(BaseModel):
-    answers: list[dict[str, Any]]  # [{question_id, selected_index, correct}]
-    score: float
+    answers: list[dict[str, Any]] = Field(max_length=100)  # [{question_id, selected_index, correct}]
+    score: float = Field(ge=0, le=1)
 
 
 class MigrateChordBody(BaseModel):
     chord_name: str
-    best_score: float
-    total_attempts: int
-    last_practiced_date: str | None = None
+    best_score: float = Field(ge=0, le=1)
+    total_attempts: int = Field(ge=0, le=10_000)
+    last_practiced_date: str | None = Field(default=None, max_length=32)
+
+    _known_chord = field_validator("chord_name")(validate_chord_name)
 
 
 class MigrateTransitionsBody(BaseModel):
-    results: list[TransitionResultIn]
+    results: list[TransitionResultIn] = Field(max_length=500)
 
 
 # ---------------------------------------------------------------------------
@@ -80,13 +87,30 @@ class MigrateTransitionsBody(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _streak_from_dates(dates: list[date]) -> int:
-    """Count consecutive days ending today."""
+def _zone(tz: str | None) -> ZoneInfo:
+    """The learner's IANA time zone (sent by the browser); UTC if absent/invalid."""
+    if tz:
+        try:
+            return ZoneInfo(tz)
+        except (ZoneInfoNotFoundError, ValueError):
+            pass
+    return ZoneInfo("UTC")
+
+
+def _local_date(ts: datetime, zone: ZoneInfo) -> date:
+    if ts.tzinfo is None:  # SQLite returns naive UTC
+        ts = ts.replace(tzinfo=timezone.utc)
+    return ts.astimezone(zone).date()
+
+
+def _streak_from_dates(dates: list[date], today: date | None = None) -> int:
+    """Consecutive practice days ending today — or yesterday, so a streak
+    isn't shown as broken until the learner has missed a whole day."""
     if not dates:
         return 0
+    today = today or date.today()
     unique = sorted(set(dates), reverse=True)
-    today = date.today()
-    if unique[0] != today:
+    if (today - unique[0]).days > 1:
         return 0
     streak = 1
     for i in range(1, len(unique)):
@@ -97,6 +121,15 @@ def _streak_from_dates(dates: list[date]) -> int:
     return streak
 
 
+async def _attempt_times(db: AsyncSession, user_id: Any, days: int) -> list[tuple[datetime, float]]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days + 1)
+    rows = await db.execute(
+        select(ChordAttempt.created_at, ChordAttempt.score)
+        .where(ChordAttempt.user_id == user_id, ChordAttempt.created_at >= cutoff)
+    )
+    return [(r[0], float(r[1] or 0.0)) for r in rows.all() if r[0] is not None]
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -104,6 +137,7 @@ def _streak_from_dates(dates: list[date]) -> int:
 
 @router.get("/", response_model=ProgressResponse)
 async def get_progress(
+    tz: str | None = Query(default=None, max_length=64),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -119,30 +153,17 @@ async def get_progress(
     )
     stats = rows.all()
 
-    # Streak: count consecutive practice days
-    date_rows = await db.execute(
-        select(func.date(ChordAttempt.created_at))
-        .where(ChordAttempt.user_id == user.id)
-        .distinct()
-    )
-    practice_dates = [r[0] for r in date_rows.all()]
-    # SQLite returns string; Postgres returns date
-    parsed_dates = []
-    for d in practice_dates:
-        if isinstance(d, str):
-            parsed_dates.append(date.fromisoformat(d))
-        elif isinstance(d, datetime):
-            parsed_dates.append(d.date())
-        else:
-            parsed_dates.append(d)
-
-    streak = _streak_from_dates(parsed_dates)
+    zone = _zone(tz)
+    times = await _attempt_times(db, user.id, days=400)
+    parsed_dates = [_local_date(t, zone) for t, _ in times]
+    today_local = datetime.now(zone).date()
+    streak = _streak_from_dates(parsed_dates, today=today_local)
 
     chords = []
     mastered = 0
     for row in stats:
         best = round(float(row.best), 4) if row.best is not None else 0.0
-        if best >= 0.95:
+        if best >= MASTERY:
             status = "mastered"
             mastered += 1
         elif best >= 0.1:
@@ -313,36 +334,20 @@ class CalendarDay(BaseModel):
 
 @router.get("/calendar", response_model=list[CalendarDay])
 async def get_calendar(
+    tz: str | None = Query(default=None, max_length=64),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """365-day activity feed for the GitHub-style heatmap."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=365)
-    rows = await db.execute(
-        select(
-            func.date(ChordAttempt.created_at).label("day"),
-            func.count().label("attempts"),
-            func.avg(ChordAttempt.score).label("avg_score"),
-        )
-        .where(ChordAttempt.user_id == user.id, ChordAttempt.created_at >= cutoff)
-        .group_by(func.date(ChordAttempt.created_at))
-        .order_by(func.date(ChordAttempt.created_at))
-    )
-    result = []
-    for row in rows.all():
-        day = row.day
-        if isinstance(day, str):
-            day_str = day[:10]
-        elif isinstance(day, datetime):
-            day_str = day.date().isoformat()
-        else:
-            day_str = str(day)
-        result.append(CalendarDay(
-            date=day_str,
-            attempts=row.attempts,
-            avg_score=round(float(row.avg_score or 0), 3),
-        ))
-    return result
+    """365-day activity feed for the GitHub-style heatmap, bucketed by the
+    learner's local date (``tz``), oldest first."""
+    zone = _zone(tz)
+    buckets: dict[date, list[float]] = {}
+    for ts, score in await _attempt_times(db, user.id, days=365):
+        buckets.setdefault(_local_date(ts, zone), []).append(score)
+    return [
+        CalendarDay(date=d.isoformat(), attempts=len(v), avg_score=round(sum(v) / len(v), 3))
+        for d, v in sorted(buckets.items())
+    ]
 
 
 # ---------------------------------------------------------------------------

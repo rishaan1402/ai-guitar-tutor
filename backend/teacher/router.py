@@ -10,7 +10,10 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+
+from lesson_service import validate_chord_name
+from personalization.thresholds import MASTERY
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,7 +90,12 @@ class StudentSummary(BaseModel):
 class AssignRequest(BaseModel):
     student_id: uuid.UUID
     chord_name: str | None = None
-    note: str | None = None
+    note: str | None = Field(default=None, max_length=500)
+
+    @field_validator("chord_name")
+    @classmethod
+    def _known_chord(cls, v: str | None) -> str | None:
+        return None if v is None else validate_chord_name(v)
 
 
 # ---------------------------------------------------------------------------
@@ -129,7 +137,7 @@ async def list_students(
             select(ChordAttempt.chord_name, func.max(ChordAttempt.score).label("best"))
             .where(ChordAttempt.user_id == student.id)
             .group_by(ChordAttempt.chord_name)
-            .having(func.max(ChordAttempt.score) >= 0.95)
+            .having(func.max(ChordAttempt.score) >= MASTERY)
         )
         mastered_count = len(mastered_q.all())
 
@@ -184,7 +192,7 @@ async def get_student_progress(
             "total_attempts": r.attempts,
             "best_score": round(float(r.best), 3) if r.best else 0.0,
             "avg_score": round(float(r.avg), 3) if r.avg else 0.0,
-            "status": "mastered" if (r.best or 0) >= 0.95 else "in_progress",
+            "status": "mastered" if (r.best or 0) >= MASTERY else "in_progress",
         }
         for r in rows.all()
     ]
@@ -281,6 +289,17 @@ async def assign_work(
     teacher: User = Depends(_teacher),
 ):
     await _visible_student(db, teacher, body.student_id)
+
+    if body.chord_name is not None:
+        dup = await db.execute(
+            select(TeacherAssignment.id).where(
+                TeacherAssignment.teacher_id == teacher.id,
+                TeacherAssignment.student_id == body.student_id,
+                TeacherAssignment.chord_name == body.chord_name,
+            ).limit(1)
+        )
+        if dup.first() is not None:
+            raise HTTPException(status_code=409, detail="That chord is already assigned to this student.")
 
     db.add(
         TeacherAssignment(

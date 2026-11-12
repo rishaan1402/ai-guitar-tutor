@@ -127,3 +127,20 @@ class LessonService:
         """
         return sorted(self._lessons_by_chord.keys())
 
+    def find_chord_by_notes(self, notes: list[str], exclude: Optional[str] = None) -> Optional[str]:
+        """Return the display name of a library chord whose note set equals ``notes``.
+
+        Used to tell a learner "that sounded like Em" when they played a
+        different real chord. Returns None when nothing matches exactly.
+        """
+        target = {n for n in notes}
+        if len(target) < 2:
+            return None
+        for name in sorted(self._lessons_by_chord):
+            if name == exclude:
+                continue
+            meta = self._lessons_by_chord[name].metadata
+            if set(meta.get("notes", [])) == target:
+                return meta.get("display_name") or name.replace("_", " ")
+        return None
+

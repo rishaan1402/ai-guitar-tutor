@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from council.schemas import (
@@ -19,6 +19,7 @@ from council import session_store
 from council.advisor import get_tip, revise_lesson
 from council.quiz import generate_quiz
 from auth.dependencies import get_current_user_optional
+from auth.rate_limit import RateLimiter, client_ip
 from auth.profile_context import build_user_context
 from db.engine import get_db
 from feedback_engine.generator import FeedbackGenerator
@@ -70,8 +71,18 @@ def _embed_fingerings_and_functions(lesson: LessonDocument, song_chords: list) -
     return lesson.model_copy(update={"practice_chords": enriched})
 
 
+# Each generation fans out to several LLM calls, so it is the costliest endpoint.
+_anon_generate_limiter = RateLimiter(max_hits=5, window_seconds=60 * 60)
+_user_generate_limiter = RateLimiter(max_hits=30, window_seconds=60 * 60)
+_UNAVAILABLE = "Song lessons are temporarily unavailable. Please try again later."
+
+
 @router.post("/generate", response_model=LessonDocument)
-async def generate_lesson(body: GenerateRequest) -> LessonDocument:
+async def generate_lesson(
+    body: GenerateRequest,
+    request: Request,
+    user=Depends(get_current_user_optional),
+) -> LessonDocument:
     """
     Full pipeline: ingest → council (4 parallel agents) → chairman synthesis.
     Returns a LessonDocument with lesson_id for subsequent practice calls.
@@ -80,13 +91,28 @@ async def generate_lesson(body: GenerateRequest) -> LessonDocument:
     if not body.song_query.strip():
         raise HTTPException(status_code=400, detail="song_query must not be empty.")
 
+    limiter, key = (
+        (_user_generate_limiter, f"user:{user.id}") if user is not None
+        else (_anon_generate_limiter, f"ip:{client_ip(request)}")
+    )
+    limiter.check(key)
+    limiter.hit(key)
+
     try:
         song = await ingest_song(body.song_query)
-    except (ValueError, RuntimeError) as exc:
+    except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+    except RuntimeError:
+        # Missing/invalid LLM configuration: log it, don't leak it.
+        logger.exception("Council ingestion unavailable")
+        raise HTTPException(status_code=503, detail=_UNAVAILABLE)
 
-    agent_outputs = await run_council(song)
-    lesson = await synthesize(song, agent_outputs)
+    try:
+        agent_outputs = await run_council(song)
+        lesson = await synthesize(song, agent_outputs)
+    except RuntimeError:
+        logger.exception("Council synthesis unavailable")
+        raise HTTPException(status_code=503, detail=_UNAVAILABLE)
 
     # Embed rich structured data before storing and returning
     lesson = _embed_fingerings_and_functions(lesson, song.chords)

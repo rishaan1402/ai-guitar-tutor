@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import random
@@ -83,6 +84,13 @@ class FeedbackGenerator:
         "Something went wrong analyzing your recording. Please try again.",
     ]
 
+    _UNSUPPORTED_RESPONSES = [
+        "I couldn't read that recording format. Please record again in the app "
+        "(it sends WAV), or upload a .wav, .flac, .ogg or .mp3 file.",
+    ]
+
+    LLM_TIMEOUT_S = 8.0
+
     def generate(
         self,
         evaluation: Dict[str, Any],
@@ -92,34 +100,71 @@ class FeedbackGenerator:
         fingering_positions: Optional[List[Dict[str, Any]]] = None,
         user_context: str = "",
     ) -> str:
+        """Rule-based feedback only (sync). Use ``agenerate`` for LLM feedback."""
+        fixed = self._fixed_response(evaluation)
+        if fixed is not None:
+            return fixed
+        return self._with_tuning_note(
+            evaluation, self._generate_from_templates(evaluation, fingering_positions)
+        )
+
+    async def agenerate(
+        self,
+        evaluation: Dict[str, Any],
+        chord_name: Optional[str] = None,
+        attempt: int = 1,
+        score_history: Optional[List[float]] = None,
+        fingering_positions: Optional[List[Dict[str, Any]]] = None,
+        user_context: str = "",
+    ) -> str:
+        """Feedback text for an evaluation: Groq LLM when configured, else templates.
+
+        Awaited from the request handler (never ``run_until_complete`` inside a
+        running loop), bounded by LLM_TIMEOUT_S, and always falls back to the
+        deterministic templates on any failure.
         """
-        Generate feedback text from an evaluation result.
-
-        Uses Gemini if GOOGLE_API_KEY is set, otherwise falls back
-        to rule-based templates.
-        """
-        issue: Optional[str] = evaluation.get("issue")
-
-        # These cases don't benefit from LLM — handle directly
-        if issue in ("missing_audio", "processing_error"):
-            return random.choice(self._ERROR_RESPONSES)
-        if issue == "no_sound":
-            return random.choice(self._NO_SOUND_RESPONSES)
-
+        fixed = self._fixed_response(evaluation)
+        if fixed is not None:
+            return fixed
         client = _get_groq_client()
         if client is not None:
             try:
-                import asyncio
-                return asyncio.get_event_loop().run_until_complete(
+                text = await asyncio.wait_for(
                     self._generate_with_groq(
                         client, evaluation, chord_name, attempt, score_history,
-                        fingering_positions, user_context
-                    )
+                        fingering_positions, user_context,
+                    ),
+                    timeout=self.LLM_TIMEOUT_S,
                 )
-            except Exception as e:
+                if text:
+                    return self._with_tuning_note(evaluation, text)
+            except Exception as e:  # includes asyncio.TimeoutError
                 logger.warning("Groq call failed, falling back to templates: %s", e)
+        return self._with_tuning_note(
+            evaluation, self._generate_from_templates(evaluation, fingering_positions)
+        )
 
-        return self._generate_from_templates(evaluation)
+    def _fixed_response(self, evaluation: Dict[str, Any]) -> Optional[str]:
+        """Cases where an LLM adds nothing (no audio, errors)."""
+        issue = evaluation.get("issue")
+        if issue in ("missing_audio", "processing_error"):
+            return random.choice(self._ERROR_RESPONSES)
+        if issue == "unsupported_format":
+            return random.choice(self._UNSUPPORTED_RESPONSES)
+        if issue == "no_sound":
+            return random.choice(self._NO_SOUND_RESPONSES)
+        return None
+
+    @staticmethod
+    def _with_tuning_note(evaluation: Dict[str, Any], text: str) -> str:
+        if not evaluation.get("tuning_warning"):
+            return text
+        cents = float(evaluation.get("tuning_cents") or 0.0)
+        direction = "sharp" if cents > 0 else "flat"
+        return (
+            f"Your guitar sounds about {abs(round(cents))} cents {direction} — "
+            f"tune up for the most accurate grading. {text}"
+        )
 
     async def _generate_with_groq(
         self,
@@ -196,25 +241,64 @@ Keep it encouraging and actionable. Do not use markdown or bullet points."""
         )
         return response.choices[0].message.content.strip()
 
-    def _generate_from_templates(self, evaluation: Dict[str, Any]) -> str:
-        """Rule-based fallback when Gemini is unavailable."""
+    def _generate_from_templates(
+        self,
+        evaluation: Dict[str, Any],
+        fingering_positions: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
+        """Deterministic feedback that leads with the most actionable fix."""
         issue: Optional[str] = evaluation.get("issue")
         score: float = evaluation.get("score", 0.0)
         missing: List[str] = evaluation.get("missing_notes", [])
+        extra: List[str] = evaluation.get("extra_notes", [])
+        expected: List[str] = evaluation.get("expected_notes", [])
+        sounds_like: Optional[str] = evaluation.get("sounds_like")
 
+        if score >= 1.0 and not missing and not extra:
+            return random.choice(self._PERFECT_RESPONSES)
+        if sounds_like:
+            return (
+                f"That sounded like {sounds_like} rather than this chord. "
+                "Compare your finger positions with the diagram and try again."
+            )
         if issue == "wrong_chord":
             return random.choice(self._WRONG_CHORD_RESPONSES)
-        if score >= 1.0:
-            return random.choice(self._PERFECT_RESPONSES)
-        if score >= 0.8 and not missing:
-            return random.choice(self._GOOD_RESPONSES)
-        if issue == "muted_string" and missing:
-            return self._format_note_feedback(self._MUTED_STRING_TEMPLATES, missing)
+
+        lead = self._fix_lead(missing, fingering_positions or [])
+        matched = len(expected) - len(missing)
         if missing:
-            return self._format_note_feedback(self._MISSING_NOTE_TEMPLATES, missing)
+            if expected and matched / len(expected) >= 2 / 3:
+                body = f"Almost there — {', '.join(missing)} {'is' if len(missing) == 1 else 'are'} not ringing yet."
+            else:
+                body = f"I only heard {matched} of {len(expected)} notes; {', '.join(missing)} {'is' if len(missing) == 1 else 'are'} missing."
+            if issue == "muted_string":
+                body += " Press just behind the fret and keep other fingers off that string."
+            if extra:
+                body += f" I also heard {', '.join(extra)}, which isn't in this chord."
+            return f"{lead} {body}".strip()
+        if extra:
+            return (
+                f"All the chord notes are there, but I also heard {', '.join(extra)}. "
+                "Mute strings that shouldn't ring and check no finger is on the wrong fret."
+            )
         if score >= 0.6:
             return random.choice(self._GOOD_RESPONSES)
         return random.choice(self._WRONG_CHORD_RESPONSES)
+
+    @staticmethod
+    def _fix_lead(missing: List[str], positions: List[Dict[str, Any]]) -> str:
+        """One concrete instruction for the first missing note, e.g. 'Finger 2 on string 5, fret 2:'."""
+        for note in missing:
+            for pos in positions:
+                if pos.get("note") != note:
+                    continue
+                string, fret, finger = pos.get("string"), pos.get("fret", 0), pos.get("finger")
+                if fret and finger:
+                    return f"Check finger {finger} on string {string}, fret {fret} ({note})."
+                if fret:
+                    return f"Check string {string}, fret {fret} ({note})."
+                return f"Let open string {string} ({note}) ring — don't touch it."
+        return ""
 
     @staticmethod
     def generate_analysis_summary(evaluation: Dict[str, Any]) -> Dict[str, Any]:

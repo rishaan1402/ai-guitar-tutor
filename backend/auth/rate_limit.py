@@ -50,10 +50,14 @@ class RateLimiter:
 
 
 def client_ip(request: Request) -> str:
-    # Cloud Run puts the real client first in X-Forwarded-For
+    # Google's front end APPENDS the connecting client's address to any
+    # X-Forwarded-For the client sent, so the LAST hop is the one we can trust;
+    # the first hop is attacker-controlled and would let anyone dodge limits.
     forwarded = request.headers.get("x-forwarded-for", "")
     if forwarded:
-        return forwarded.split(",")[0].strip()
+        hops = [h.strip() for h in forwarded.split(",") if h.strip()]
+        if hops:
+            return hops[-1]
     return request.client.host if request.client else "unknown"
 
 

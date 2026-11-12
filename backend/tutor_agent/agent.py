@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
+
+from starlette.concurrency import run_in_threadpool
 
 from lesson_service import Lesson, LessonService
 from audio_engine import ChordEvaluator, EvaluationResult
@@ -22,7 +24,12 @@ class SessionState(str, Enum):
     COMPLETED = "COMPLETED"
 
 
-def grade_attempt(
+TUNING_WARN_CENTS = 35.0
+# Grading is the same at any attempt number; this only bounds score history.
+HISTORY_LIMIT = 20
+
+
+async def grade_attempt(
     lesson: Lesson,
     evaluator: ChordEvaluator,
     feedback_generator: FeedbackGenerator,
@@ -31,21 +38,30 @@ def grade_attempt(
     previous_scores: Optional[list] = None,
     fingering_positions: Optional[list] = None,
     user_context: str = "",
+    chord_lookup: Optional[Callable[[List[str], str], Optional[str]]] = None,
 ) -> Dict[str, Any]:
     """
     Score one attempt at a chord with no server-side session state.
 
-    The caller supplies the attempt number and earlier scores, so any
-    instance can grade any request. The returned dict carries the raw
+    The CPU-bound audio analysis runs in a worker thread so it never blocks
+    the event loop; LLM feedback is awaited (with a timeout + template
+    fallback inside the generator). The returned dict carries the raw
     EvaluationResult under "_evaluation"; callers pop it before responding.
     """
-    previous_scores = list(previous_scores or [])
+    previous_scores = list(previous_scores or [])[-HISTORY_LIMIT:]
     expected_notes = list(lesson.metadata.get("notes", []))
-    evaluation = evaluator.evaluate(audio_path, expected_notes)
+    evaluation = await run_in_threadpool(evaluator.evaluate, audio_path, expected_notes)
 
-    feedback_text = feedback_generator.generate(
-        evaluation.to_dict(),
-        chord_name=lesson.chord_name,
+    eval_dict = evaluation.to_dict()
+    eval_dict["tuning_warning"] = (
+        evaluation.issue != "no_sound" and abs(evaluation.tuning_cents) > TUNING_WARN_CENTS
+    )
+    if chord_lookup is not None and evaluation.score < 1.0 and evaluation.detected_notes:
+        eval_dict["sounds_like"] = chord_lookup(evaluation.detected_notes, lesson.chord_name)
+
+    feedback_text = await feedback_generator.agenerate(
+        eval_dict,
+        chord_name=lesson.metadata.get("display_name") or lesson.chord_name,
         attempt=attempt,
         score_history=previous_scores + [evaluation.score],
         fingering_positions=list(fingering_positions or []),
@@ -54,21 +70,21 @@ def grade_attempt(
 
     result: Dict[str, Any] = {
         "status": "ok",
-        "evaluation": evaluation.to_dict(),
+        "evaluation": eval_dict,
         "feedback": feedback_text,
         "attempt": attempt,
+        "tuning_cents": evaluation.tuning_cents,
+        "tuning_warning": eval_dict["tuning_warning"],
         "_evaluation": evaluation,
     }
 
     if evaluation.score >= 1.0:
         result["state"] = SessionState.COMPLETED.value
         result["message"] = "Congratulations! You've completed this lesson."
-    elif attempt >= TutorAgent.MAX_ATTEMPTS:
-        result["state"] = SessionState.COMPLETED.value
-        result["message"] = "You've used all attempts. Review the lesson and try again later."
     else:
         result["state"] = SessionState.FEEDBACK.value
-        result["attempts_remaining"] = TutorAgent.MAX_ATTEMPTS - attempt
+        best = max(previous_scores + [evaluation.score])
+        result["best_score"] = best
         result["message"] = "Try again! You can do it."
     return result
 
@@ -82,7 +98,6 @@ class TutorAgent:
     processing logic itself.
     """
 
-    MAX_ATTEMPTS = 3
 
     def __init__(
         self,
@@ -151,7 +166,7 @@ class TutorAgent:
             "message": f"Watch the lesson video, then play the {chord_name} chord.",
         }
 
-    def submit_audio(self, audio_path: str, user_context: str = "") -> Dict[str, Any]:
+    async def submit_audio(self, audio_path: str, user_context: str = "") -> Dict[str, Any]:
         """
         Accept a user's audio recording for evaluation.
 
@@ -173,7 +188,7 @@ class TutorAgent:
         self._state = SessionState.ANALYZING
         self._attempt_count += 1
 
-        result = grade_attempt(
+        result = await grade_attempt(
             self._current_lesson,
             self._evaluator,
             self._feedback_generator,

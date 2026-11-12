@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Literal, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ class ReviseRequest(BaseModel):
 
 
 class GenerateRequest(BaseModel):
-    song_query: str       # e.g. "Blackbird by The Beatles"
+    song_query: str = Field(max_length=120)       # e.g. "Blackbird by The Beatles"
 
 
 # ---------------------------------------------------------------------------

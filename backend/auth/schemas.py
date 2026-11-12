@@ -4,22 +4,34 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, field_validator
+from typing import Annotated
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 MIN_PASSWORD_LENGTH = 8
+# bcrypt only uses the first 72 bytes; longer passwords would silently be
+# truncated, so new passwords are capped there. MAX_PASSWORD_CHARS bounds the
+# work done on any password field (login included) before hashing.
+MAX_PASSWORD_BYTES = 72
+MAX_PASSWORD_CHARS = 128
 
 
 def _check_password(v: str) -> str:
     # Matches the signup form; existing shorter passwords still log in
     if len(v) < MIN_PASSWORD_LENGTH:
         raise ValueError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters")
+    if len(v.encode("utf-8")) > MAX_PASSWORD_BYTES:
+        raise ValueError(f"Password must be at most {MAX_PASSWORD_BYTES} bytes")
     return v
+
+
+Password = Annotated[str, Field(max_length=MAX_PASSWORD_CHARS)]
 
 
 class SignupRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: Password
     display_name: str
 
     @field_validator("password")
@@ -38,7 +50,7 @@ class SignupRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: Password
 
 
 class RefreshRequest(BaseModel):
@@ -75,7 +87,7 @@ class UpdateProfileRequest(BaseModel):
 
 
 class DeleteAccountRequest(BaseModel):
-    password: str
+    password: Password
 
 
 class PasswordResetRequest(BaseModel):
@@ -84,7 +96,7 @@ class PasswordResetRequest(BaseModel):
 
 class PasswordResetConfirm(BaseModel):
     token: str
-    new_password: str
+    new_password: Password
 
     @field_validator("new_password")
     @classmethod

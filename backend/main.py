@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import sys
 
@@ -30,6 +31,7 @@ from audio_engine import ChordEvaluator
 from feedback_engine import FeedbackGenerator
 from lesson_service import LessonService
 from tutor_agent import TutorAgent, grade_attempt
+from tutor_agent.agent import HISTORY_LIMIT
 from council.router import router as council_router
 from auth.router import router as auth_router
 from auth.dependencies import get_current_user_optional
@@ -57,6 +59,10 @@ feedback_generator = FeedbackGenerator()
 
 # When set, lesson audio/video is served by redirecting to this base URL
 # (a public GCS bucket) instead of streaming the local copy in the image.
+# Upload cap: ~2 MB is ~45 s of 16-bit mono audio at 22 kHz, far more than a strum.
+MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_BYTES", str(2 * 1024 * 1024)))
+UNGRADED_ISSUES = {"no_sound", "processing_error", "unsupported_format", "missing_audio"}
+
 LESSON_ASSETS_BASE_URL = os.environ.get("LESSON_ASSETS_BASE_URL", "").rstrip("/")
 
 # Load fingering data for chord diagrams and feedback tips
@@ -230,10 +236,12 @@ def _parse_previous_scores(raw: Optional[str]) -> List[float]:
     if not raw:
         return []
     try:
-        values = json.loads(raw)
-        return [float(v) for v in values][:TutorAgent.MAX_ATTEMPTS]
+        values = [float(v) for v in json.loads(raw)]
     except (ValueError, TypeError):
         raise HTTPException(status_code=422, detail="previous_scores must be a JSON list of numbers.")
+    if not all(math.isfinite(v) for v in values):
+        raise HTTPException(status_code=422, detail="previous_scores must be finite numbers.")
+    return [min(1.0, max(0.0, v)) for v in values][-HISTORY_LIMIT:]
 
 
 @app.post("/submit_audio")
@@ -271,19 +279,28 @@ async def submit_audio(
 
     suffix = Path(audio.filename or "recording.wav").suffix or ".wav"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        contents = await audio.read()
-        tmp.write(contents)
         tmp_path = tmp.name
+        size = 0
+        while chunk := await audio.read(64 * 1024):
+            size += len(chunk)
+            if size > MAX_UPLOAD_BYTES:
+                tmp.close()
+                Path(tmp_path).unlink(missing_ok=True)
+                raise HTTPException(
+                    status_code=413,
+                    detail="Recording is too long. Keep it under about 10 seconds and try again.",
+                )
+            tmp.write(chunk)
 
     # Build user profile context for personalized feedback
     user_context = await build_user_context(db, user.id if user else None)
     try:
         if agent is not None:
-            result = agent.submit_audio(tmp_path, user_context=user_context)
+            result = await agent.submit_audio(tmp_path, user_context=user_context)
             chord_key = agent.current_chord or ""
         else:
             chord_key = lesson.chord_name
-            result = grade_attempt(
+            result = await grade_attempt(
                 lesson,
                 evaluator,
                 feedback_generator,
@@ -292,6 +309,7 @@ async def submit_audio(
                 previous_scores=prior,
                 fingering_positions=_fingerings_by_chord.get(chord_key, {}).get("positions", []),
                 user_context=user_context,
+                chord_lookup=lesson_service.find_chord_by_notes,
             )
             result.pop("_evaluation", None)
     finally:
@@ -300,9 +318,14 @@ async def submit_audio(
         except OSError:
             pass
 
-    # Persist chord attempt for authenticated users
-    if user is not None:
-        eval_data = result.get("evaluation", {})
+    eval_data = result.get("evaluation", {})
+    issue = eval_data.get("issue") if isinstance(eval_data, dict) else None
+    if issue == "unsupported_format":
+        raise HTTPException(status_code=422, detail=result.get("feedback") or "Unsupported audio format.")
+
+    # Persist chord attempt for authenticated users. Attempts where nothing was
+    # actually graded (no sound, decode errors) are not recorded as 0% takes.
+    if user is not None and issue not in UNGRADED_ISSUES:
         if isinstance(eval_data, dict) and eval_data.get("score") is not None:
             from db.models import ChordAttempt
             feedback_text = result.get("feedback", "")

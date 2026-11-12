@@ -15,7 +15,8 @@ from typing import Any, Optional
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import ChordAttempt, TransitionDrill, User
+from db.models import ChordAttempt, TeacherAssignment, TransitionDrill, User
+from personalization.thresholds import MASTERY
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,14 @@ if _LESSONS_DIR.exists():
                 _chord_difficulties[_lesson_dir.name] = _data.get("difficulty", "beginner")
             except Exception:
                 pass
+
+# The order a new guitarist usually learns open chords in. Anything not listed
+# follows, easiest difficulty first, then alphabetically (deterministic).
+BEGINNER_PATH = [
+    "E_minor", "A_minor", "E_major", "A_major", "D_major", "G_major", "C_major",
+    "D_minor", "E_dominant7", "A_dominant7", "D_dominant7", "G_dominant7",
+    "C_major7", "A_minor7", "E_minor7", "B_dominant7",
+]
 
 # Difficulty ordering
 _DIFF_ORDER = {"beginner": 0, "intermediate": 1, "advanced": 2}
@@ -59,6 +68,7 @@ ITEM_TYPES = {
     "focus":      "Focus chord (needs the most work)",
     "new":        "New challenge (just above your current level)",
     "transition": "Transition drill (chord pair with highest miss rate)",
+    "assignment": "Assigned by your teacher",
 }
 
 
@@ -109,10 +119,24 @@ async def build_daily_plan(db: AsyncSession, user: User) -> list[dict]:
             "last_practiced": row.last_practiced,
         }
 
-    # ── Warmup chords (mastered = best ≥ 0.90, sorted by last practiced) ─────
+    # ── Teacher assignments come first ────────────────────────────────────────
+    assigned_rows = await db.execute(
+        select(TeacherAssignment.chord_name, TeacherAssignment.note)
+        .where(TeacherAssignment.student_id == user.id, TeacherAssignment.chord_name.is_not(None))
+        .order_by(TeacherAssignment.created_at.desc())
+    )
+    for chord_key, note in assigned_rows.all():
+        if chord_stats.get(chord_key, {}).get("best", 0.0) >= MASTERY:
+            continue
+        if any(i.get("chord_key") == chord_key for i in plan) or len(plan) >= max_items:
+            continue
+        plan.append(_make_item("assignment", chord_key, _key_to_symbol(chord_key), note=note))
+    planned = {i.get("chord_key") for i in plan}
+
+    # ── Warmup chords (mastered, least recently practised first) ─────────────
     mastered = [
         (k, v) for k, v in chord_stats.items()
-        if v["best"] >= 0.90
+        if v["best"] >= MASTERY and k not in planned
     ]
     mastered.sort(key=lambda x: x[1]["last_practiced"] or datetime.min)
     num_warmups = 1 if skill == "beginner" else (2 if skill == "intermediate" else 3)
@@ -127,7 +151,7 @@ async def build_daily_plan(db: AsyncSession, user: User) -> list[dict]:
     # ── Focus chord (lowest best_score among in-progress, matching skill) ─────
     in_progress = [
         (k, v) for k, v in chord_stats.items()
-        if 0.10 < v["best"] < 0.90
+        if v["best"] < MASTERY and k not in planned
         and _chord_difficulties.get(k, "beginner") in _CHALLENGE_LEVELS.get(skill, ["beginner"])
     ]
     in_progress.sort(key=lambda x: x[1]["best"])
@@ -139,19 +163,20 @@ async def build_daily_plan(db: AsyncSession, user: User) -> list[dict]:
             attempts=stat["attempts"],
         ))
 
-    # ── New chord (never practiced, matching challenge level) ─────────────────
+    # ── New chords (never practised), following the learning path ────────────
     practiced_keys = set(chord_stats.keys())
     challenge_levels = _CHALLENGE_LEVELS.get(skill, ["beginner"])
     new_chords = [
-        k for k, diff in _chord_difficulties.items()
-        if k not in practiced_keys and diff in challenge_levels
+        k for k in _learning_order()
+        if k not in practiced_keys and k not in planned
+        and _chord_difficulties.get(k) in challenge_levels
     ]
-    if new_chords and len(plan) < max_items:
-        # Pick the easiest new chord available
-        new_chords.sort(key=lambda k: _DIFF_ORDER.get(_chord_difficulties.get(k, "beginner"), 0))
+    # Leave one slot for a transition drill; fill the rest with new chords.
+    room = max(1, max_items - len(plan) - 1)
+    for key in new_chords[:room]:
         plan.append(_make_item(
-            "new", new_chords[0], _key_to_symbol(new_chords[0]),
-            difficulty=_chord_difficulties.get(new_chords[0], "beginner"),
+            "new", key, _key_to_symbol(key),
+            difficulty=_chord_difficulties.get(key, "beginner"),
         ))
 
     # ── Transition drill (pair with highest miss rate) ────────────────────────
@@ -190,26 +215,30 @@ async def build_daily_plan(db: AsyncSession, user: User) -> list[dict]:
     return plan[:max_items]
 
 
+def _learning_order() -> list[str]:
+    path = [k for k in BEGINNER_PATH if k in _chord_difficulties]
+    rest = sorted(
+        (k for k in _chord_difficulties if k not in path),
+        key=lambda k: (_DIFF_ORDER.get(_chord_difficulties[k], 0), k),
+    )
+    return path + rest
+
+
+# Longest suffix first, so "_major7" isn't eaten by "_major".
+_SUFFIX_SYMBOLS = [
+    ("_half_dim7", "m7b5"), ("_dominant7", "7"), ("_suspended2", "sus2"),
+    ("_suspended4", "sus4"), ("_diminished", "dim"), ("_augmented", "aug"),
+    ("_major7", "maj7"), ("_minor7", "m7"), ("_minor9", "m9"), ("_power", "5"),
+    ("_major", ""), ("_minor", "m"), ("_add9", "add9"),
+]
+
+
 def _key_to_symbol(chord_key: str) -> str:
-    """Convert snake_case chord key to display symbol. e.g. 'A_minor7' → 'Am7'."""
-    replacements = {
-        "_major":      "",
-        "_minor":      "m",
-        "_dominant7":  "7",
-        "_minor7":     "m7",
-        "_major7":     "maj7",
-        "_power":      "5",
-        "_suspended2": "sus2",
-        "_suspended4": "sus4",
-        "_augmented":  "aug",
-        "_diminished": "dim",
-        "_minor9":     "m9",
-        "_add9":       "add9",
-    }
-    symbol = chord_key
-    for k, v in replacements.items():
-        symbol = symbol.replace(k, v)
-    return symbol.replace("_", "")
+    """Convert a chord key to its symbol, e.g. 'A_minor7' → 'Am7', 'A_major7' → 'Amaj7'."""
+    for suffix, symbol in _SUFFIX_SYMBOLS:
+        if chord_key.endswith(suffix):
+            return chord_key[: -len(suffix)] + symbol
+    return chord_key.replace("_", "")
 
 
 async def build_weekly_plan(db: AsyncSession, user: User) -> list[dict]:

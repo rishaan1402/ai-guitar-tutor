@@ -1,19 +1,37 @@
+"""Chord evaluator.
+
+Pipeline: onset-gated analysis window -> high-resolution spectrum -> global tuning
+estimate -> tuning-aligned log-frequency spectrum -> NNLS against harmonic note
+templates -> harmonic explain-away -> pitch-class strengths -> target-aware decision.
+
+Design notes (measured on ~500 real recordings + ~1100 stress variants):
+* No semitone de-duplication: it made every maj7 chord impossible to pass and let
+  superset chords (C7 played for C) pass as correct.
+* Tuning is estimated from spectral peaks, so a guitar up to ~±40 cents out still
+  maps to the right pitch classes; ``tuning_cents`` is reported to the caller.
+* The input is peak-normalised, so quiet but clean recordings are graded.
+* Only <= MAX_SECONDS after the first loud, tonal onset is analysed, so cost is
+  roughly constant regardless of how long the user recorded.
+"""
 from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Tuple
 
-import librosa
 import numpy as np
-from scipy.signal import butter, find_peaks, sosfilt
+from scipy.ndimage import maximum_filter1d, minimum_filter1d, uniform_filter1d
+from scipy.optimize import nnls
+from scipy.signal import get_window
 
-from .audio_io import AudioFormatError, load_audio
+from .audio_io import ANALYSIS_SR, AudioFormatError, load_audio
 
 logger = logging.getLogger(__name__)
 
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+_ALIASES = {"Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#", "Bb": "A#",
+            "Cb": "B", "Fb": "E", "E#": "F", "B#": "C"}
 
 
 @dataclass
@@ -24,316 +42,296 @@ class EvaluationResult:
     missing_notes: List[str]
     extra_notes: List[str] = field(default_factory=list)
     issue: Optional[str] = None
+    # Diagnostics. confidence = weakest chord tone's relative strength (0-1);
+    # tuning_cents = estimated global detune of the instrument.
+    confidence: float = 0.0
+    tuning_cents: float = 0.0
+    pc_strength: Dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
 
-def _hz_to_note_name(freq: float) -> str:
-    if freq <= 0:
-        return ""
-    midi = librosa.hz_to_midi(freq)
-    return NOTE_NAMES[int(round(midi)) % 12]
-
-
-def _are_adjacent(a: str, b: str) -> bool:
-    diff = abs(NOTE_NAMES.index(a) - NOTE_NAMES.index(b)) % 12
-    return diff == 1 or diff == 11
+def _pc(name: str) -> int:
+    return NOTE_NAMES.index(_ALIASES.get(name, name))
 
 
 class ChordEvaluator:
-    """
-    Dual detection (chromagram + FFT) with gap-based thresholding,
-    semitone dedup, and extra-note penalty.
-    """
+    # analysis range
+    FMIN, FMAX = 55.0, 2500.0          # spectrum range used for peak picking
+    MIDI_LO, MIDI_HI = 35, 88          # B1..E6: guitar fundamentals incl. drop tunings
+    MAX_SECONDS = 2.0                  # analyse at most this much audio after the strum
+    FLAT_MAX = 0.8                     # spectral flatness above this = noise, not a chord
+    ONSET_FLAT_MAX = 0.7
+    BPS = 3                            # log-frequency bins per semitone
+    HARM_DECAY = 0.6                   # partial amplitude ratio in the note templates
+    NNLS_HARM = 10
+    PURE_HI = 52                       # pure-tone atoms (body/room resonances) up to E3
+    # decision
+    PRESENT = 0.12                     # chord tone present if strength >= PRESENT * max
+    EXTRA = 0.15                       # non-chord pitch class is extra if >= EXTRA * max
+    EXTRA_PENALTY = 0.25               # per extra note; a wrong chord can't look "green"
 
-    def __init__(
-        self,
-        sr: int = 22050,
-        n_fft: int = 4096,
-        hop_length: int = 512,
-        min_frequency: float = 75.0,
-        max_frequency: float = 1200.0,
-        amplitude_threshold: float = 0.15,
-        peak_prominence: float = 0.08,
-        top_n_peaks: int = 6,
-    ) -> None:
+    _dict_cache: Dict[Tuple, np.ndarray] = {}
+
+    def __init__(self, sr: int = ANALYSIS_SR, **_ignored: Any) -> None:
         self._sr = sr
-        self._n_fft = n_fft
-        self._hop_length = hop_length
-        self._min_frequency = min_frequency
-        self._max_frequency = max_frequency
-        self._amplitude_threshold = amplitude_threshold
-        self._peak_prominence = peak_prominence
-        self._top_n_peaks = top_n_peaks
 
+    # ------------------------------------------------------------------ public API
     def evaluate(self, audio_path: str, expected_notes: List[str]) -> EvaluationResult:
         path = Path(audio_path)
+        exp = list(expected_notes)
         if not path.is_file():
-            return EvaluationResult(
-                score=0.0, detected_notes=[], expected_notes=expected_notes,
-                missing_notes=expected_notes, issue="missing_audio",
-            )
+            return EvaluationResult(0.0, [], exp, exp, issue="missing_audio")
         try:
-            detected = self._detect_notes(path)
+            strengths, info = self.analyse(path)
         except AudioFormatError as e:
             logger.error("Audio format error: %s", e)
-            return EvaluationResult(
-                score=0.0, detected_notes=[], expected_notes=expected_notes,
-                missing_notes=expected_notes, issue="unsupported_format",
-            )
+            return EvaluationResult(0.0, [], exp, exp, issue="unsupported_format")
         except Exception:
             logger.exception("Failed to process audio: %s", audio_path)
-            return EvaluationResult(
-                score=0.0, detected_notes=[], expected_notes=expected_notes,
-                missing_notes=expected_notes, issue="processing_error",
-            )
-        return self._compare_notes(detected, expected_notes)
+            return EvaluationResult(0.0, [], exp, exp, issue="processing_error")
+        return self._decide(strengths, info, exp)
 
-    # ------------------------------------------------------------------
-    # Detection
-    # ------------------------------------------------------------------
-
-    def _detect_notes(self, audio_path: Path) -> List[str]:
-        y, sr = load_audio(audio_path, sr=self._sr)
-
-        y, _ = librosa.effects.trim(y, top_db=25)
-        if len(y) == 0:
-            return []
-
-        rms = float(np.sqrt(np.mean(y ** 2)))
+    # ------------------------------------------------------------------ analysis
+    def analyse(self, path: Path) -> Tuple[Optional[np.ndarray], Dict[str, Any]]:
+        y, sr = load_audio(path, sr=self._sr)
+        info: Dict[str, Any] = {"sr": sr, "tuning": 0.0, "reason": None}
+        if len(y) < sr * 0.15:
+            info["reason"] = "too_short"
+            return None, info
+        y = y - np.mean(y)
         peak = float(np.max(np.abs(y)))
-        logger.info("Signal: rms=%.5f peak=%.5f", rms, peak)
-        if rms < 0.003 or peak < 0.01:
-            return []
+        if peak < 0.003:  # ~ -50 dBFS: nothing usable
+            info["reason"] = "silent"
+            return None, info
+        y = y / peak
 
-        if not self._has_onset(y, sr):
-            logger.info("No onset — rejecting")
-            return []
+        seg = self._strum_window(y, sr, info)
 
-        flatness = float(np.mean(librosa.feature.spectral_flatness(y=y, n_fft=self._n_fft)))
-        logger.info("Flatness: %.5f", flatness)
-        if flatness > 0.20:
-            logger.info("Too flat — rejecting")
-            return []
+        # long-window spectrum (~2.7 Hz bins) averaged over the analysis window
+        nfft = 1 << int(np.ceil(np.log2(sr / 2.7)))
+        if len(seg) < nfft:
+            seg = np.pad(seg, (0, nfft - len(seg)))
+        S = self._stft_mag(seg, nfft, nfft // 4)
+        spec = np.sqrt(np.mean(S ** 2, axis=1))
+        freqs = np.arange(len(spec)) * sr / nfft
 
-        # Normalize for chromagram (raw signal).
-        y_norm = y / peak if peak > 1e-8 else y
+        # tonalness gate (white/pink noise, hum-only)
+        band = (freqs >= 80) & (freqs <= 2000)
+        sb = spec[band] + 1e-12
+        flat = float(np.exp(np.mean(np.log(sb))) / np.mean(sb))
+        info["flatness"] = flat
+        if flat > self.FLAT_MAX:
+            info["reason"] = "noise"
+            return None, info
 
-        # Preprocess for FFT.
-        y_clean = self._preprocess_audio(y, sr)
-        if len(y_clean) == 0:
-            return []
-        pc = float(np.max(np.abs(y_clean)))
-        if pc < 1e-8:
-            return []
-        y_fft = y_clean / pc
+        pf, pa = self._peaks(spec, freqs)
+        if len(pf) < 2:
+            info["reason"] = "no_peaks"
+            return None, info
 
-        # Chromagram with gap-based threshold.
-        chroma = self._detect_chromagram(y_norm, sr)
-        logger.info("Chroma: %s", chroma)
+        # tuning: magnitude-weighted circular mean of peak deviations from 12-TET
+        midi = 69 + 12 * np.log2(pf / 440.0)
+        dev = midi - np.round(midi)
+        ang = np.angle(np.sum((pa ** 2) * np.exp(2j * np.pi * dev)))
+        tuning = float(ang / (2 * np.pi))  # semitones, [-0.5, 0.5)
+        info["tuning"] = tuning * 100
 
-        # FFT peaks.
-        fft = self._detect_fft(y_fft, sr)
-        logger.info("FFT: %s", fft)
+        strengths = self._nnls(spec, freqs, tuning)
+        if strengths.max() <= 0:
+            info["reason"] = "no_pitch"
+            return None, info
+        return strengths / strengths.max(), info
 
-        # Merge.
-        merged = self._merge(chroma, fft)
-        logger.info("Merged: %s", merged)
+    def _strum_window(self, y: np.ndarray, sr: int, info: Dict[str, Any]) -> np.ndarray:
+        """Return <= MAX_SECONDS of audio starting just after the first loud, tonal onset."""
+        hop = int(round(sr * 0.0116))
+        nfs = 1 << int(np.ceil(np.log2(sr * 0.046)))
+        S_short = self._stft_mag(y, nfs, hop)
+        rms = np.sqrt(np.mean(S_short ** 2, axis=0)) + 1e-12
+        logS = np.log1p(100 * S_short)
+        flux = np.concatenate([[0.0], np.maximum(0, np.diff(logS, axis=1)).sum(axis=0)])
 
-        # Semitone dedup.
-        detected = self._dedup_semitones(list(merged.keys()), merged)
-        logger.info("Final: %s", detected)
+        on = 0
+        if flux.max() > 0:
+            thr = 0.35 * flux.max()
+            cand = [i for i in range(len(flux))
+                    if flux[i] >= thr and flux[i] == flux[max(0, i - 2): i + 3].max()]
+            picked: List[int] = []
+            for i in cand:
+                if not picked or i - picked[-1] > int(0.1 * sr / hop):
+                    picked.append(i)
+            fs_ = np.arange(S_short.shape[0]) * sr / nfs
+            bmask = (fs_ >= 80) & (fs_ <= 2000)
+            chosen = None
+            for i in picked:
+                if rms[min(len(rms) - 1, i + 3)] < 0.1 * rms.max():
+                    continue  # click / noise start, tiny relative to the loudest event
+                seg_f = S_short[bmask, i + 2: i + 2 + int(0.5 * sr / hop)]
+                if seg_f.shape[1] == 0:
+                    continue
+                m = seg_f.mean(axis=1) + 1e-12
+                if float(np.exp(np.mean(np.log(m))) / np.mean(m)) < self.ONSET_FLAT_MAX:
+                    chosen = i
+                    while chosen > 0 and flux[chosen - 1] >= thr:
+                        chosen -= 1  # back up to the rising edge
+                    break
+            on = chosen if chosen is not None else int(np.argmax(flux))
 
-        # Voice rejection.
-        if len(detected) >= 3:
-            freqs = [float(librosa.midi_to_hz(40 + NOTE_NAMES.index(n))) for n in detected]
-            if self._is_harmonic_series(freqs):
-                logger.info("Harmonic series — rejecting")
-                return []
-
-        return detected
-
-    def _detect_chromagram(self, y: np.ndarray, sr: int) -> Dict[str, float]:
-        """CQT chromagram with gap-based adaptive thresholding.
-
-        Instead of using a fixed threshold relative to noise floor,
-        finds the natural gap in the sorted energy distribution
-        to separate signal notes from noise/bleed.
-        """
-        chromagram = librosa.feature.chroma_cqt(
-            y=y, sr=sr, hop_length=self._hop_length,
-            fmin=self._min_frequency, n_octaves=4,
-        )
-        chroma_energy = np.mean(chromagram, axis=1)
-
-        mx = np.max(chroma_energy)
-        if mx < 1e-8:
-            return {}
-        chroma_energy = chroma_energy / mx
-
-        # Gap-based threshold: find biggest energy gap in sorted values.
-        sorted_e = np.sort(chroma_energy)
-        best_gap = 0.0
-        best_idx = 6
-        for i in range(3, 11):
-            gap = sorted_e[i] - sorted_e[i - 1]
-            if gap > best_gap:
-                best_gap = gap
-                best_idx = i
-
-        threshold = (sorted_e[best_idx] + sorted_e[best_idx - 1]) / 2
-        # Clamp to reasonable range.
-        threshold = max(0.20, min(threshold, 0.50))
-
-        logger.info("Chroma gap-threshold: %.3f (gap=%.3f at idx %d)", threshold, best_gap, best_idx)
-
-        result = {}
-        for i, e in enumerate(chroma_energy):
-            if e >= threshold:
-                result[NOTE_NAMES[i]] = float(e)
-        return result
-
-    def _detect_fft(self, y: np.ndarray, sr: int) -> Dict[str, float]:
-        S = np.abs(librosa.stft(y, n_fft=self._n_fft, hop_length=self._hop_length))
-        avg = np.mean(S, axis=1)
-
-        freqs = librosa.fft_frequencies(sr=sr, n_fft=self._n_fft)
-        mask = (freqs >= self._min_frequency) & (freqs <= self._max_frequency)
-        freqs, avg = freqs[mask], avg[mask]
-
-        if len(avg) == 0:
-            return {}
-        mx = np.max(avg)
-        if mx < 1e-8:
-            return {}
-        avg = avg / mx
-
-        nf = float(np.median(avg) + 2.0 * np.std(avg))
-        threshold = max(self._amplitude_threshold, min(nf, 0.30))
-
-        fr = self._sr / self._n_fft
-        md = max(int(20.0 / fr), 1)
-
-        peaks, _ = find_peaks(avg, height=threshold, distance=md, prominence=self._peak_prominence)
-        if len(peaks) == 0:
-            return {}
-
-        note_amps: Dict[str, float] = {}
-        for idx in peaks:
-            n = _hz_to_note_name(freqs[idx])
-            if n and (n not in note_amps or avg[idx] > note_amps[n]):
-                note_amps[n] = float(avg[idx])
-
-        top = sorted(note_amps, key=lambda x: note_amps[x], reverse=True)[:self._top_n_peaks]
-        return {n: note_amps[n] for n in top}
-
-    def _merge(
-        self,
-        chroma: Dict[str, float],
-        fft: Dict[str, float],
-    ) -> Dict[str, float]:
-        """Merge: both agree → include. Single method → need strong evidence."""
-        all_notes = set(chroma) | set(fft)
-        result: Dict[str, float] = {}
-
-        for note in all_notes:
-            in_c = note in chroma
-            in_f = note in fft
-            cv = chroma.get(note, 0.0)
-            fv = fft.get(note, 0.0)
-
-            if in_c and in_f:
-                result[note] = (cv + fv) / 2
-            elif in_c and cv > 0.35:
-                result[note] = cv
-            elif in_f and fv > 0.28:
-                result[note] = fv
-
-        return result
-
-    def _dedup_semitones(self, detected: List[str], strengths: Dict[str, float]) -> List[str]:
-        if len(detected) <= 1:
-            return sorted(detected)
-        to_remove: Set[str] = set()
-        for i, a in enumerate(detected):
-            for b in detected[i + 1:]:
-                if _are_adjacent(a, b):
-                    weaker = a if strengths.get(a, 0) < strengths.get(b, 0) else b
-                    to_remove.add(weaker)
-        result = sorted(n for n in detected if n not in to_remove)
-        if to_remove:
-            logger.info("Dedup removed: %s", sorted(to_remove))
-        return result
-
-    def _has_onset(self, y: np.ndarray, sr: int) -> bool:
-        env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=self._hop_length)
-        if len(env) == 0:
-            return False
-        mx = float(np.max(env))
-        mn = float(np.mean(env))
-        ratio = mx / (mn + 1e-8)
-        logger.info("Onset: max=%.3f mean=%.3f ratio=%.2f", mx, mn, ratio)
-        return ratio > 2.0
-
-    def _is_harmonic_series(self, peak_freqs: List[float]) -> bool:
-        if len(peak_freqs) < 3:
-            return False
-        freqs = sorted(peak_freqs)
-        f0 = freqs[0]
-        if f0 < 50:
-            return False
-        hc = sum(
-            1 for f in freqs[1:]
-            if abs(f / f0 - round(f / f0)) / max(round(f / f0), 1) < 0.10
-            and round(f / f0) >= 2
-        )
-        frac = hc / (len(freqs) - 1)
-        logger.info("Harmonic: %d/%d (%.0f%%)", hc, len(freqs) - 1, frac * 100)
-        return frac >= 0.70
-
-    def _preprocess_audio(self, y: np.ndarray, sr: int) -> np.ndarray:
-        nyquist = sr / 2.0
-        low = self._min_frequency / nyquist
-        high = min(self._max_frequency / nyquist, 0.99)
-        if low < high:
-            sos = butter(4, [low, high], btype="band", output="sos")
-            y = sosfilt(sos, y).astype(np.float32)
-        y_h, _ = librosa.effects.hpss(y)
-        return y_h
-
-    # ------------------------------------------------------------------
-    # Scoring
-    # ------------------------------------------------------------------
-
-    def _compare_notes(self, detected: List[str], expected: List[str]) -> EvaluationResult:
-        d, e = set(detected), set(expected)
-        missing = sorted(e - d)
-        extra = sorted(d - e)
-        matched = e & d
-
-        raw = len(matched) / len(e) if e else 0.0
-        score = round(max(0.0, raw - len(extra) * 0.08), 2)
-
-        issue = self._determine_issue(missing, extra, expected, detected)
-        return EvaluationResult(
-            score=score, detected_notes=sorted(d),
-            expected_notes=expected, missing_notes=missing,
-            extra_notes=extra, issue=issue,
-        )
+        start = on + max(1, int(0.04 * sr / hop))  # skip ~40 ms pick transient
+        loud = rms >= rms.max() * 10 ** (-35 / 20)
+        end = start
+        lim = start + int(self.MAX_SECONDS * sr / hop)
+        while end < min(len(rms), lim) and loud[end]:
+            end += 1
+        if (end - start) * hop < 0.12 * sr:
+            end = min(len(rms), start + int(0.12 * sr / hop) + 1)
+        s0, s1 = start * hop, min(len(y), end * hop + nfs)
+        info["window_s"] = (s0 / sr, s1 / sr)
+        return y[s0:s1]
 
     @staticmethod
-    def _determine_issue(missing, extra, expected, detected):
-        if not missing and not extra:
-            return None
+    def _stft_mag(y: np.ndarray, n_fft: int, hop: int) -> np.ndarray:
+        if len(y) < n_fft:
+            y = np.pad(y, (0, n_fft - len(y)))
+        win = get_window("hann", n_fft).astype(np.float32)
+        n = 1 + (len(y) - n_fft) // hop
+        idx = np.arange(n_fft)[None, :] + hop * np.arange(n)[:, None]
+        return np.abs(np.fft.rfft(y[idx] * win, axis=1)).T
+
+    def _peaks(self, spec: np.ndarray, freqs: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        lo, hi = np.searchsorted(freqs, self.FMIN), np.searchsorted(freqs, self.FMAX)
+        s = spec[lo:hi]
+        k = max(3, int(40 / (freqs[1] - freqs[0])))
+        floor = uniform_filter1d(minimum_filter1d(s, 2 * k + 1), 2 * k + 1) + 1e-9
+        is_max = (s == maximum_filter1d(s, 3)) & (s > 3.0 * floor) & (s > s.max() * 10 ** (-50 / 20))
+        idx = np.where(is_max)[0]
+        idx = idx[(idx > 0) & (idx < len(s) - 1)]
+        if len(idx) == 0:
+            return np.array([]), np.array([])
+        a, b, c = (np.log(s[idx - 1] + 1e-12), np.log(s[idx] + 1e-12), np.log(s[idx + 1] + 1e-12))
+        den = a - 2 * b + c
+        p = np.clip(np.where(np.abs(den) > 1e-12, 0.5 * (a - c) / den, 0.0), -0.5, 0.5)
+        f = freqs[lo + idx] + p * (freqs[1] - freqs[0])
+        amp = np.exp(b - 0.25 * (a - c) * p) - floor[idx]
+        keep = amp > 0
+        return f[keep], amp[keep]
+
+    def _logspec(self, spec: np.ndarray, freqs: np.ndarray, tuning: float):
+        """Linear magnitude spectrum -> tuning-aligned log-frequency spectrum."""
+        lo_m = self.MIDI_LO - 1
+        hi_m = min(self.MIDI_HI + 12 * np.log2(self.NNLS_HARM) + 1,
+                   69 + 12 * np.log2((freqs[-1] * 0.95) / 440.0) - tuning)
+        nb = int((hi_m - lo_m) * self.BPS)
+        centers = lo_m + np.arange(nb) / self.BPS
+        fm = np.full_like(freqs, -1e9)
+        fm[1:] = 69 + 12 * np.log2(freqs[1:] / 440.0) - tuning
+        pos = (fm - lo_m) * self.BPS
+        ok = (pos >= 0) & (pos < nb - 1)
+        i0 = np.floor(pos[ok]).astype(int)
+        fr = pos[ok] - i0
+        mag = spec[ok]
+        L = np.zeros(nb)
+        np.add.at(L, i0, mag * (1 - fr))
+        np.add.at(L, i0 + 1, mag * fr)
+        dens = np.zeros(nb)
+        np.add.at(dens, i0, 1 - fr)
+        np.add.at(dens, i0 + 1, fr)
+        L = np.where(dens > 0, L / np.maximum(dens, 1e-9), 0)
+        empty = dens == 0
+        if empty.any() and (~empty).sum() > 2:
+            L[empty] = np.interp(np.where(empty)[0], np.where(~empty)[0], L[~empty])
+        return L, centers
+
+    def _note_dict(self, centers: np.ndarray) -> np.ndarray:
+        key = (len(centers), float(centers[0]), self.HARM_DECAY, self.NNLS_HARM, self.PURE_HI)
+        D = self._dict_cache.get(key)
+        if D is None:
+            tri = lambda p: np.maximum(0, 1 - np.abs(centers - p) * self.BPS / 1.5)  # noqa: E731
+            notes = np.arange(self.MIDI_LO, self.MIDI_HI + 1)
+            D = np.zeros((len(centers), len(notes)))
+            for j, m in enumerate(notes):
+                for h in range(1, self.NNLS_HARM + 1):
+                    p = m + 12 * np.log2(h)
+                    if p > centers[-1]:
+                        break
+                    D[:, j] += self.HARM_DECAY ** (h - 1) * tri(p)
+            # pure-tone atoms absorb isolated body/room resonances (no harmonics), so a
+            # guitar's ~100 Hz air resonance is not reported as a G#2/A2 note
+            pure = [tri(m) for m in np.arange(self.MIDI_LO - 4, self.PURE_HI + 1, 1.0 / self.BPS)]
+            D = np.hstack([D, np.array(pure).T])
+            self._dict_cache[key] = D
+        return D
+
+    def _nnls(self, spec: np.ndarray, freqs: np.ndarray, tuning: float) -> np.ndarray:
+        L, centers = self._logspec(spec, freqs, tuning)
+        mu = uniform_filter1d(L, 12 * self.BPS + 1, mode="nearest")  # local-mean whitening
+        X = np.maximum(0.0, L - mu)
+        if X.max() <= 0:
+            return np.zeros(12)
+        act, _ = nnls(self._note_dict(centers), X, maxiter=400)
+        notes = np.arange(self.MIDI_LO, self.MIDI_HI + 1)
+        act = act[: len(notes)].copy()
+        # explain-away: a weaker note exactly on a non-octave harmonic (h3,h5,h6,h7,h9)
+        # of a lower note is that note's partial, not a played string
+        for j in range(len(act)):
+            if act[j] <= 0:
+                continue
+            for iv in (19, 28, 31, 34, 38):
+                k = j + iv
+                if k < len(act) and 0 < act[k] < act[j]:
+                    act[k] = 0.0
+        strengths = np.zeros(12)
+        np.add.at(strengths, notes % 12, act)
+        return strengths
+
+    # ------------------------------------------------------------------ decision
+    def _compare_notes(self, detected: List[str], expected: List[str]) -> EvaluationResult:
+        """Score a detected pitch-class set against the expected chord (no audio)."""
         if not detected:
-            return "no_sound"
-        if len(missing) == len(expected):
-            return "wrong_chord"
-        if extra and not missing:
-            return "extra_notes"
-        if missing and not extra:
-            return "muted_string"
-        if missing:
-            return "missing_note"
-        return None
+            exp = list(expected)
+            return EvaluationResult(0.0, [], exp, exp, issue="no_sound")
+        strengths = np.zeros(12)
+        for n in detected:
+            strengths[_pc(n)] = 1.0
+        return self._decide(strengths, {}, list(expected))
+
+    def _decide(self, strengths: Optional[np.ndarray], info: Dict[str, Any],
+                exp: List[str]) -> EvaluationResult:
+        tuning = round(float(info.get("tuning", 0.0)), 1)
+        if strengths is None:
+            return EvaluationResult(0.0, [], exp, exp, issue="no_sound", tuning_cents=tuning)
+        target = {_pc(n) for n in exp}
+        present = {p for p in target if strengths[p] >= self.PRESENT}
+        extra = {p for p in range(12) if p not in target and strengths[p] >= self.EXTRA}
+        missing = target - present
+        raw = len(present) / len(target) if target else 0.0
+        score = round(max(0.0, raw - self.EXTRA_PENALTY * len(extra)), 2)
+
+        if not missing and not extra:
+            issue, score = None, 1.0
+        elif not present:
+            issue = "wrong_chord"
+        elif extra and not missing:
+            issue = "extra_notes"
+        elif missing and not extra:
+            issue = "muted_string"
+        else:
+            issue = "missing_note"
+        # wrong chord: most chord tones missing AND most of the energy outside the chord
+        tgt_energy = strengths[list(target)].sum() / (strengths.sum() + 1e-9) if target else 0.0
+        if issue and issue != "wrong_chord" and tgt_energy < 0.4 and len(missing) >= len(target) / 2:
+            issue = "wrong_chord"
+
+        return EvaluationResult(
+            score=score,
+            detected_notes=[NOTE_NAMES[p] for p in sorted(present | extra)],
+            expected_notes=exp,
+            missing_notes=[n for n in exp if _pc(n) in missing],
+            extra_notes=[NOTE_NAMES[p] for p in sorted(extra)],
+            issue=issue,
+            confidence=round(float(min(strengths[p] for p in target)) if target else 0.0, 3),
+            tuning_cents=tuning,
+            pc_strength={NOTE_NAMES[p]: round(float(strengths[p]), 3) for p in range(12)},
+        )

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from jose import JWTError
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.account import delete_user_and_data
@@ -57,6 +57,9 @@ async def _store_refresh_token(db: AsyncSession, user_id, token: str) -> None:
     await db.commit()
 
 
+_DUMMY_HASH = hash_password("timing-equaliser-not-a-real-password")
+
+
 # ---------------------------------------------------------------------------
 # Signup
 # ---------------------------------------------------------------------------
@@ -68,12 +71,12 @@ async def signup(body: SignupRequest, request: Request, db: AsyncSession = Depen
     signup_limiter.check(ip_key)
     signup_limiter.hit(ip_key)
     # Check email uniqueness
-    existing = await db.execute(select(User).where(User.email == body.email))
+    existing = await db.execute(select(User).where(func.lower(User.email) == body.email.strip().lower()))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
 
     user = User(
-        email=body.email,
+        email=body.email.strip().lower(),
         password_hash=hash_password(body.password),
         display_name=body.display_name.strip(),
         role="student",
@@ -99,9 +102,14 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
     # Only failures count, keyed per ip+email so one attacker can't lock out everyone
     limit_key = f"{client_ip(request)}:{body.email.lower()}"
     login_limiter.check(limit_key)
-    result = await db.execute(select(User).where(User.email == body.email))
+    result = await db.execute(select(User).where(func.lower(User.email) == body.email.strip().lower()))
     user = result.scalar_one_or_none()
-    if user is None or not verify_password(body.password, user.password_hash):
+    # Always run one bcrypt check so response time doesn't reveal whether the
+    # email is registered.
+    password_ok = verify_password(
+        body.password, user.password_hash if user is not None else _DUMMY_HASH
+    )
+    if user is None or not password_ok:
         login_limiter.hit(limit_key)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     login_limiter.reset(limit_key)
@@ -233,7 +241,7 @@ async def request_password_reset(
     reset_limiter.check(ip_key)
     reset_limiter.hit(ip_key)
 
-    result = await db.execute(select(User).where(User.email == body.email))
+    result = await db.execute(select(User).where(func.lower(User.email) == body.email.strip().lower()))
     user = result.scalar_one_or_none()
     if user is not None:
         # One live token per user: drop older ones

@@ -76,12 +76,16 @@ class TestGenerate:
     def test_valid_query_returns_lesson(self, client):
         with patch("feedback_engine.generator._get_groq_client",
                    return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.ingestion._get_groq_client",
+                   return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.agents._get_groq_client",
+                   return_value=_groq(_CANNED_SUMMARY)), \
              patch("council.chairman._get_groq_client",
                    return_value=_groq(_CANNED_SUMMARY)):
             r = client.post("/api/council/generate",
                             json={"song_query": "Test Song by Test Artist"})
         # Might return 422 if ingestion logic is strict — accept both
-        assert r.status_code in (200, 422)
+        assert r.status_code == 200, r.text
         if r.status_code == 200:
             data = r.json()
             assert "lesson_id" in data
@@ -106,6 +110,10 @@ class TestPracticeTip:
         # First generate a lesson to get a valid lesson_id
         with patch("feedback_engine.generator._get_groq_client",
                    return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.ingestion._get_groq_client",
+                   return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.agents._get_groq_client",
+                   return_value=_groq(_CANNED_SUMMARY)), \
              patch("council.chairman._get_groq_client",
                    return_value=_groq(_CANNED_SUMMARY)):
             gen = client.post("/api/council/generate",
@@ -146,6 +154,10 @@ class TestRevise:
     def test_revise_before_all_chords_returns_400(self, client):
         with patch("feedback_engine.generator._get_groq_client",
                    return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.ingestion._get_groq_client",
+                   return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.agents._get_groq_client",
+                   return_value=_groq(_CANNED_SUMMARY)), \
              patch("council.chairman._get_groq_client",
                    return_value=_groq(_CANNED_SUMMARY)):
             gen = client.post("/api/council/generate",
@@ -170,6 +182,10 @@ class TestQuiz:
     def test_quiz_returns_3_questions(self, client):
         with patch("feedback_engine.generator._get_groq_client",
                    return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.ingestion._get_groq_client",
+                   return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.agents._get_groq_client",
+                   return_value=_groq(_CANNED_SUMMARY)), \
              patch("council.chairman._get_groq_client",
                    return_value=_groq(_CANNED_SUMMARY)):
             gen = client.post("/api/council/generate",
@@ -195,6 +211,10 @@ class TestQuiz:
         """Second call returns same questions without calling LLM again."""
         with patch("feedback_engine.generator._get_groq_client",
                    return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.ingestion._get_groq_client",
+                   return_value=_groq(_CANNED_SONG_JSON)), \
+             patch("council.agents._get_groq_client",
+                   return_value=_groq(_CANNED_SUMMARY)), \
              patch("council.chairman._get_groq_client",
                    return_value=_groq(_CANNED_SUMMARY)):
             gen = client.post("/api/council/generate",
