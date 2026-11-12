@@ -1,6 +1,8 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
 import { TodaysPlan } from "./_components/TodaysPlan";
 import { StreakHeatmap } from "./_components/StreakHeatmap";
@@ -10,6 +12,13 @@ import { LoadingSkeleton, CardSkeleton, StatCardSkeleton } from "@/components/ui
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export default function DashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  // Signed-out visitors go to login before any data fetch (the widgets wait on `user`).
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
+
   return (
     <AppShell>
       <div className="space-y-8">

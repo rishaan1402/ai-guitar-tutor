@@ -53,7 +53,8 @@ export default function TeacherPage() {
     setStudents((prev) => prev.filter((s) => s.id !== student.id));
   };
 
-  if (loading || !user) {
+  // Students never see the teacher UI (no invite-code flash, no 403 fetch).
+  if (loading || !user || !isTeacher) {
     return (
       <AppShell>
         <span className="text-gray-400">Loading…</span>

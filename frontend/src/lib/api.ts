@@ -2,15 +2,6 @@ import { getAccessToken, getRefreshToken, refreshAccessToken, setTokens, clearTo
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-let sessionId: string | null = null;
-
-function getSessionId(): string {
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-  }
-  return sessionId;
-}
-
 /** FastAPI sends `detail` as a string, or as a list of field errors on 422. */
 export function errorMessage(body: { detail?: unknown }, fallback: string): string {
   const d = body.detail;
@@ -50,7 +41,6 @@ function tzQuery(): string {
 
 async function request<T>(path: string, options?: RequestInit, retry = true): Promise<T> {
   const headers = new Headers(options?.headers);
-  headers.set("X-Session-Id", getSessionId());
 
   const token = getAccessToken();
   if (token) {
@@ -84,16 +74,16 @@ export function listChords(): Promise<{ chords: string[] }> {
   return request("/chords");
 }
 
-export function getLesson(chord: string): Promise<{ lesson: Record<string, unknown> }> {
-  return request(`/lesson/${encodeURIComponent(chord)}`);
+export interface LessonInfo {
+  chord_name: string;
+  metadata?: Record<string, unknown>;
+  video_url?: string;
+  audio_url?: string;
 }
 
-export function learnChord(chordName: string): Promise<Record<string, unknown>> {
-  return request("/learn_chord", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chord_name: chordName }),
-  });
+/** Load a chord lesson. Stateless: the server keeps no per-browser session. */
+export function getLesson(chord: string): Promise<{ lesson: LessonInfo }> {
+  return request(`/lesson/${encodeURIComponent(chord)}`);
 }
 
 export const MAX_UPLOAD_MB = 2;
@@ -131,14 +121,6 @@ export function submitErrorMessage(err: unknown): string {
     }
   }
   return err instanceof Error ? err.message : "Failed to submit audio";
-}
-
-export function getSession(): Promise<Record<string, unknown>> {
-  return request("/session");
-}
-
-export function resetSession(): Promise<{ status: string; message: string }> {
-  return request("/reset", { method: "POST" });
 }
 
 export function getVideoUrl(chord: string): string {

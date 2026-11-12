@@ -15,7 +15,7 @@ import {
 
 /** Student view of their class: join with a code, see assigned work, leave. */
 export function MyClass() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [teachers, setTeachers] = useState<TeacherInfo[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [code, setCode] = useState("");
@@ -32,6 +32,9 @@ export function MyClass() {
     if (user?.role === "student") load().catch(() => {});
   }, [user, load]);
 
+  // Reserve the card's space while auth resolves (most signed-in users are
+  // students), so the sections below don't jump when it mounts.
+  if (loading) return <MyClassSkeleton />;
   if (!user || user.role !== "student") return null;
 
   const handleJoin = async (e: React.FormEvent) => {
@@ -132,6 +135,24 @@ export function MyClass() {
         )}
       </div>
     </div>
+    </section>
+  );
+}
+
+function MyClassSkeleton() {
+  return (
+    <section aria-hidden>
+      <h3 className="text-h3 mb-4">Your Class</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="glass-card min-h-[118px]">
+          <div className="skeleton h-4 w-1/3 rounded mb-3" />
+          <div className="skeleton h-3 w-2/3 rounded" />
+        </div>
+        <div className="glass-card min-h-[118px]">
+          <div className="skeleton h-4 w-1/4 rounded mb-3" />
+          <div className="skeleton h-9 w-full rounded" />
+        </div>
+      </div>
     </section>
   );
 }

@@ -99,47 +99,183 @@ export function levelHint(peakDbfs: number, elapsedSeconds: number): LevelHint {
 }
 
 export interface AutoStopOptions {
-  /** Hard cap on recording length. */
+  /** Hard cap on recording length (seconds since the first frame). */
   maxSeconds?: number;
-  /** Stop once RMS stays below this fraction of the recording's peak RMS… */
+  /** Cap measured from the moment the detector arms instead (armed-recording mode). */
+  maxAfterArmSeconds?: number;
+  /** Stop once RMS stays below this fraction of the strum's peak RMS… */
   decayRatio?: number;
   /** …for this long. */
   holdSeconds?: number;
-  /** RMS a frame must reach to count as a strum (≈ −40 dBFS). */
+  /** RMS a frame must reach to count as loud (≈ −40 dBFS) — the ceiling of the adaptive threshold. */
   strumRms?: number;
+  /**
+   * Adaptive threshold: after `ignoreSeconds` the loud threshold becomes
+   * clamp(floorFactor × median RMS of the frames so far, minStrumRms, strumRms),
+   * so a quiet player in a quiet room (strum ≈ −45 dBFS RMS) still arms.
+   * Set floorFactor to 0 to disable.
+   */
+  floorFactor?: number;
+  minStrumRms?: number;
+  /** Consecutive loud frames needed to arm (3 × 2048 samples ≈ 128 ms at 48 kHz). */
+  sustainFrames?: number;
+  /** Ignore loudness before this time (the key/mouse click that started the take). */
+  ignoreSeconds?: number;
+  /** Give up with "silent" if nothing has armed by this time. */
+  noStrumSeconds?: number;
 }
 
+export type StopReason = "decay" | "max" | "silent";
+
 /**
- * Tracks frame RMS over time and decides when a recording is "done": after
- * `maxSeconds`, or once a strum has rung out (RMS < decayRatio·peak for
- * holdSeconds). Silence alone never triggers the decay stop.
+ * Tracks frame RMS over time and decides when a take is "done".
+ *
+ * A single loud frame (a key press or mouse click) no longer counts as the
+ * strum: the detector only *arms* after `sustainFrames` consecutive frames at
+ * or above `strumRms`, and not before `ignoreSeconds`. The peak used by the
+ * decay rule is the max over that sustained run. Before arming the decay stop
+ * is impossible; if nothing arms by `noStrumSeconds` it stops with "silent"
+ * (the caller must not upload that take).
  */
 export class AutoStopDetector {
   readonly maxSeconds: number;
+  readonly maxAfterArmSeconds: number | null;
   readonly decayRatio: number;
   readonly holdSeconds: number;
   readonly strumRms: number;
+  readonly sustainFrames: number;
+  readonly ignoreSeconds: number;
+  readonly noStrumSeconds: number;
+  readonly floorFactor: number;
+  readonly minStrumRms: number;
+  private floorFrames: number[] = [];
+  private threshold: number | null = null;
   private peakRms = 0;
+  private runPeak = 0;
   private quietSince: number | null = null;
+  private _loudRun = 0;
+  private _armedAt: number | null = null;
 
   constructor(opts: AutoStopOptions = {}) {
     this.maxSeconds = opts.maxSeconds ?? 6;
+    this.maxAfterArmSeconds = opts.maxAfterArmSeconds ?? null;
     this.decayRatio = opts.decayRatio ?? 0.15;
     this.holdSeconds = opts.holdSeconds ?? 1.2;
     this.strumRms = opts.strumRms ?? 0.01;
+    this.sustainFrames = opts.sustainFrames ?? 3;
+    this.ignoreSeconds = opts.ignoreSeconds ?? 0.3;
+    this.noStrumSeconds = opts.noStrumSeconds ?? 3;
+    this.floorFactor = opts.floorFactor ?? 4;
+    this.minStrumRms = opts.minStrumRms ?? 0.0025;
   }
 
-  /** Feed one frame; `t` is seconds since recording started. Returns true to stop. */
-  update(rms: number, t: number): boolean {
-    if (t >= this.maxSeconds) return true;
+  /** The loud-frame threshold in use (strumRms until the floor is known). */
+  get loudRms(): number {
+    return this.threshold ?? this.strumRms;
+  }
+
+  get armed(): boolean {
+    return this._armedAt !== null;
+  }
+  /** Time (seconds, the caller's clock) at which the sustained strum armed the detector. */
+  get armedAt(): number | null {
+    return this._armedAt;
+  }
+  /** Length of the current run of loud frames (at arm time: the run that armed it). */
+  get loudRun(): number {
+    return this._loudRun;
+  }
+
+  /** Feed one frame; `t` is seconds since the first frame (frame end). Returns why to stop, or null. */
+  update(rms: number, t: number): StopReason | null {
+    if (this._armedAt === null) {
+      if (this.threshold === null) {
+        if (t < this.ignoreSeconds) this.floorFrames.push(rms);
+        else {
+          const xs = this.floorFrames.sort((a, b) => a - b);
+          const floor = xs.length ? xs[xs.length >> 1] : this.strumRms;
+          this.threshold =
+            this.floorFactor > 0
+              ? Math.min(this.strumRms, Math.max(this.minStrumRms, this.floorFactor * floor))
+              : this.strumRms;
+        }
+      }
+      if (rms >= this.loudRms) {
+        this._loudRun += 1;
+        this.runPeak = Math.max(this.runPeak, rms);
+      } else {
+        this._loudRun = 0;
+        this.runPeak = 0;
+      }
+      if (this._loudRun >= this.sustainFrames && t >= this.ignoreSeconds) {
+        this._armedAt = t;
+        this.peakRms = this.runPeak;
+        this.quietSince = null;
+        return null;
+      }
+      if (t >= this.maxSeconds) return "max";
+      if (t >= this.noStrumSeconds) return "silent";
+      return null;
+    }
+
+    if (t >= this.maxSeconds) return "max";
+    if (this.maxAfterArmSeconds !== null && t - this._armedAt >= this.maxAfterArmSeconds) return "max";
+    if (rms >= this.loudRms) this._loudRun += 1;
+    else this._loudRun = 0;
     if (rms > this.peakRms) this.peakRms = rms;
-    if (this.peakRms < this.strumRms) return false;
     if (rms < this.peakRms * this.decayRatio) {
       if (this.quietSince === null) this.quietSince = t;
-      return t - this.quietSince >= this.holdSeconds;
+      return t - this.quietSince >= this.holdSeconds ? "decay" : null;
     }
     this.quietSince = null;
-    return false;
+    return null;
+  }
+}
+
+/** Frames needed to cover `seconds` of audio at `sampleRate` in `frameSize` blocks. */
+export function prerollFrameCount(seconds: number, sampleRate: number, frameSize: number): number {
+  return Math.ceil((seconds * sampleRate) / frameSize);
+}
+
+/**
+ * Fixed-size ring of the most recent frames, kept while the mic is armed so a
+ * take can start a little *before* the onset that triggered it.
+ */
+export class PrerollBuffer {
+  readonly capacity: number;
+  private frames: Float32Array[] = [];
+  private head = 0;
+
+  constructor(capacity: number) {
+    this.capacity = Math.max(1, Math.floor(capacity));
+  }
+
+  push(frame: Float32Array): void {
+    if (this.frames.length < this.capacity) {
+      this.frames.push(frame);
+    } else {
+      this.frames[this.head] = frame;
+      this.head = (this.head + 1) % this.capacity;
+    }
+  }
+
+  get size(): number {
+    return this.frames.length;
+  }
+
+  /** The last `n` frames (default: all held), oldest first. */
+  snapshot(n: number = this.capacity): Float32Array[] {
+    const ordered =
+      this.frames.length < this.capacity
+        ? this.frames.slice()
+        : [...this.frames.slice(this.head), ...this.frames.slice(0, this.head)];
+    const k = Math.max(0, Math.min(Math.floor(n), ordered.length));
+    return ordered.slice(ordered.length - k);
+  }
+
+  clear(): void {
+    this.frames = [];
+    this.head = 0;
   }
 }
 

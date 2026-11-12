@@ -8,7 +8,7 @@ interface StatCardProps {
   value: string | number;
   sub?: string;
   icon?: React.ReactNode;
-  accent?: "purple" | "cyan" | "green" | "yellow" | "red";
+  accent?: "purple" | "cyan" | "green" | "yellow" | "red" | "neutral";
   className?: string;
 }
 
@@ -18,6 +18,7 @@ const accentMap = {
   green:  "text-green-400",
   yellow: "text-yellow-400",
   red:    "text-red-400",
+  neutral: "text-gray-300",
 };
 
 export function StatCard({ label, value, sub, icon, accent = "purple", className }: StatCardProps) {

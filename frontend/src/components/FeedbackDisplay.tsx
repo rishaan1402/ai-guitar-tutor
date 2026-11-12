@@ -3,12 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import ScoreRing from "./ScoreRing";
 import Confetti from "./Confetti";
-import { FretboardVisualizer } from "./feedback/FretboardVisualizer";
+import ListeningStage from "./stage/ListeningStage";
 import { NoteDiffStrip } from "./feedback/NoteDiffStrip";
 import { FingeringTipCard } from "./feedback/FingeringTipCard";
 import type { ChordFingering } from "@/lib/api";
 import { useReducedMotion } from "@/lib/motion";
 import { isActivationKey, isInteractiveTarget } from "@/lib/hotkeys";
+import { useCoarsePointer } from "@/lib/usePointer";
+import { cardFor, takeVerdict, type Verdict } from "@/lib/verdict";
+import { COPY, UNCLEAR_STREAK_NUDGE, micCheckHeadline, tuningCopy } from "@/lib/feedbackCopy";
+import { pitchClass, stringTargets, stringVerdicts } from "@/lib/stringEnergy";
+import { formatChord } from "@/lib/chordName";
 
 export interface Evaluation {
   score: number;
@@ -19,6 +24,12 @@ export interface Evaluation {
   issue: string | null;
   tuning_cents?: number;
   tuning_warning?: boolean;
+  /** Borderline chord tones / extras on an "unclear" take. */
+  unclear_notes?: string[];
+  /** Display name of the library chord these notes matched (wrong_chord). */
+  sounds_like?: string;
+  sounds_like_key?: string;
+  verdict?: Verdict;
 }
 
 interface FingeringTip {
@@ -64,6 +75,12 @@ interface Props {
   onNext?: () => void;
   nextLabel?: string | null;
   busy?: boolean;
+  /** Server verdict for this take (derived from the evaluation when absent). */
+  verdict?: Verdict | null;
+  /** The chord being practised (chord key, e.g. "C_major"). */
+  chordName?: string;
+  /** Takes in a row we couldn't grade; the nudge shows from 3. */
+  unclearStreak?: number;
 }
 
 /** "+23% vs last take" style delta, or null for the first take. */
@@ -78,8 +95,7 @@ export function deltaVsLastTake(scoreHistory: ScoreEntry[]): string | null {
 }
 
 export function tuningHint(cents: number): string {
-  const n = Math.round(Math.abs(cents));
-  return `Your guitar sounds ~${n} cents ${cents < 0 ? "flat" : "sharp"} — tune up for accurate grading.`;
+  return tuningCopy(cents);
 }
 
 function speakText(text: string, setSpeaking: (v: boolean) => void) {
@@ -113,9 +129,13 @@ export default function FeedbackDisplay({
   onNext,
   nextLabel,
   busy,
+  verdict: verdictProp,
+  chordName,
+  unclearStreak = 0,
 }: Props) {
   const [speaking, setSpeaking] = useState(false);
   const reduceMotion = useReducedMotion();
+  const coarse = useCoarsePointer();
   const isCompleted = sessionState === "COMPLETED";
   const primaryAction = isCompleted ? onPlayAgain : onRetry;
   const primaryRef = useRef(primaryAction);
@@ -134,6 +154,26 @@ export default function FeedbackDisplay({
 
   if (!feedback && !evaluation) return null;
 
+  const verdict = verdictProp ?? evaluation?.verdict ?? takeVerdict({ evaluation });
+  const card = cardFor(verdict);
+  if (card !== "graded") {
+    return (
+      <NeutralTakeCard
+        kind={card}
+        feedback={feedback}
+        evaluation={evaluation}
+        fingering={fingering ?? null}
+        onRetry={onRetry}
+        busy={busy}
+        coarse={coarse}
+        unclearStreak={unclearStreak}
+        tuningCents={tuningCents ?? evaluation?.tuning_cents ?? null}
+        tuningWarning={Boolean(tuningWarning ?? evaluation?.tuning_warning)}
+      />
+    );
+  }
+  const wrongChord = evaluation?.issue === "wrong_chord";
+
   const delta = deltaVsLastTake(scoreHistory);
   const bestScore = scoreHistory.length > 0 ? Math.max(...scoreHistory.map((s) => s.score)) : null;
   const previousBest =
@@ -146,6 +186,7 @@ export default function FeedbackDisplay({
   return (
     <div className="glass-card space-y-5" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
       <Confetti active={currentScore >= 0.8 && !reduceMotion} />
+      {/* (graded takes only: unclear / no-sound takes return the neutral card above) */}
 
       {/* Screen readers get the result once, not every frame of the count-up */}
       <p className="sr-only" aria-live="polite" role="status">
@@ -261,9 +302,11 @@ export default function FeedbackDisplay({
             )}
           </>
         )}
-        <span className="hidden sm:inline text-xs text-gray-500 sm:ml-auto">
-          Space = {isCompleted ? "play it again" : "try again"}
-        </span>
+        {!coarse && (
+          <span className="hidden sm:inline text-xs text-gray-500 sm:ml-auto">
+            Space = {isCompleted ? "play it again" : "try again"}
+          </span>
+        )}
       </div>
 
       {/* Analysis */}
@@ -280,16 +323,28 @@ export default function FeedbackDisplay({
       )}
 
       {evaluation && fingering && (
-        <FretboardVisualizer
+        <ListeningStage
           fingering={fingering}
-          detectedNotes={evaluation.detected_notes}
-          missingNotes={evaluation.missing_notes}
-          extraNotes={evaluation.extra_notes || []}
+          state="done"
+          verdicts={stringVerdicts(evaluation, stringTargets(fingering))}
+          className="h-[150px] sm:h-[190px]"
         />
       )}
 
-      {/* Single note comparison (expected / detected / missing) */}
-      {evaluation && (
+      {wrongChord && evaluation && (
+        <p className="text-sm text-gray-300" data-testid="wrong-chord">
+          {evaluation.sounds_like ? (
+            <>
+              Heard: <span className="font-semibold text-amber-200">{formatChord(evaluation.sounds_like_key) || evaluation.sounds_like}</span>
+              {" · "}
+            </>
+          ) : null}
+          Target: <span className="font-semibold text-cream">{formatChord(chordName) || evaluation.expected_notes.join(" ")}</span>
+        </p>
+      )}
+
+      {/* Single note comparison (expected / detected / missing); a wrong chord has no "missing" list */}
+      {evaluation && !wrongChord && (
         <NoteDiffStrip
           expectedNotes={evaluation.expected_notes}
           detectedNotes={evaluation.detected_notes}
@@ -338,6 +393,127 @@ export default function FeedbackDisplay({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+interface NeutralProps {
+  kind: "strum_again" | "mic_check";
+  feedback: string | null;
+  evaluation: Evaluation | null;
+  fingering: ChordFingering | null;
+  onRetry?: () => void;
+  busy?: boolean;
+  coarse: boolean;
+  unclearStreak: number;
+  tuningCents: number | null;
+  tuningWarning: boolean;
+}
+
+/**
+ * "Not sure — strum again" / mic check: no score ring, no red, no Missing list
+ * or tips. The take doesn't count (it isn't in the history, progress or advisor).
+ */
+function NeutralTakeCard({
+  kind,
+  feedback,
+  evaluation,
+  fingering,
+  onRetry,
+  busy,
+  coarse,
+  unclearStreak,
+  tuningCents,
+  tuningWarning,
+}: NeutralProps) {
+  const unclear = kind === "strum_again";
+  const headline = unclear ? feedback || COPY.unclearFallback : micCheckHeadline(evaluation?.issue);
+  const notes = unclear ? evaluation?.unclear_notes ?? [] : [];
+  // unclear_notes lists borderline chord tones first, then borderline non-chord notes.
+  const expected = new Set((evaluation?.expected_notes ?? []).map(pitchClass));
+  const tones = notes.filter((n) => expected.has(pitchClass(n)));
+  const strays = notes.filter((n) => !expected.has(pitchClass(n)));
+  const showNudge = unclearStreak >= UNCLEAR_STREAK_NUDGE;
+  return (
+    <div
+      className="glass-card space-y-4 border border-cream/15"
+      style={{ animation: "fade-in-up 0.4s ease-out both", borderLeft: "3px solid #efc27a" }}
+      data-testid="neutral-take"
+      data-kind={kind}
+    >
+      <p className="sr-only" aria-live="polite" role="status">
+        {unclear ? "Not sure — strum again. " : "Mic check. "}
+        {headline} {COPY.doesntCount}
+      </p>
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+          {unclear ? "Not sure" : "Mic check"}
+        </p>
+        <p className="text-gray-100 text-base leading-relaxed">{headline}</p>
+        <p className="text-sm text-gray-400">{COPY.doesntCount}</p>
+        {(tones.length > 0 || strays.length > 0) && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            {tones.length > 0 && <span className="text-xs text-gray-400">{COPY.listenFor}:</span>}
+            {tones.map((n) => (
+              <span
+                key={n}
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-amber-200 border border-amber-300/40 bg-amber-300/10"
+              >
+                {n}
+              </span>
+            ))}
+            {strays.length > 0 && (
+              <span className={`text-xs text-gray-400 ${tones.length ? "ml-2" : ""}`}>{COPY.maybeStray}:</span>
+            )}
+            {strays.map((n) => (
+              <span
+                key={n}
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-cream/90 border border-cream/25 bg-cream/5"
+              >
+                {n}
+              </span>
+            ))}
+          </div>
+        )}
+        {tuningWarning && tuningCents != null && (
+          <p className="text-xs text-amber-300/90 rounded-lg border border-amber-400/25 bg-amber-400/5 px-2.5 py-1.5" data-testid="tuning-hint">
+            {tuningCopy(tuningCents)}
+          </p>
+        )}
+      </div>
+
+      {unclear && fingering && evaluation && (
+        <ListeningStage
+          fingering={fingering}
+          state="done"
+          verdicts={stringVerdicts({ unclear_notes: evaluation.unclear_notes }, stringTargets(fingering))}
+          className="h-[140px] sm:h-[170px]"
+        />
+      )}
+
+      {showNudge && (
+        <div className="rounded-xl border border-amber-300/25 bg-amber-300/[0.05] px-3 py-2.5 space-y-1.5" data-testid="unclear-nudge">
+          <p className="text-sm font-semibold text-amber-200">{COPY.streakNudge}</p>
+          <ul className="list-disc pl-5 text-xs text-gray-300 space-y-0.5">
+            {COPY.streakTips.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row items-center gap-3 border-t border-white/10 pt-4">
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            disabled={busy}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-semibold bg-amber-400 text-[#1c1206] hover:bg-amber-300 disabled:opacity-50 transition-colors"
+          >
+            {COPY.strumAgain}
+          </button>
+        )}
+        {!coarse && <span className="hidden sm:inline text-xs text-gray-500 sm:ml-auto">Space = strum again</span>}
+      </div>
     </div>
   );
 }

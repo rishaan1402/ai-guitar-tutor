@@ -6,6 +6,8 @@ import {
   encodeWavBuffer,
   levelHint,
   mergeChunks,
+  PrerollBuffer,
+  prerollFrameCount,
   sameNotes,
   toDbfs,
 } from "../audioCapture";
@@ -84,35 +86,121 @@ describe("level maths", () => {
 });
 
 describe("AutoStopDetector", () => {
-  const frame = 0.05;
-  it("stops 1.2 s after the strum decays below 15% of peak", () => {
-    const d = new AutoStopDetector();
+  // Real frame timing: 2048-sample ScriptProcessor blocks at 48 kHz.
+  const frame = 2048 / 48000;
+
+  /** Feed a per-frame RMS function until stop or `until`; returns stop time and reason. */
+  function run(d: AutoStopDetector, rmsAt: (t: number) => number, until = 12) {
     let t = 0;
-    let stoppedAt: number | null = null;
-    const feed = (rms: number, seconds: number) => {
-      for (let i = 0; i < seconds / frame && stoppedAt === null; i++) {
-        t += frame;
-        if (d.update(rms, t)) stoppedAt = t;
-      }
-    };
-    feed(0.001, 0.5); // silence before the strum
-    feed(0.2, 0.5); // strum
-    feed(0.1, 0.5); // ringing (50% of peak)
-    const quietFrom = t;
-    feed(0.01, 3); // decayed (5% of peak)
-    expect(stoppedAt).not.toBeNull();
-    expect(stoppedAt! - quietFrom).toBeGreaterThanOrEqual(1.2 - 1e-9);
-    expect(stoppedAt! - quietFrom).toBeLessThan(1.4);
+    while (t < until) {
+      t += frame;
+      const why = d.update(rmsAt(t), t);
+      if (why) return { t, why };
+    }
+    return { t, why: null };
+  }
+
+  /** A strum starting at `at`: 0.2 RMS decaying with a 0.35 s time constant over a −62 dBFS floor. */
+  const strum = (at: number) => (t: number) => (t < at ? 0.0008 : 0.0008 + 0.2 * Math.exp(-(t - at) / 0.35));
+
+  it("stops 1.2 s after the strum decays below 15% of peak (unchanged behaviour)", () => {
+    const d = new AutoStopDetector();
+    const s = (t: number) => (t < 0.5 ? 0.001 : t < 1.0 ? 0.2 : t < 1.5 ? 0.1 : 0.01);
+    const { t, why } = run(d, s);
+    expect(why).toBe("decay");
+    // quiet from 1.5 s, 1.2 s hold → about 2.7 s
+    expect(t - 1.5).toBeGreaterThanOrEqual(1.2 - frame);
+    expect(t - 1.5).toBeLessThan(1.3);
   });
 
-  it("silence alone runs to the 6 s cap", () => {
+  it("a click before the strum does not arm it or stop the take early", () => {
+    const d = new AutoStopDetector();
+    const strumAt = 1.6;
+    const base = strum(strumAt);
+    // One frame at 0.2 RMS at t≈0.2 s (Space / mouse click), then room noise.
+    const clickFrame = Math.ceil(0.2 / frame);
+    const s = (t: number) => (Math.round(t / frame) === clickFrame ? 0.2 : base(t));
+    const { t, why } = run(d, s);
+    expect(t).toBeGreaterThan(strumAt);
+    expect(why).toBe("decay");
+    expect(d.armedAt!).toBeGreaterThanOrEqual(strumAt);
+    // armed within ~3 frames of the onset
+    expect(d.armedAt! - strumAt).toBeLessThan(4 * frame);
+  });
+
+  it("a short click burst (2 frames) still does not arm", () => {
+    const d = new AutoStopDetector();
+    const s = (t: number) => (t > 0.4 && t < 0.4 + 2 * frame ? 0.3 : 0.0008);
+    const { t, why } = run(d, s);
+    expect(d.armed).toBe(false);
+    expect(why).toBe("silent");
+    expect(t).toBeGreaterThanOrEqual(3 - 1e-9);
+  });
+
+  it("pure silence stops with 'silent' at 3 s", () => {
+    const d = new AutoStopDetector();
+    const { t, why } = run(d, () => 0.0005);
+    expect(why).toBe("silent");
+    expect(t).toBeGreaterThanOrEqual(3 - 1e-9);
+    expect(t).toBeLessThan(3 + frame + 1e-9);
+  });
+
+  it("loudness before ignoreSeconds cannot arm until 0.3 s", () => {
     const d = new AutoStopDetector();
     let t = 0;
-    while (!d.update(0.0005, (t += frame))) {
-      if (t > 10) break;
-    }
-    expect(t).toBeGreaterThanOrEqual(6 - 1e-9);
-    expect(t).toBeLessThan(6.1);
+    while (t + frame < 0.29) d.update(0.05, (t += frame));
+    expect(d.armed).toBe(false);
+    d.update(0.05, (t = 0.3));
+    expect(d.armed).toBe(true);
+    expect(d.loudRun).toBeGreaterThanOrEqual(3);
+  });
+
+  it("a quiet strum (−46 dBFS RMS) in a quiet room still arms (adaptive threshold)", () => {
+    const d = new AutoStopDetector();
+    const quiet = (t: number) => (t < 1 ? 0.0004 : 0.0004 + 0.005 * Math.exp(-(t - 1) / 0.6));
+    const { why } = run(d, quiet);
+    expect(d.armed).toBe(true);
+    expect(why).toBe("decay");
+    expect(d.loudRms).toBeLessThan(0.01);
+  });
+
+  it("a noisy room keeps the full threshold, so its noise never arms", () => {
+    const d = new AutoStopDetector();
+    const { why } = run(d, () => 0.006); // fan noise at −44 dBFS
+    expect(d.loudRms).toBe(0.01);
+    expect(why).toBe("silent");
+  });
+
+  it("a never-decaying sound hits the cap; maxAfterArmSeconds counts from the onset", () => {
+    expect(run(new AutoStopDetector(), () => 0.1).why).toBe("max");
+    const d = new AutoStopDetector({ maxSeconds: 60, maxAfterArmSeconds: 6, noStrumSeconds: 8 });
+    const s = (t: number) => (t < 2 ? 0.0005 : 0.1);
+    const { t, why } = run(d, s, 20);
+    expect(why).toBe("max");
+    expect(t - d.armedAt!).toBeGreaterThanOrEqual(6 - 1e-9);
+    expect(t).toBeGreaterThan(8);
+  });
+});
+
+describe("PrerollBuffer", () => {
+  it("keeps the last ceil(0.25·sr/2048) frames, oldest first", () => {
+    const n = prerollFrameCount(0.25, 48000, 2048);
+    expect(n).toBe(6);
+    expect(prerollFrameCount(0.25, 44100, 2048)).toBe(6);
+    const b = new PrerollBuffer(n);
+    for (let i = 0; i < 20; i++) b.push(new Float32Array([i]));
+    expect(b.snapshot().map((f) => f[0])).toEqual([14, 15, 16, 17, 18, 19]);
+    expect(b.snapshot(2).map((f) => f[0])).toEqual([18, 19]);
+    expect(b.snapshot(99)).toHaveLength(6);
+  });
+
+  it("returns what it has before it fills, and clears", () => {
+    const b = new PrerollBuffer(6);
+    b.push(new Float32Array([1]));
+    b.push(new Float32Array([2]));
+    expect(b.snapshot().map((f) => f[0])).toEqual([1, 2]);
+    b.clear();
+    expect(b.size).toBe(0);
   });
 });
 

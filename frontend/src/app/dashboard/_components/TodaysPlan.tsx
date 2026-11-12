@@ -6,6 +6,7 @@ import { getPlan } from "@/lib/api";
 import { cardEntrance, staggerContainer } from "@/lib/motion";
 import { ErrorState } from "@/components/ui/ErrorState";
 import useSWR from "swr";
+import { useAuth } from "@/context/AuthContext";
 
 const ITEM_ICONS: Record<string, string> = {
   warmup:     "🔥",
@@ -22,13 +23,24 @@ const ITEM_COLORS: Record<string, string> = {
 };
 
 export function TodaysPlan() {
-  const { data, error, isLoading } = useSWR("/api/plan/next", getPlan, {
+  const { user } = useAuth();
+  // No fetch until we know who is signed in (no 401 before the login redirect).
+  const { data, error, isLoading } = useSWR(user ? "/api/plan/next" : null, getPlan, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
   });
 
   if (error) return <ErrorState message="Failed to load today's plan" />;
-  if (isLoading) return <div className="skeleton h-32 rounded" />;
+  // Same footprint as the final cards so nothing below shifts when they land.
+  if (isLoading || !user)
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" aria-hidden>
+        {/* The planner returns four items (warm-up, focus, new, transition) */}
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="skeleton min-h-[166px] rounded-2xl" />
+        ))}
+      </div>
+    );
   if (!data || !data.items || data.items.length === 0) {
     return (
       <div className="glass-card text-center py-8">

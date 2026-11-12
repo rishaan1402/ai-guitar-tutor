@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import ChordSelector from "@/components/ChordSelector";
 import LessonVideoPlayer from "@/components/LessonVideoPlayer";
-import MicrophoneRecorder from "@/components/MicrophoneRecorder";
+import MicrophoneRecorder, { type RecorderPhase } from "@/components/MicrophoneRecorder";
+import ListeningStage from "@/components/stage/ListeningStage";
 import FeedbackDisplay from "@/components/FeedbackDisplay";
 import ChordDiagram from "@/components/ChordDiagram";
 import type { Evaluation } from "@/components/FeedbackDisplay";
@@ -16,9 +17,8 @@ import MetronomeWidget from "@/components/MetronomeWidget";
 import TransitionTrainer from "@/components/TransitionTrainer";
 import NavBar from "@/components/NavBar";
 import {
-  learnChord,
+  getLesson,
   submitAudio,
-  resetSession,
   getVideoUrl,
   getAudioUrl,
   getFingering,
@@ -30,6 +30,9 @@ import { formatChord, nextBeginnerChord } from "@/lib/chordName";
 import type { ChordFingering } from "@/lib/api";
 import { loadProgress, recordAttempt } from "@/lib/progress";
 import type { ProgressData } from "@/lib/progress";
+import { applyTake, isGraded, nextUnclearStreak, takeVerdict, type Verdict } from "@/lib/verdict";
+import { useMediaQuery } from "@/lib/usePointer";
+import { COPY, UNCLEAR_STREAK_NUDGE } from "@/lib/feedbackCopy";
 
 const STEPS = [
   {
@@ -112,6 +115,13 @@ export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analysis, setAnalysis] = useState<any>(null);
   const [nextChord, setNextChord] = useState<NextChord | null>(null);
+  const [verdict, setVerdict] = useState<Verdict | null>(null);
+  /** Takes in a row we couldn't grade (unclear / no sound / dropped silent take). */
+  const [unclearStreak, setUnclearStreak] = useState(0);
+  // Live listening stage: the recorder hands over its analyser and phase.
+  const [stageAnalyser, setStageAnalyser] = useState<AnalyserNode | null>(null);
+  const [recPhase, setRecPhase] = useState<RecorderPhase>("idle");
+  const isPhone = useMediaQuery("(max-width: 767px)");
 
   // Stepper state
   const [currentStep, setCurrentStep] = useState(0);
@@ -161,6 +171,7 @@ export default function Home() {
     setAnalysis(null);
     setTuning({ cents: null, warning: false });
     setLiveNotes([]);
+    setVerdict(null);
   }
 
   async function handleChordSelect(chord: string) {
@@ -169,16 +180,18 @@ export default function Home() {
     clearAttemptState();
     setScoreHistory([]);
     setAttempt(0);
+    setUnclearStreak(0);
     setCurrentStep(0);
     setCompletedSteps(new Set());
 
     try {
-      const [result, fingeringData] = await Promise.all([
-        learnChord(chord),
+      // Stateless: load the lesson and fingering; nothing is kept per browser on the server.
+      const [, fingeringData] = await Promise.all([
+        getLesson(chord),
         getFingering(chord).catch(() => null),
       ]);
       setChordName(chord);
-      setSessionState(result.state as string);
+      setSessionState("WAITING_FOR_PLAY");
       setVideoPath(getVideoUrl(chord));
       setAudioUrl(getAudioUrl(chord));
       setFingering(fingeringData);
@@ -191,21 +204,13 @@ export default function Home() {
   }
 
   /** "Play it again": restart the same chord and jump straight to the Play step. */
-  async function handlePlayAgain() {
+  function handlePlayAgain() {
     if (!chordName) return;
-    setLoading(true);
     setError("");
-    try {
-      const result = await learnChord(chordName);
-      setSessionState(result.state as string);
-      clearAttemptState();
-      setCompletedSteps(new Set([0, 1]));
-      setCurrentStep(2);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to restart lesson");
-    } finally {
-      setLoading(false);
-    }
+    setSessionState("WAITING_FOR_PLAY");
+    clearAttemptState();
+    setCompletedSteps(new Set([0, 1]));
+    setCurrentStep(2);
   }
 
   function handleRetry() {
@@ -232,9 +237,14 @@ export default function Home() {
     setError("");
 
     try {
+      // Only graded takes are sent as history (and only they enter it below).
       const result = await submitAudio(blob, chordName, scoreHistory.map((h) => h.score));
       const evalResult = result.evaluation as Evaluation;
       const attemptNum = result.attempt as number;
+      const v = takeVerdict(result as { verdict?: unknown; evaluation?: Evaluation });
+      const graded = isGraded(v);
+      setVerdict(v);
+      setUnclearStreak((n) => nextUnclearStreak(n, v));
       setSessionState(result.state as string);
       setFeedback(result.feedback as string);
       setEvaluation(evalResult);
@@ -243,15 +253,16 @@ export default function Home() {
         cents: typeof result.tuning_cents === "number" ? result.tuning_cents : evalResult.tuning_cents ?? null,
         warning: Boolean(result.tuning_warning ?? evalResult.tuning_warning),
       });
-      setScoreHistory((prev) => [...prev, { attempt: attemptNum, score: evalResult.score }]);
-      setFingeringTips((result.fingering_tips as typeof fingeringTips) || []);
-      setAnalysis(result.analysis || null);
-      if (chordName) {
+      // Unclear / no-sound takes don't count: no history, no local progress, no advisor tip.
+      setScoreHistory((prev) => applyTake(prev, v, attemptNum, evalResult.score));
+      setFingeringTips(graded ? (result.fingering_tips as typeof fingeringTips) || [] : []);
+      setAnalysis(graded ? result.analysis || null : null);
+      if (chordName && graded) {
         setProgress(recordAttempt(chordName, evalResult.score));
       }
 
       // If we're in song-practice mode, call the Lesson Advisor for a contextual tip
-      if (songContext) {
+      if (songContext && graded) {
         try {
           const tipResp = await songContext.recordAttempt({
             score: evalResult.score,
@@ -277,8 +288,7 @@ export default function Home() {
     }
   }
 
-  async function handleReset() {
-    await resetSession().catch(() => {});
+  function handleReset() {
     setSessionState("IDLE");
     setChordName("");
     setVideoPath(null);
@@ -287,6 +297,7 @@ export default function Home() {
     clearAttemptState();
     setAttempt(0);
     setScoreHistory([]);
+    setUnclearStreak(0);
     setError("");
     setCurrentStep(0);
     setCompletedSteps(new Set());
@@ -460,22 +471,42 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Step 2: Play — diagram and Record share the viewport */}
+                {/* Step 2: Play — diagram, live listening stage and Record share the viewport */}
                 {currentStep === 2 && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,220px)_1fr] gap-4 items-center">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div
+                      className={`grid grid-cols-1 gap-3 md:gap-4 items-center ${
+                        fingering ? "md:grid-cols-[200px_minmax(0,1fr)_210px] lg:grid-cols-[220px_minmax(0,1fr)_230px]" : "md:grid-cols-[minmax(0,220px)_1fr]"
+                      }`}
+                    >
                       <ChordDiagram
                         fingering={fingering}
                         liveNotes={liveNotes}
                         fluid
                         className="mx-auto w-[58%] max-w-[210px] md:w-full md:max-w-[220px]"
                       />
-                      <section className="glass-card" aria-label={`Record ${chordLabel}`}>
+                      {fingering && (
+                        <ListeningStage
+                          fingering={fingering}
+                          analyser={stageAnalyser}
+                          state={recPhase === "idle" ? "idle" : recPhase === "recording" ? "recording" : "armed"}
+                          className="h-[180px] md:h-[280px]"
+                        />
+                      )}
+                      <section
+                        className={fingering ? "flex flex-col items-center min-w-0" : "glass-card"}
+                        aria-label={`Record ${chordLabel}`}
+                      >
                         {canRecord ? (
                           <MicrophoneRecorder
                             onRecordingComplete={handleRecordingComplete}
                             disabled={loading}
                             onLiveNotes={setLiveNotes}
+                            onAnalyser={fingering ? setStageAnalyser : undefined}
+                            onPhase={setRecPhase}
+                            onSilentTake={() => setUnclearStreak((n) => nextUnclearStreak(n, "silent"))}
+                            meter={!fingering}
+                            size={fingering && isPhone ? 120 : 148}
                           />
                         ) : (
                           <div className="flex justify-center">
@@ -486,7 +517,7 @@ export default function Home() {
                         )}
                         {loading && (
                           <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mt-3" role="status">
-                            <div className="w-3 h-3 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+                            <div className="w-3 h-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
                             {songContext ? "Getting advisor tip..." : "Analyzing your playing..."}
                           </div>
                         )}
@@ -497,6 +528,11 @@ export default function Home() {
                         )}
                       </section>
                     </div>
+                    {unclearStreak >= UNCLEAR_STREAK_NUDGE && (
+                      <p className="text-sm text-amber-200 text-center rounded-xl border border-amber-300/25 bg-amber-300/[0.05] px-3 py-2" role="status" data-testid="unclear-nudge">
+                        {COPY.streakNudge}
+                      </p>
+                    )}
                     <div className="flex justify-end">
                       <MetronomeWidget />
                     </div>
@@ -524,6 +560,9 @@ export default function Home() {
                     fingering={fingering}
                     tuningCents={tuning.cents}
                     tuningWarning={tuning.warning}
+                    verdict={verdict}
+                    chordName={chordName}
+                    unclearStreak={unclearStreak}
                     onRetry={handleRetry}
                     onPlayAgain={handlePlayAgain}
                     onNext={handleNextChord}
