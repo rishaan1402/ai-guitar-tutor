@@ -503,3 +503,24 @@ class TestTokenRevocation:
         except ImportError:
             pytest.skip("no async_session factory")
         assert n <= 10
+
+
+class TestSignedInSubmit:
+    def test_graded_take_is_saved_for_signed_in_user(self, client):
+        # regression: releasing the DB connection mid-request expired `user`,
+        # so persisting the attempt raised MissingGreenlet (500)
+        _, headers = _signup(client)
+        wav = (LESSONS / "C_major" / "reference.wav").read_bytes()
+        r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                        files={"audio": ("c.wav", wav, "audio/wav")}, headers=headers)
+        assert r.status_code == 200, r.text
+        hist = client.get("/api/progress/chord/C_major/history", headers=headers).json()
+        assert len(hist) == 1 and hist[0]["score"] == 1.0
+
+    def test_stray_note_wording(self):
+        from feedback_engine import FeedbackGenerator
+        ev = {"score": 0.99, "issue": "unclear", "unclear_notes": ["G"],
+              "expected_notes": ["A", "C#", "E"], "missing_notes": [], "extra_notes": [],
+              "detected_notes": ["A", "C#", "E"]}
+        text = FeedbackGenerator().generate(ev)
+        assert "stray G" in text and "Listen for" not in text

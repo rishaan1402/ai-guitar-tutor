@@ -156,9 +156,14 @@ class FeedbackGenerator:
         if issue == "unclear":
             # Not a judgement: the evidence was borderline. Never blame the learner.
             notes = evaluation.get("unclear_notes") or []
+            expected = set(evaluation.get("expected_notes") or [])
+            quiet = [n for n in notes if n in expected]
+            stray = [n for n in notes if n not in expected]
             base = "I couldn't hear every string clearly — let the chord ring and strum once more."
-            if notes:
-                base += f" Listen for the {', '.join(notes)}."
+            if quiet:
+                base += f" Listen for the {', '.join(quiet)}."
+            if stray:
+                base += f" I may have heard a stray {', '.join(stray)} — check nothing else is ringing."
             return base
         return None
 

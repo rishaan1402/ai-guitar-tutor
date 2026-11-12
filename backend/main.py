@@ -323,7 +323,10 @@ async def submit_audio(
             tmp.write(chunk)
 
     # Build user profile context for personalized feedback
-    user_context = await build_user_context(db, user.id if user else None)
+    # Capture before the rollback below: rollback expires loaded ORM objects, and
+    # touching user.id afterwards would trigger a lazy load outside the greenlet.
+    user_id = user.id if user is not None else None
+    user_context = await build_user_context(db, user_id)
     # Release the DB connection while we analyse and wait on the LLM (up to ~8 s);
     # the pool is small and graded takes are the busiest request.
     await db.rollback()
@@ -358,12 +361,12 @@ async def submit_audio(
 
     # Persist chord attempt for authenticated users. Attempts where nothing was
     # actually graded (no sound, decode errors) are not recorded as 0% takes.
-    if user is not None and issue not in UNGRADED_ISSUES:
+    if user_id is not None and issue not in UNGRADED_ISSUES:
         if isinstance(eval_data, dict) and eval_data.get("score") is not None:
             from db.models import ChordAttempt
             feedback_text = result.get("feedback", "")
             db.add(ChordAttempt(
-                user_id=user.id,
+                user_id=user_id,
                 chord_name=chord_key or "unknown",
                 score=float(eval_data.get("score", 0.0)),
                 detected_notes=eval_data.get("detected_notes", []),

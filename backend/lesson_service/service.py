@@ -145,6 +145,21 @@ class LessonService:
                 continue
             meta = self._lessons_by_chord[name].metadata
             if set(meta.get("notes", [])) == target:
-                return meta.get("display_name") or name.replace("_", " ")
+                return friendly_chord_name(name)
         return None
+
+
+_QUALITY_WORDS = {
+    "major": "major", "minor": "minor", "dominant7": "7", "major7": "maj7",
+    "minor7": "minor 7", "half_dim7": "half-diminished 7", "power": "5 (power chord)",
+}
+
+
+def friendly_chord_name(chord_key: str) -> str:
+    """'G_major' -> 'G major', 'A_dominant7' -> 'A7', 'F#_minor7' -> 'F# minor 7'."""
+    root, _, quality = chord_key.partition("_")
+    word = _QUALITY_WORDS.get(quality, quality.replace("_", " "))
+    if word in ("7", "maj7") or word.startswith("5"):
+        return f"{root}{word}"  # symbols attach directly: A7, Cmaj7, E5
+    return f"{root} {word}".strip()
 

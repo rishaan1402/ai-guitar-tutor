@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List, Optional
 from starlette.concurrency import run_in_threadpool
 
 from lesson_service import Lesson, LessonService
+from lesson_service.service import friendly_chord_name
 from audio_engine import ChordEvaluator, EvaluationResult
 from feedback_engine import FeedbackGenerator
 
@@ -69,7 +70,7 @@ async def grade_attempt(
     evaluation = await run_in_threadpool(evaluator.evaluate, audio_path, expected_notes)
 
     eval_dict = evaluation.to_dict()
-    eval_dict["chord_display"] = lesson.metadata.get("display_name") or lesson.chord_name
+    eval_dict["chord_display"] = friendly_chord_name(lesson.chord_name)
     eval_dict["tuning_warning"] = (
         evaluation.issue != "no_sound" and abs(evaluation.tuning_cents) > TUNING_WARN_CENTS
     )
