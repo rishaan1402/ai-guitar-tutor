@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,8 +35,8 @@ class UserListItem(BaseModel):
 
 @router.get("/users", response_model=list[UserListItem])
 async def list_users(
-    page: int = 1,
-    per_page: int = 20,
+    page: int = Query(1, ge=1, le=10_000),
+    per_page: int = Query(20, ge=1, le=100),
     role: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):

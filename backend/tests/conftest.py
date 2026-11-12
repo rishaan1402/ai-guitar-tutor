@@ -125,8 +125,11 @@ def app_client():
 @pytest.fixture(autouse=True)
 def _reset_rate_limits():
     from auth.rate_limit import login_limiter, reset_limiter, signup_limiter
-    from council.router import _anon_generate_limiter, _user_generate_limiter
+    from council.router import (_anon_generate_limiter, _anon_llm_limiter,
+                                _user_generate_limiter, _user_llm_limiter)
+    from main import _anon_submit_limiter, _user_submit_limiter
     for limiter in (login_limiter, reset_limiter, signup_limiter,
-                    _anon_generate_limiter, _user_generate_limiter):
+                    _anon_generate_limiter, _user_generate_limiter, _anon_llm_limiter,
+                    _user_llm_limiter, _anon_submit_limiter, _user_submit_limiter):
         limiter.clear()
     yield

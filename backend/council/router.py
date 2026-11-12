@@ -74,6 +74,20 @@ def _embed_fingerings_and_functions(lesson: LessonDocument, song_chords: list) -
 # Each generation fans out to several LLM calls, so it is the costliest endpoint.
 _anon_generate_limiter = RateLimiter(max_hits=5, window_seconds=60 * 60)
 _user_generate_limiter = RateLimiter(max_hits=30, window_seconds=60 * 60)
+# Follow-up LLM calls (tips, revisions, quizzes) per user / per anonymous IP.
+_anon_llm_limiter = RateLimiter(max_hits=60, window_seconds=60 * 60)
+_user_llm_limiter = RateLimiter(max_hits=300, window_seconds=60 * 60)
+
+
+def _limit_llm(request: Request, user) -> None:
+    limiter, key = (
+        (_user_llm_limiter, f"user:{user.id}") if user is not None
+        else (_anon_llm_limiter, f"ip:{client_ip(request)}")
+    )
+    limiter.check(key)
+    limiter.hit(key)
+
+
 _UNAVAILABLE = "Song lessons are temporarily unavailable. Please try again later."
 
 
@@ -82,6 +96,7 @@ async def generate_lesson(
     body: GenerateRequest,
     request: Request,
     user=Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
 ) -> LessonDocument:
     """
     Full pipeline: ingest → council (4 parallel agents) → chairman synthesis.
@@ -117,13 +132,14 @@ async def generate_lesson(
     # Embed rich structured data before storing and returning
     lesson = _embed_fingerings_and_functions(lesson, song.chords)
 
-    session = session_store.create_session(song, lesson)
+    await session_store.create_session(db, song, lesson, user.id if user else None)
     return lesson
 
 
 @router.post("/practice/tip")
 async def practice_tip(
     body: TipRequest,
+    request: Request,
     user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
@@ -131,11 +147,16 @@ async def practice_tip(
     Called after each chord attempt in song-learning mode.
     Returns adaptive tip + structured analysis + fingering tips + score history.
     """
-    session = session_store.get_session(body.lesson_id)
+    _limit_llm(request, user)
+    session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
 
+    valid_keys = {c.chord_key for c in session.lesson.practice_chords if c.chord_key}
+    if body.chord_key not in valid_keys:
+        raise HTTPException(status_code=422, detail="chord_key is not part of this lesson.")
     session.record_attempt(body.chord_key, body.score)
+    await session_store.save_session(db, session)
     user_context = await build_user_context(db, user.id if user else None)
     tip = await get_tip(body, session, user_context=user_context)
 
@@ -170,6 +191,7 @@ async def practice_tip(
 @router.post("/practice/revise", response_model=LessonDocument)
 async def practice_revise(
     body: ReviseRequest,
+    request: Request,
     user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ) -> LessonDocument:
@@ -177,7 +199,8 @@ async def practice_revise(
     Called after all chords have been attempted at least once.
     Returns a revised LessonDocument with updated practice_plan + chord_ranking.
     """
-    session = session_store.get_session(body.lesson_id)
+    _limit_llm(request, user)
+    session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
 
@@ -189,12 +212,14 @@ async def practice_revise(
 
     user_context = await build_user_context(db, user.id if user else None)
     updated_lesson = await revise_lesson(session, user_context=user_context)
+    await session_store.save_session(db, session)
     return updated_lesson
 
 
 @router.post("/quiz", response_model=QuizResponse)
 async def get_quiz(
     body: QuizRequest,
+    request: Request,
     user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ) -> QuizResponse:
@@ -202,8 +227,11 @@ async def get_quiz(
     Generate (or return cached) 3 MCQ questions from the lesson content.
     Questions are cached on the session after first generation.
     """
-    session = session_store.get_session(body.lesson_id)
+    _limit_llm(request, user)
+    session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
     user_context = await build_user_context(db, user.id if user else None)
-    return await generate_quiz(session, user_context=user_context)
+    quiz = await generate_quiz(session, user_context=user_context)
+    await session_store.save_session(db, session)
+    return quiz

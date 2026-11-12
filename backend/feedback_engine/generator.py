@@ -337,7 +337,11 @@ Keep it encouraging and actionable. Do not use markdown or bullet points."""
         elif issue == "muted_string":
             issue_desc = f"Some strings seem muted — {', '.join(missing)} didn't ring out. Press harder near the frets."
         elif issue == "missing_note":
-            issue_desc = f"Most notes came through but {', '.join(missing)} {'is' if len(missing) == 1 else 'are'} missing. You may also have extra notes: {', '.join(extra)}."
+            lead = "Most notes came through, but" if total_expected and len(matched) / total_expected >= 2 / 3 \
+                else f"Only {len(matched)} of {total_expected} notes came through;"
+            issue_desc = f"{lead} {', '.join(missing)} {'is' if len(missing) == 1 else 'are'} missing."
+            if extra:
+                issue_desc += f" Extra notes heard: {', '.join(extra)}."
         elif issue == "no_sound":
             issue_desc = "No sound was captured. Check that your microphone is active and close to the guitar."
 

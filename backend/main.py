@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote
 
-from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
@@ -43,6 +43,8 @@ from songs.router import router as songs_router
 from admin.router import router as admin_router
 from personalization.router import router as plan_router
 from db.engine import get_db
+from middleware import BodySizeLimitMiddleware
+from auth.rate_limit import RateLimiter, client_ip
 
 logging.basicConfig(
     level=logging.INFO,
@@ -119,7 +121,15 @@ def _resolve_session(session_id: Optional[str]) -> Tuple[str, TutorAgent]:
 # ---------------------------------------------------------------------------
 # FastAPI app
 # ---------------------------------------------------------------------------
-app = FastAPI(title="AI Guitar Tutor", version="1.0.0")
+_ON_CLOUD_RUN = bool(os.environ.get("K_SERVICE"))
+app = FastAPI(
+    title="AI Guitar Tutor",
+    version="1.0.0",
+    # Interactive API docs only outside production.
+    docs_url=None if _ON_CLOUD_RUN else "/docs",
+    redoc_url=None if _ON_CLOUD_RUN else "/redoc",
+    openapi_url=None if _ON_CLOUD_RUN else "/openapi.json",
+)
 
 # CORS — read allowed origins from env so production can lock to Vercel domain.
 # Set ALLOWED_ORIGINS=https://your-app.vercel.app on Render after first deploy.
@@ -135,10 +145,18 @@ logger.info("CORS allowed origins: %s", _allowed_origins)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
-    allow_credentials=True,
+    # Auth uses Bearer tokens, not cookies; never combine credentials with "*".
+    allow_credentials=_allowed_origins != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Session-Id"],
+)
+
+# Body caps enforced while streaming (before multipart spooling to /tmp).
+app.add_middleware(
+    BodySizeLimitMiddleware,
+    default_limit=256 * 1024,
+    path_limits=[("/submit_audio", MAX_UPLOAD_BYTES + 64 * 1024)],
 )
 
 app.include_router(council_router)
@@ -244,8 +262,13 @@ def _parse_previous_scores(raw: Optional[str]) -> List[float]:
     return [min(1.0, max(0.0, v)) for v in values][-HISTORY_LIMIT:]
 
 
+_anon_submit_limiter = RateLimiter(max_hits=60, window_seconds=60)
+_user_submit_limiter = RateLimiter(max_hits=120, window_seconds=60)
+
+
 @app.post("/submit_audio")
 async def submit_audio(
+    request: Request,
     audio: UploadFile = File(...),
     chord_name: Optional[str] = Form(None),
     previous_scores: Optional[str] = Form(None),
@@ -259,6 +282,13 @@ async def submit_audio(
     ``previous_scores``): any instance can grade the request. Without it,
     falls back to the legacy in-memory session started by /learn_chord.
     """
+    limiter, key = (
+        (_user_submit_limiter, f"user:{user.id}") if user is not None
+        else (_anon_submit_limiter, f"ip:{client_ip(request)}")
+    )
+    limiter.check(key)
+    limiter.hit(key)
+
     sid = x_session_id or str(uuid.uuid4())
     agent: Optional[TutorAgent] = None
     lesson = None

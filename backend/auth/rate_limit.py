@@ -18,6 +18,7 @@ class RateLimiter:
         self.max_hits = max_hits
         self.window = window_seconds
         self._hits: Dict[str, Deque[float]] = defaultdict(deque)
+        self._since_sweep = 0
 
     def _prune(self, key: str, now: float) -> Deque[float]:
         hits = self._hits[key]
@@ -40,7 +41,19 @@ class RateLimiter:
             )
 
     def hit(self, key: str) -> None:
-        self._hits[key].append(time.monotonic())
+        now = time.monotonic()
+        self._hits[key].append(now)
+        self._since_sweep += 1
+        if self._since_sweep >= 1000:
+            self._sweep(now)
+
+    def _sweep(self, now: float) -> None:
+        """Drop keys whose newest hit is outside the window (bounds memory when
+        many distinct keys, e.g. random emails, are tried once each)."""
+        self._since_sweep = 0
+        stale = [k for k, hits in self._hits.items() if not hits or now - hits[-1] > self.window]
+        for k in stale:
+            del self._hits[k]
 
     def reset(self, key: str) -> None:
         self._hits.pop(key, None)
@@ -63,6 +76,6 @@ def client_ip(request: Request) -> str:
 
 # Failed logins per (ip, email): 5 per 15 minutes
 login_limiter = RateLimiter(max_hits=5, window_seconds=15 * 60)
-# Signups and reset requests per ip: 10 per hour
-signup_limiter = RateLimiter(max_hits=10, window_seconds=60 * 60)
+# Successful signups per ip: 60/hour (a class on one school network); resets: 5/hour
+signup_limiter = RateLimiter(max_hits=60, window_seconds=60 * 60)
 reset_limiter = RateLimiter(max_hits=5, window_seconds=60 * 60)

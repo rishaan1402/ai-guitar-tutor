@@ -26,6 +26,18 @@ def _check_password(v: str) -> str:
     return v
 
 
+MAX_DISPLAY_NAME = 60
+
+
+def _check_display_name(v: str) -> str:
+    v = v.strip()
+    if not v:
+        raise ValueError("Display name cannot be empty")
+    if len(v) > MAX_DISPLAY_NAME:
+        raise ValueError(f"Display name must be at most {MAX_DISPLAY_NAME} characters")
+    return v
+
+
 Password = Annotated[str, Field(max_length=MAX_PASSWORD_CHARS)]
 
 
@@ -42,10 +54,7 @@ class SignupRequest(BaseModel):
     @field_validator("display_name")
     @classmethod
     def name_not_empty(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
-            raise ValueError("Display name cannot be empty")
-        return v
+        return _check_display_name(v)
 
 
 class LoginRequest(BaseModel):
@@ -77,6 +86,11 @@ class UserResponse(BaseModel):
 class UpdateProfileRequest(BaseModel):
     display_name: str | None = None
     skill_level: str | None = None
+
+    @field_validator("display_name")
+    @classmethod
+    def name_ok(cls, v: str | None) -> str | None:
+        return None if v is None else _check_display_name(v)
 
     @field_validator("skill_level")
     @classmethod

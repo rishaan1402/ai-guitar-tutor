@@ -275,7 +275,7 @@ class TestAuthHardening:
         _signup(client, email=f"Alice{tag}@Example.com")
         r = client.post("/api/auth/signup", json={
             "email": f"alice{tag}@example.com", "password": "guitar123", "display_name": "A"})
-        assert r.status_code == 400
+        assert r.status_code == 409
         r = client.post("/api/auth/login", json={"email": f"ALICE{tag}@example.com", "password": "guitar123"})
         assert r.status_code == 200
 

@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_EXTENSIONS = {".wav", ".flac", ".ogg", ".mp3"}
 ANALYSIS_SR = 22050
+MAX_SECONDS = 15.0          # never decode more than this from any upload
+MIN_SR, MAX_SR = 8000, 192000
 
 
 class AudioFormatError(ValueError):
@@ -34,15 +36,26 @@ def load_audio(path: Path, sr: int = ANALYSIS_SR) -> Tuple[np.ndarray, int]:
             f"Expected one of: {', '.join(sorted(SUPPORTED_EXTENSIONS))}. "
             f"Browser must send WAV."
         )
-    try:
-        import soundfile as sf
+    import soundfile as sf
 
-        y, native_sr = sf.read(str(path), dtype="float32", always_2d=True)
+    try:
+        info = sf.info(str(path))
+    except Exception:
+        info = None  # mp3 on older libsndfile builds: fall through to librosa
+    if info is not None:
+        if not MIN_SR <= info.samplerate <= MAX_SR:
+            raise AudioFormatError(f"Unsupported sample rate {info.samplerate} Hz.")
+        # Decode at most MAX_SECONDS: compressed formats (FLAC/OGG) can pack
+        # hours of audio into a small upload, so never decode the whole file.
+        frames = min(info.frames, int(MAX_SECONDS * info.samplerate))
+        y, native_sr = sf.read(str(path), frames=frames, dtype="float32", always_2d=True)
         y = y.mean(axis=1)
-    except Exception:  # mp3 on older libsndfile builds
+    else:
         import librosa
 
-        y, native_sr = librosa.load(str(path), sr=None, mono=True)
+        y, native_sr = librosa.load(str(path), sr=None, mono=True, duration=MAX_SECONDS)
+        if not MIN_SR <= native_sr <= MAX_SR:
+            raise AudioFormatError(f"Unsupported sample rate {native_sr} Hz.")
     y = np.ascontiguousarray(y, dtype=np.float32)
     native_sr = int(native_sr)
     if native_sr != sr:

@@ -9,7 +9,7 @@ import secrets
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
 from lesson_service import validate_chord_name
@@ -105,8 +105,8 @@ class AssignRequest(BaseModel):
 
 @router.get("/students", response_model=list[StudentSummary])
 async def list_students(
-    page: int = 1,
-    per_page: int = 20,
+    page: int = Query(1, ge=1, le=10_000),
+    per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     teacher: User = Depends(_teacher),
 ):

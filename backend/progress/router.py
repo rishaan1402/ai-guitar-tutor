@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime, timedelta, timezone
-from typing import Any
+from typing import Annotated, Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, field_validator
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +15,12 @@ from auth.dependencies import get_current_user
 from db.engine import get_db
 from db.models import ChordAttempt, QuizResult, TransitionDrill, User
 from lesson_service import validate_chord_name
+from personalization.planner import _key_to_symbol
 from personalization.thresholds import MASTERY
+
+IMPORTED = "imported"
+IMPORTED_SCORE_CAP = round(MASTERY - 0.01, 2)
+MAX_IMPORTED_CHORDS = 20
 
 router = APIRouter(prefix="/api/progress", tags=["progress"])
 
@@ -52,6 +57,12 @@ class TransitionResultIn(BaseModel):
 
     _known_chords = field_validator("chord_a", "chord_b")(validate_chord_name)
 
+    @model_validator(mode="after")
+    def _plausible(self) -> "TransitionResultIn":
+        if self.chord_a == self.chord_b:
+            raise ValueError("A transition needs two different chords")
+        return self
+
 
 class TransitionResultOut(BaseModel):
     chord_a: str
@@ -64,8 +75,14 @@ class TransitionResultOut(BaseModel):
     date: str
 
 
+class QuizAnswer(BaseModel):
+    question_id: str = Field(max_length=16)
+    selected_index: int = Field(ge=0, le=3)
+    correct: bool | None = None
+
+
 class QuizSubmitBody(BaseModel):
-    answers: list[dict[str, Any]] = Field(max_length=100)  # [{question_id, selected_index, correct}]
+    answers: list[QuizAnswer] = Field(max_length=20)
     score: float = Field(ge=0, le=1)
 
 
@@ -173,7 +190,7 @@ async def get_progress(
 
         last = row.last_practiced
         if isinstance(last, datetime):
-            last_str = last.date().isoformat()
+            last_str = _local_date(last, zone).isoformat()
         elif last is not None:
             last_str = str(last)[:10]
         else:
@@ -235,8 +252,8 @@ async def save_transition(
             user_id=user.id,
             chord_a=body.chord_a,
             chord_b=body.chord_b,
-            chord_a_symbol=body.chord_a_symbol,
-            chord_b_symbol=body.chord_b_symbol,
+            chord_a_symbol=_key_to_symbol(body.chord_a),
+            chord_b_symbol=_key_to_symbol(body.chord_b),
             tpm=body.tpm,
             got_count=body.got_count,
             miss_count=body.miss_count,
@@ -248,7 +265,7 @@ async def save_transition(
 
 @router.post("/quiz/{lesson_id}/submit", status_code=201)
 async def submit_quiz(
-    lesson_id: str,
+    lesson_id: Annotated[str, Path(max_length=100)],
     body: QuizSubmitBody,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -257,7 +274,7 @@ async def submit_quiz(
         QuizResult(
             user_id=user.id,
             lesson_id=lesson_id,
-            answers=body.answers,
+            answers=[a.model_dump() for a in body.answers],
             score=body.score,
         )
     )
@@ -271,23 +288,30 @@ async def migrate_chord_progress(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """One-time import of a chord's best score from localStorage."""
-    # Check if we already have data for this chord
-    existing = await db.execute(
-        select(func.count()).where(
-            ChordAttempt.user_id == user.id,
-            ChordAttempt.chord_name == body.chord_name,
-        )
-    )
-    if existing.scalar() > 0:
-        return {"status": "skipped", "reason": "already has data"}
+    """One-time import of a chord's best score from localStorage.
 
-    # Create a synthetic attempt representing the best score
+    Imported scores are unverified, so they are tagged ``issue="imported"`` and
+    capped just below MASTERY: they seed the plan, but mastery has to be earned
+    on the microphone. Importing is only possible before any graded take, and
+    for at most MAX_IMPORTED_CHORDS chords.
+    """
+    existing = await db.execute(
+        select(ChordAttempt.chord_name, ChordAttempt.issue).where(ChordAttempt.user_id == user.id)
+    )
+    rows = existing.all()
+    if any(r.issue != IMPORTED for r in rows):
+        return {"status": "skipped", "reason": "already has graded attempts"}
+    if any(r.chord_name == body.chord_name for r in rows):
+        return {"status": "skipped", "reason": "already has data"}
+    if len(rows) >= MAX_IMPORTED_CHORDS:
+        return {"status": "skipped", "reason": "import limit reached"}
+
     db.add(
         ChordAttempt(
             user_id=user.id,
             chord_name=body.chord_name,
-            score=body.best_score,
+            score=min(body.best_score, IMPORTED_SCORE_CAP),
+            issue=IMPORTED,
             detected_notes=[],
             missing_notes=[],
             extra_notes=[],
@@ -311,8 +335,8 @@ async def migrate_transitions(
                 user_id=user.id,
                 chord_a=r.chord_a,
                 chord_b=r.chord_b,
-                chord_a_symbol=r.chord_a_symbol,
-                chord_b_symbol=r.chord_b_symbol,
+                chord_a_symbol=_key_to_symbol(r.chord_a),
+                chord_b_symbol=_key_to_symbol(r.chord_b),
                 tpm=r.tpm,
                 got_count=r.got_count,
                 miss_count=r.miss_count,
@@ -374,10 +398,10 @@ async def get_chord_history(
     rows = await db.execute(
         select(ChordAttempt)
         .where(ChordAttempt.user_id == user.id, ChordAttempt.chord_name == chord_name)
-        .order_by(ChordAttempt.created_at.asc())
+        .order_by(ChordAttempt.created_at.desc())
         .limit(200)
     )
-    attempts = rows.scalars().all()
+    attempts = list(reversed(rows.scalars().all()))  # newest 200, oldest first
     return [
         ChordAttemptItem(
             id=str(a.id),

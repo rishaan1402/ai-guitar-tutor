@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, asdict
 from pathlib import Path
+from urllib.parse import quote
 from typing import Any, Dict, Mapping, Optional
 import json
 
@@ -27,9 +28,12 @@ class Lesson:
         This is useful for returning lesson data from an API layer.
         """
         data = asdict(self)
-        # Convert Path objects to strings for JSON serialization.
-        data["lesson_video_path"] = str(self.lesson_video_path) if self.lesson_video_path else None
-        data["reference_audio_path"] = str(self.reference_audio_path)
+        # Never expose server filesystem paths; clients fetch media by URL.
+        data.pop("lesson_video_path", None)
+        data.pop("reference_audio_path", None)
+        chord = quote(self.chord_name, safe="")
+        data["video_url"] = f"/video/{chord}" if self.lesson_video_path else None
+        data["audio_url"] = f"/audio/{chord}"
         return data
 
 

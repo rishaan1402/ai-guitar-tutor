@@ -15,7 +15,7 @@ from typing import Any, Optional
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import ChordAttempt, TeacherAssignment, TransitionDrill, User
+from db.models import ChordAttempt, TeacherAssignment, TeacherStudent, TransitionDrill, User
 from personalization.thresholds import MASTERY
 
 logger = logging.getLogger(__name__)
@@ -122,6 +122,9 @@ async def build_daily_plan(db: AsyncSession, user: User) -> list[dict]:
     # ── Teacher assignments come first ────────────────────────────────────────
     assigned_rows = await db.execute(
         select(TeacherAssignment.chord_name, TeacherAssignment.note)
+        # only teachers the student is still linked to (leaving a class drops its work)
+        .join(TeacherStudent, (TeacherStudent.teacher_id == TeacherAssignment.teacher_id)
+              & (TeacherStudent.student_id == TeacherAssignment.student_id))
         .where(TeacherAssignment.student_id == user.id, TeacherAssignment.chord_name.is_not(None))
         .order_by(TeacherAssignment.created_at.desc())
     )
