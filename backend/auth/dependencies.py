@@ -32,7 +32,12 @@ async def get_current_user_optional(
         return None
 
     result = await db.execute(select(User).where(User.id == user_id))
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+    # Tokens minted before token versioning have no "tv"; accept them for one
+    # release (they expire within 30 minutes anyway), reject stale versions.
+    if user is not None and "tv" in payload and payload["tv"] != (user.token_version or 0):
+        return None
+    return user
 
 
 async def get_current_user(

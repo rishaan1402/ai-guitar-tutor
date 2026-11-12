@@ -10,6 +10,8 @@ Design notes (measured on ~500 real recordings + ~1100 stress variants):
 * Tuning is estimated from spectral peaks, so a guitar up to ~±40 cents out still
   maps to the right pitch classes; ``tuning_cents`` is reported to the caller.
 * The input is peak-normalised, so quiet but clean recordings are graded.
+* Borderline evidence yields issue="unclear" ("strum again") instead of a
+  pass/fail guess; unclear takes are not recorded as attempts.
 * Only <= MAX_SECONDS after the first loud, tonal onset is analysed, so cost is
   roughly constant regardless of how long the user recorded.
 """
@@ -42,6 +44,8 @@ class EvaluationResult:
     missing_notes: List[str]
     extra_notes: List[str] = field(default_factory=list)
     issue: Optional[str] = None
+    # Borderline notes behind an "unclear" verdict (quiet chord tones / faint extras).
+    unclear_notes: List[str] = field(default_factory=list)
     # Diagnostics. confidence = weakest chord tone's relative strength (0-1);
     # tuning_cents = estimated global detune of the instrument.
     confidence: float = 0.0
@@ -67,9 +71,10 @@ class ChordEvaluator:
     HARM_DECAY = 0.6                   # partial amplitude ratio in the note templates
     NNLS_HARM = 10
     PURE_HI = 52                       # pure-tone atoms (body/room resonances) up to E3
-    # decision
-    PRESENT = 0.12                     # chord tone present if strength >= PRESENT * max
-    EXTRA = 0.15                       # non-chord pitch class is extra if >= EXTRA * max
+    # decision (gray zone tuned on held-out real recordings, critic round 2)
+    P_LO, P_HI = 0.04, 0.12            # chord tone: < P_LO absent, >= P_HI present
+    X_LO, X_HI = 0.12, 0.30            # non-chord pc: < X_LO clean, >= X_HI definite extra
+    MIN_WIN_S = 0.5                    # shorter analysis windows can't PASS (only unclear)
     EXTRA_PENALTY = 0.25               # per extra note; a wrong chord can't look "green"
 
     _dict_cache: Dict[Tuple, np.ndarray] = {}
@@ -299,30 +304,53 @@ class ChordEvaluator:
 
     def _decide(self, strengths: Optional[np.ndarray], info: Dict[str, Any],
                 exp: List[str]) -> EvaluationResult:
+        """Three-way verdict: pass, unclear ("strum again"), or fail with an issue.
+
+        Chord tone strength t and strongest non-chord strength x (relative to the
+        loudest pitch class):
+          fail     if any t < P_LO          or  x >= X_HI
+          pass     if all t >= P_HI         and x <  X_LO  (and window >= MIN_WIN_S)
+          unclear  otherwise — borderline evidence is never graded as right or wrong.
+        """
         tuning = round(float(info.get("tuning", 0.0)), 1)
         if strengths is None:
             return EvaluationResult(0.0, [], exp, exp, issue="no_sound", tuning_cents=tuning)
         target = {_pc(n) for n in exp}
-        present = {p for p in target if strengths[p] >= self.PRESENT}
-        extra = {p for p in range(12) if p not in target and strengths[p] >= self.EXTRA}
+        non_target = [p for p in range(12) if p not in target]
+        tmin = float(min(strengths[p] for p in target)) if target else 0.0
+        xmax = float(max((strengths[p] for p in non_target), default=0.0))
+
+        present = {p for p in target if strengths[p] >= self.P_HI}
+        extra = {p for p in non_target if strengths[p] >= self.X_HI}
         missing = target - present
         raw = len(present) / len(target) if target else 0.0
         score = round(max(0.0, raw - self.EXTRA_PENALTY * len(extra)), 2)
+        unclear_pcs: set = set()
 
-        if not missing and not extra:
+        window = info.get("window_s")
+        window_len = (window[1] - window[0]) if window else None
+        short = window_len is not None and window_len < self.MIN_WIN_S
+
+        if tmin < self.P_LO or xmax >= self.X_HI:
+            if not present:
+                issue = "wrong_chord"
+            elif extra and not missing:
+                issue = "extra_notes"
+            elif missing and not extra:
+                issue = "muted_string"
+            else:
+                issue = "missing_note"
+            # wrong chord: most chord tones missing AND most energy outside the chord
+            tgt_energy = strengths[list(target)].sum() / (strengths.sum() + 1e-9) if target else 0.0
+            if issue != "wrong_chord" and tgt_energy < 0.4 and len(missing) >= len(target) / 2:
+                issue = "wrong_chord"
+        elif tmin >= self.P_HI and xmax < self.X_LO and not short:
             issue, score = None, 1.0
-        elif not present:
-            issue = "wrong_chord"
-        elif extra and not missing:
-            issue = "extra_notes"
-        elif missing and not extra:
-            issue = "muted_string"
         else:
-            issue = "missing_note"
-        # wrong chord: most chord tones missing AND most of the energy outside the chord
-        tgt_energy = strengths[list(target)].sum() / (strengths.sum() + 1e-9) if target else 0.0
-        if issue and issue != "wrong_chord" and tgt_energy < 0.4 and len(missing) >= len(target) / 2:
-            issue = "wrong_chord"
+            issue = "unclear"
+            score = min(score, 0.99)  # never reads as a pass
+            unclear_pcs = {p for p in target if self.P_LO <= strengths[p] < self.P_HI}
+            unclear_pcs |= {p for p in non_target if self.X_LO <= strengths[p] < self.X_HI}
 
         return EvaluationResult(
             score=score,
@@ -331,7 +359,8 @@ class ChordEvaluator:
             missing_notes=[n for n in exp if _pc(n) in missing],
             extra_notes=[NOTE_NAMES[p] for p in sorted(extra)],
             issue=issue,
-            confidence=round(float(min(strengths[p] for p in target)) if target else 0.0, 3),
+            unclear_notes=[NOTE_NAMES[p] for p in sorted(unclear_pcs)],
+            confidence=round(tmin, 3),
             tuning_cents=tuning,
             pc_strength={NOTE_NAMES[p]: round(float(strengths[p]), 3) for p in range(12)},
         )

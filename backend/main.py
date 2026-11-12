@@ -63,7 +63,7 @@ feedback_generator = FeedbackGenerator()
 # (a public GCS bucket) instead of streaming the local copy in the image.
 # Upload cap: ~2 MB is ~45 s of 16-bit mono audio at 22 kHz, far more than a strum.
 MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_BYTES", str(2 * 1024 * 1024)))
-UNGRADED_ISSUES = {"no_sound", "processing_error", "unsupported_format", "missing_audio"}
+UNGRADED_ISSUES = {"no_sound", "processing_error", "unsupported_format", "missing_audio", "unclear"}
 
 LESSON_ASSETS_BASE_URL = os.environ.get("LESSON_ASSETS_BASE_URL", "").rstrip("/")
 
@@ -324,6 +324,9 @@ async def submit_audio(
 
     # Build user profile context for personalized feedback
     user_context = await build_user_context(db, user.id if user else None)
+    # Release the DB connection while we analyse and wait on the LLM (up to ~8 s);
+    # the pool is small and graded takes are the busiest request.
+    await db.rollback()
     try:
         if agent is not None:
             result = await agent.submit_audio(tmp_path, user_context=user_context)

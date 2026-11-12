@@ -29,6 +29,22 @@ TUNING_WARN_CENTS = 35.0
 HISTORY_LIMIT = 20
 
 
+_ERROR_ISSUES = {"missing_audio", "processing_error", "unsupported_format"}
+
+
+def _verdict(issue: Optional[str], score: float) -> str:
+    """One word the UI can switch on: pass | unclear | fail | no_sound | error."""
+    if issue is None and score >= 1.0:
+        return "pass"
+    if issue == "unclear":
+        return "unclear"
+    if issue == "no_sound":
+        return "no_sound"
+    if issue in _ERROR_ISSUES:
+        return "error"
+    return "fail"
+
+
 async def grade_attempt(
     lesson: Lesson,
     evaluator: ChordEvaluator,
@@ -53,11 +69,18 @@ async def grade_attempt(
     evaluation = await run_in_threadpool(evaluator.evaluate, audio_path, expected_notes)
 
     eval_dict = evaluation.to_dict()
+    eval_dict["chord_display"] = lesson.metadata.get("display_name") or lesson.chord_name
     eval_dict["tuning_warning"] = (
         evaluation.issue != "no_sound" and abs(evaluation.tuning_cents) > TUNING_WARN_CENTS
     )
-    if chord_lookup is not None and evaluation.score < 1.0 and evaluation.detected_notes:
-        eval_dict["sounds_like"] = chord_lookup(evaluation.detected_notes, lesson.chord_name)
+    if (chord_lookup is not None and evaluation.issue not in (None, "unclear")
+            and evaluation.detected_notes):
+        sounds_like = chord_lookup(evaluation.detected_notes, lesson.chord_name)
+        if sounds_like:
+            # the learner cleanly played a different real chord: say which one
+            eval_dict["sounds_like"] = sounds_like
+            eval_dict["issue"] = "wrong_chord"
+    verdict = _verdict(eval_dict.get("issue"), evaluation.score)
 
     feedback_text = await feedback_generator.agenerate(
         eval_dict,
@@ -73,19 +96,23 @@ async def grade_attempt(
         "evaluation": eval_dict,
         "feedback": feedback_text,
         "attempt": attempt,
+        "verdict": verdict,
         "tuning_cents": evaluation.tuning_cents,
         "tuning_warning": eval_dict["tuning_warning"],
         "_evaluation": evaluation,
     }
 
-    if evaluation.score >= 1.0:
+    if verdict == "pass":
         result["state"] = SessionState.COMPLETED.value
         result["message"] = "Congratulations! You've completed this lesson."
     else:
         result["state"] = SessionState.FEEDBACK.value
-        best = max(previous_scores + [evaluation.score])
-        result["best_score"] = best
-        result["message"] = "Try again! You can do it."
+        graded = previous_scores + ([] if evaluation.issue == "unclear" else [evaluation.score])
+        result["best_score"] = max(graded) if graded else None
+        result["message"] = (
+            "Strum once more and let it ring." if evaluation.issue == "unclear"
+            else "Try again! You can do it."
+        )
     return result
 
 

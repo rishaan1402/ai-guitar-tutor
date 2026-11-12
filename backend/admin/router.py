@@ -72,6 +72,12 @@ async def update_user_role(
     user = await db.get(User, user_id)
     if user is None:
         raise HTTPException(404, "User not found")
+    if user.role == "admin" and body.role != "admin":
+        admins = (await db.execute(select(func.count()).where(User.role == "admin"))).scalar()
+        if admins <= 1:
+            raise HTTPException(409, "Can't remove the last admin.")
+    if user.role != body.role:
+        user.token_version = (user.token_version or 0) + 1  # old role claims stop working
     user.role = body.role
     await db.commit()
     return {"id": str(user.id), "role": user.role}

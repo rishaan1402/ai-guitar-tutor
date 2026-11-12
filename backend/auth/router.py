@@ -46,8 +46,21 @@ def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+MAX_REFRESH_TOKENS_PER_USER = 10
+
+
 async def _store_refresh_token(db: AsyncSession, user_id, token: str) -> None:
-    expires = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    # prune: expired tokens, and all but the newest few live ones (devices)
+    await db.execute(delete(RefreshToken).where(
+        RefreshToken.user_id == user_id, RefreshToken.expires_at <= now))
+    keep = (
+        select(RefreshToken.id).where(RefreshToken.user_id == user_id)
+        .order_by(RefreshToken.expires_at.desc()).limit(MAX_REFRESH_TOKENS_PER_USER - 1)
+    )
+    await db.execute(delete(RefreshToken).where(
+        RefreshToken.user_id == user_id, RefreshToken.id.not_in(keep.scalar_subquery())))
     db.add(
         RefreshToken(
             user_id=user_id,
@@ -102,7 +115,7 @@ async def signup(body: SignupRequest, request: Request, db: AsyncSession = Depen
     await db.refresh(user)
     signup_limiter.hit(ip_key)
 
-    access = create_access_token(str(user.id), user.role)
+    access = create_access_token(str(user.id), user.role, user.token_version or 0)
     refresh = create_refresh_token(str(user.id))
     await _store_refresh_token(db, user.id, refresh)
     return TokenResponse(access_token=access, refresh_token=refresh)
@@ -130,7 +143,7 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
         raise HTTPException(status_code=401, detail="Invalid email or password")
     login_limiter.reset(limit_key)
 
-    access = create_access_token(str(user.id), user.role)
+    access = create_access_token(str(user.id), user.role, user.token_version or 0)
     refresh = create_refresh_token(str(user.id))
     await _store_refresh_token(db, user.id, refresh)
     return TokenResponse(access_token=access, refresh_token=refresh)
@@ -152,25 +165,27 @@ async def refresh_token(body: RefreshRequest, db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
     token_hash = _hash_token(body.refresh_token)
+    # Rotate atomically: only the request that actually deletes the row may mint
+    # new tokens, so one stolen refresh token can't fork into several.
     result = await db.execute(
-        select(RefreshToken).where(
+        delete(RefreshToken)
+        .where(
             RefreshToken.token_hash == token_hash,
             RefreshToken.expires_at > datetime.now(timezone.utc),
         )
+        .returning(RefreshToken.user_id)
     )
-    stored = result.scalar_one_or_none()
-    if stored is None:
+    owner = result.scalar_one_or_none()
+    await db.commit()
+    if owner is None:
         raise HTTPException(status_code=401, detail="Refresh token not found or expired")
 
-    user = await db.get(User, stored.user_id)
+    user = await db.get(User, owner)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
 
-    access = create_access_token(str(user.id), user.role)
-    # Issue a new refresh token and invalidate the old one
+    access = create_access_token(str(user.id), user.role, user.token_version or 0)
     new_refresh = create_refresh_token(str(user.id))
-    await db.delete(stored)
-    await db.commit()
     await _store_refresh_token(db, user.id, new_refresh)
     return TokenResponse(access_token=access, refresh_token=new_refresh)
 
@@ -221,7 +236,9 @@ async def logout(
     stored = result.scalar_one_or_none()
     if stored:
         await db.delete(stored)
-        await db.commit()
+    # Revoke outstanding access tokens; other devices silently refresh.
+    user.token_version = (user.token_version or 0) + 1
+    await db.commit()
 
 
 # ---------------------------------------------------------------------------
@@ -293,4 +310,5 @@ async def confirm_password_reset(body: PasswordResetConfirm, db: AsyncSession = 
     stored.used_at = datetime.now(timezone.utc)
     # Sign out every device: whoever had the old password loses their sessions
     await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
+    user.token_version = (user.token_version or 0) + 1
     await db.commit()

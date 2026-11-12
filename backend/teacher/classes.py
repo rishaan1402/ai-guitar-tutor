@@ -47,7 +47,8 @@ async def join_class(
     if row is None:
         raise HTTPException(status_code=404, detail="No class found for that code")
     teacher = await db.get(User, row.teacher_id)
-    if teacher is None:
+    # a teacher who has since been demoted no longer runs a class
+    if teacher is None or teacher.role not in ("teacher", "admin"):
         raise HTTPException(status_code=404, detail="No class found for that code")
 
     existing = await db.execute(

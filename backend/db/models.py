@@ -59,6 +59,11 @@ class User(Base):
     skill_level: Mapped[str] = mapped_column(
         String(20), nullable=False, default="beginner"
     )
+    # Bumped on password reset, logout and role change; access tokens carry it
+    # as "tv" so older tokens stop working immediately.
+    token_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now
     )

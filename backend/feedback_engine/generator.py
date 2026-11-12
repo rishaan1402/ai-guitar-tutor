@@ -153,6 +153,13 @@ class FeedbackGenerator:
             return random.choice(self._UNSUPPORTED_RESPONSES)
         if issue == "no_sound":
             return random.choice(self._NO_SOUND_RESPONSES)
+        if issue == "unclear":
+            # Not a judgement: the evidence was borderline. Never blame the learner.
+            notes = evaluation.get("unclear_notes") or []
+            base = "I couldn't hear every string clearly — let the chord ring and strum once more."
+            if notes:
+                base += f" Listen for the {', '.join(notes)}."
+            return base
         return None
 
     @staticmethod
@@ -257,8 +264,9 @@ Keep it encouraging and actionable. Do not use markdown or bullet points."""
         if score >= 1.0 and not missing and not extra:
             return random.choice(self._PERFECT_RESPONSES)
         if sounds_like:
+            target = evaluation.get("chord_display") or "this chord"
             return (
-                f"That sounded like {sounds_like} rather than this chord. "
+                f"That sounded like {sounds_like}, not {target}. "
                 "Compare your finger positions with the diagram and try again."
             )
         if issue == "wrong_chord":

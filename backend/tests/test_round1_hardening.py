@@ -47,6 +47,10 @@ def _wav_bytes(samples: np.ndarray, sr: int = 22050) -> bytes:
     return buf.getvalue()
 
 
+def _passed(r) -> bool:
+    return r.issue is None and r.score >= 1.0
+
+
 # ---------------------------------------------------------------------------
 # Chord recognition on the app's own reference recordings
 # ---------------------------------------------------------------------------
@@ -66,7 +70,7 @@ class TestReferenceAudio:
         from audio_engine import ChordEvaluator
         ev = ChordEvaluator()
         refs = _refs()
-        passed = [name for name, wav, notes in refs if ev.evaluate(str(wav), notes).score >= 1.0]
+        passed = [name for name, wav, notes in refs if _passed(ev.evaluate(str(wav), notes))]
         # was 40/84 with the old chroma+FFT+semitone-dedup pipeline
         assert len(passed) >= 80, f"only {len(passed)}/{len(refs)} references pass"
 
@@ -75,7 +79,7 @@ class TestReferenceAudio:
         from audio_engine import ChordEvaluator
         ev = ChordEvaluator()
         maj7 = [(n, w, notes) for n, w, notes in _refs() if n.endswith("_major7")]
-        failing = [n for n, w, notes in maj7 if ev.evaluate(str(w), notes).score < 1.0]
+        failing = [n for n, w, notes in maj7 if not _passed(ev.evaluate(str(w), notes))]
         assert len(failing) <= 1, failing
 
     def test_superset_chord_is_not_accepted_as_plain_major(self):
@@ -88,11 +92,23 @@ class TestReferenceAudio:
             for q in ("_major7", "_dominant7"):
                 if name.endswith(q):
                     base = name[: -len(q)] + "_major"
-                    if base in refs and ev.evaluate(str(wav), refs[base][1]).score >= 1.0:
+                    if base in refs and _passed(ev.evaluate(str(wav), refs[base][1])):
                         wrongly_passed.append(f"{name} as {base}")
-        # Known gray-zone case (round 2: "unclear, strum again" verdict): the A7
-        # reference's 7th sits between PRESENT and EXTRA, so it passes both ways.
-        assert set(wrongly_passed) <= {"A_dominant7 as A_major"}, wrongly_passed
+        assert not wrongly_passed, wrongly_passed
+
+    def test_references_never_fail_their_own_chord(self):
+        # borderline references may be "unclear" (strum again) but never graded wrong
+        from audio_engine import ChordEvaluator
+        ev = ChordEvaluator()
+        verdicts = {n: ev.evaluate(str(w), notes) for n, w, notes in _refs()}
+        failed = [n for n, r in verdicts.items() if r.issue not in (None, "unclear")]
+        assert not failed, failed
+
+    def test_a7_asked_as_a_is_unclear_not_pass(self):
+        from audio_engine import ChordEvaluator
+        r = ChordEvaluator().evaluate(str(LESSONS / "A_dominant7" / "reference.wav"), ["A", "C#", "E"])
+        assert r.issue == "unclear"
+        assert "G" in r.unclear_notes
 
     def test_detuned_guitar_still_graded_and_warned(self, tmp_path):
         import soundfile as sf
@@ -121,6 +137,38 @@ class TestReferenceAudio:
         p = tmp_path / "c48.wav"
         sf.write(str(p), y48, 48000)
         assert ChordEvaluator().evaluate(str(p), ["C", "E", "G"]).score == 1.0
+
+
+class TestUnclearVerdict:
+    def test_borderline_extra_is_unclear(self):
+        import numpy as np
+        from audio_engine import ChordEvaluator
+        ev = ChordEvaluator()
+        s = np.zeros(12); s[[0, 4, 7]] = 1.0; s[10] = 0.2   # C E G + faint A#
+        r = ev._decide(s, {"window_s": (0.0, 1.0)}, ["C", "E", "G"])
+        assert r.issue == "unclear" and r.unclear_notes == ["A#"]
+
+    def test_short_window_cannot_pass(self):
+        import numpy as np
+        from audio_engine import ChordEvaluator
+        s = np.zeros(12); s[[0, 4, 7]] = 1.0
+        r = ChordEvaluator()._decide(s, {"window_s": (0.0, 0.3)}, ["C", "E", "G"])
+        assert r.issue == "unclear"
+
+    def test_unclear_is_not_saved_or_completed(self, client):
+        import numpy as np
+        from audio_engine import EvaluationResult
+        _, headers = _signup(client)
+        fake = EvaluationResult(1.0, ["C", "E", "G"], ["C", "E", "G"], [], [], issue="unclear",
+                                unclear_notes=["A#"])
+        wav = _wav_bytes(np.zeros(22050, dtype=np.float32))
+        with patch("main.evaluator.evaluate", return_value=fake):
+            r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                            files={"audio": ("a.wav", wav, "audio/wav")}, headers=headers)
+        body = r.json()
+        assert body["state"] == "FEEDBACK"
+        assert "strum once more" in body["feedback"]
+        assert client.get("/api/progress/chord/C_major/history", headers=headers).json() == []
 
 
 class TestScoreSemantics:
@@ -175,6 +223,7 @@ class TestSubmitAudio:
         assert r.status_code == 200, r.text
         body = r.json()
         assert body["evaluation"]["score"] == 1.0
+        assert body["evaluation"]["issue"] is None
         assert body["state"] == "COMPLETED"
         assert "tuning_warning" in body
 
@@ -379,3 +428,78 @@ class TestCouncilGuardrails:
                 codes.append(client.post("/api/council/generate",
                                          json={"song_query": "Some Song"}).status_code)
         assert codes[:5] == [503] * 5 and codes[5] == 429
+
+
+class TestRound2Verdicts:
+    def test_verdict_field_on_pass(self, client):
+        wav = (LESSONS / "C_major" / "reference.wav").read_bytes()
+        r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                        files={"audio": ("c.wav", wav, "audio/wav")})
+        assert r.json()["verdict"] == "pass"
+
+    def test_unclear_reference_take(self, client):
+        wav = (LESSONS / "A_dominant7" / "reference.wav").read_bytes()
+        r = client.post("/submit_audio", data={"chord_name": "A_major"},
+                        files={"audio": ("a7.wav", wav, "audio/wav")})
+        body = r.json()
+        assert body["verdict"] == "unclear"
+        assert body["evaluation"]["score"] < 1.0
+        assert body["state"] == "FEEDBACK"
+
+    def test_other_real_chord_named(self, client):
+        # Em reference while asked for G major: a clean, different library chord
+        wav = (LESSONS / "E_minor" / "reference.wav").read_bytes()
+        r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                        files={"audio": ("em.wav", wav, "audio/wav")})
+        body = r.json()
+        assert body["verdict"] in ("fail", "unclear")
+        if body["evaluation"].get("sounds_like"):
+            assert body["evaluation"]["issue"] == "wrong_chord"
+            assert "not C" in body["feedback"]
+
+    def test_silence_verdict(self, client):
+        wav = _wav_bytes(np.zeros(22050, dtype=np.float32))
+        r = client.post("/submit_audio", data={"chord_name": "C_major"},
+                        files={"audio": ("s.wav", wav, "audio/wav")})
+        assert r.json()["verdict"] == "no_sound"
+
+
+class TestTokenRevocation:
+    def _tokens(self, client):
+        email = f"tok-{uuid.uuid4().hex[:8]}@example.com"
+        r = client.post("/api/auth/signup",
+                        json={"email": email, "password": "guitar123", "display_name": "T"})
+        return email, r.json()
+
+    def test_logout_revokes_access_token(self, client):
+        _, t = self._tokens(client)
+        h = {"Authorization": f"Bearer {t['access_token']}"}
+        assert client.get("/api/auth/me", headers=h).status_code == 200
+        client.post("/api/auth/logout", json={"refresh_token": t["refresh_token"]}, headers=h)
+        assert client.get("/api/auth/me", headers=h).status_code == 401
+
+    def test_refresh_token_cannot_be_reused(self, client):
+        _, t = self._tokens(client)
+        first = client.post("/api/auth/refresh", json={"refresh_token": t["refresh_token"]})
+        second = client.post("/api/auth/refresh", json={"refresh_token": t["refresh_token"]})
+        assert first.status_code == 200 and second.status_code == 401
+
+    def test_refresh_tokens_are_pruned(self, client):
+        import asyncio as _a
+        email, _ = self._tokens(client)
+        for _ in range(14):
+            assert client.post("/api/auth/login",
+                               json={"email": email, "password": "guitar123"}).status_code == 200
+
+        async def count():
+            from sqlalchemy import func, select
+            from db.engine import async_session
+            from db.models import RefreshToken, User
+            async with async_session() as s:
+                uid = (await s.execute(select(User.id).where(User.email == email))).scalar_one()
+                return (await s.execute(select(func.count()).where(RefreshToken.user_id == uid))).scalar()
+        try:
+            n = _a.run(count())
+        except ImportError:
+            pytest.skip("no async_session factory")
+        assert n <= 10
