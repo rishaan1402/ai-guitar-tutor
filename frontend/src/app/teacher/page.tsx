@@ -8,11 +8,13 @@ import StudentList from "@/components/TeacherDashboard/StudentList";
 import StudentDetail from "@/components/TeacherDashboard/StudentDetail";
 import ClassAnalyticsView from "@/components/TeacherDashboard/ClassAnalytics";
 import AssignmentForm from "@/components/TeacherDashboard/AssignmentForm";
+import InviteCodeCard from "@/components/TeacherDashboard/InviteCodeCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
   getStudents,
   getClassAnalytics,
   listChords,
+  removeStudent,
   type StudentSummary,
   type ClassAnalytics,
 } from "@/lib/api";
@@ -44,7 +46,15 @@ export default function TeacherPage() {
     ]).finally(() => setLoadingData(false));
   }, [isTeacher]);
 
-  if (loading || !user) {
+  const handleRemove = async (student: StudentSummary) => {
+    if (!window.confirm(`Remove ${student.display_name} from your class? You'll lose access to their progress.`)) return;
+    await removeStudent(student.id);
+    setSelectedStudent(null);
+    setStudents((prev) => prev.filter((s) => s.id !== student.id));
+  };
+
+  // Students never see the teacher UI (no invite-code flash, no 403 fetch).
+  if (loading || !user || !isTeacher) {
     return (
       <AppShell>
         <span className="text-gray-400">Loading…</span>
@@ -56,6 +66,8 @@ export default function TeacherPage() {
     <AppShell>
       <div className="max-w-6xl mx-auto">
         <SectionHeader title="Teacher Dashboard" subtitle="Manage your class and track their progress" />
+
+        <InviteCodeCard />
 
         {/* Tab switcher */}
         <div
@@ -107,6 +119,13 @@ export default function TeacherPage() {
                 <>
                   <div className="glass-card">
                     <StudentDetail student={selectedStudent} />
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(selectedStudent)}
+                      className="mt-6 text-xs text-gray-500 hover:text-red-300"
+                    >
+                      Remove from class
+                    </button>
                   </div>
                   {availableChords.length > 0 && (
                     <div className="glass-card">
@@ -119,7 +138,9 @@ export default function TeacherPage() {
                 </>
               ) : (
                 <div className="panel p-12 text-center text-gray-500">
-                  Select a student to view their progress
+                  {students.length
+                    ? "Select a student to view their progress"
+                    : "No students yet. Share your class code above so students can join."}
                 </div>
               )}
             </div>

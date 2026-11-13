@@ -1,5 +1,6 @@
 "use client";
 
+import { formatChord } from "@/lib/chordName";
 import { type ClassAnalytics } from "@/lib/api";
 
 interface Props {
@@ -18,15 +19,15 @@ export default function ClassAnalyticsView({ analytics }: Props) {
       {/* Most practiced */}
       <div className="glass-card">
         <p className="text-gray-400 text-sm mb-3">Most Practiced Chords</p>
-        {analytics.most_practiced.length === 0 ? (
+        {analytics.most_practiced_chords.length === 0 ? (
           <p className="text-gray-500 text-sm">No data yet</p>
         ) : (
           <ol className="space-y-1">
-            {analytics.most_practiced.slice(0, 5).map((item, i) => (
-              <li key={item.chord_name} className="flex items-center justify-between text-sm">
+            {analytics.most_practiced_chords.slice(0, 5).map((item, i) => (
+              <li key={item.chord} className="flex items-center justify-between text-sm">
                 <span className="text-gray-300">
                   <span className="text-gray-500 mr-2">{i + 1}.</span>
-                  {item.chord_name}
+                  {formatChord(item.chord)}
                 </span>
                 <span className="text-gray-400">{item.total_attempts} attempts</span>
               </li>
@@ -38,15 +39,15 @@ export default function ClassAnalyticsView({ analytics }: Props) {
       {/* Lowest avg score */}
       <div className="glass-card">
         <p className="text-gray-400 text-sm mb-3">Needs Most Work</p>
-        {analytics.lowest_avg_score.length === 0 ? (
+        {analytics.lowest_avg_score_chords.length === 0 ? (
           <p className="text-gray-500 text-sm">No data yet</p>
         ) : (
           <ol className="space-y-1">
-            {analytics.lowest_avg_score.slice(0, 5).map((item, i) => (
-              <li key={item.chord_name} className="flex items-center justify-between text-sm">
+            {analytics.lowest_avg_score_chords.slice(0, 5).map((item, i) => (
+              <li key={item.chord} className="flex items-center justify-between text-sm">
                 <span className="text-gray-300">
                   <span className="text-gray-500 mr-2">{i + 1}.</span>
-                  {item.chord_name}
+                  {formatChord(item.chord)}
                 </span>
                 <span className="text-red-400">{Math.round(item.avg_score * 100)}%</span>
               </li>

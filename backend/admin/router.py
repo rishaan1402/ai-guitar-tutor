@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.account import delete_user_and_data
 from auth.dependencies import require_role
 from db.engine import get_db
 from db.models import ChordAttempt, TransitionDrill, User
@@ -34,8 +35,8 @@ class UserListItem(BaseModel):
 
 @router.get("/users", response_model=list[UserListItem])
 async def list_users(
-    page: int = 1,
-    per_page: int = 20,
+    page: int = Query(1, ge=1, le=10_000),
+    per_page: int = Query(20, ge=1, le=100),
     role: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
@@ -71,6 +72,12 @@ async def update_user_role(
     user = await db.get(User, user_id)
     if user is None:
         raise HTTPException(404, "User not found")
+    if user.role == "admin" and body.role != "admin":
+        admins = (await db.execute(select(func.count()).where(User.role == "admin"))).scalar()
+        if admins <= 1:
+            raise HTTPException(409, "Can't remove the last admin.")
+    if user.role != body.role:
+        user.token_version = (user.token_version or 0) + 1  # old role claims stop working
     user.role = body.role
     await db.commit()
     return {"id": str(user.id), "role": user.role}
@@ -81,8 +88,7 @@ async def delete_user(user_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     user = await db.get(User, user_id)
     if user is None:
         raise HTTPException(404, "User not found")
-    await db.delete(user)
-    await db.commit()
+    await delete_user_and_data(db, user)
 
 
 @router.get("/stats")

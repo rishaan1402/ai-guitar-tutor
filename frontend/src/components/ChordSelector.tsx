@@ -1,5 +1,6 @@
 "use client";
 
+import { formatChord } from "@/lib/chordName";
 import { useEffect, useState } from "react";
 import { listChords } from "@/lib/api";
 
@@ -52,7 +53,7 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses }: Pro
   };
 
   const filtered = chords.filter((c) => {
-    const matchSearch = c.replace(/_/g, " ").toLowerCase().includes(search.toLowerCase());
+    const matchSearch = formatChord(c).toLowerCase().includes(search.toLowerCase());
     const matchFilter = filter === "all" || getDifficulty(c) === filter;
     return matchSearch && matchFilter;
   });
@@ -116,7 +117,7 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses }: Pro
                 `}
               >
                 <span className="text-xs font-semibold text-white leading-tight">
-                  {chord.replace(/_/g, " ")}
+                  {formatChord(chord)}
                 </span>
                 <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full border ${DIFFICULTY_COLORS[diff]}`}>
                   {DIFFICULTY_LABELS[diff].slice(0, 3)}
@@ -137,15 +138,14 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses }: Pro
 
       {selected && (
         <div
-          className="flex justify-end"
-          style={{ animation: "fade-in-up 0.2s ease-out both" }}
+          className="flex justify-end animate-enter-fast"
         >
           <button
             onClick={() => { if (selected) onSelect(selected); }}
             disabled={disabled}
             className="btn-gradient px-6 py-2.5 rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Start Lesson — {selected.replace(/_/g, " ")}
+            Start Lesson — {formatChord(selected)}
           </button>
         </div>
       )}

@@ -6,7 +6,7 @@ import uuid
 
 from council.schemas import QuizQuestion, QuizResponse
 from council.session_store import LessonSession
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
 
 logger = logging.getLogger(__name__)
 
@@ -112,13 +112,12 @@ async def generate_quiz(session: LessonSession, user_context: str = "") -> QuizR
 
     try:
         response = await client.chat.completions.create(
-            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": quiz_system},
                 {"role": "user", "content": lesson_text},
             ],
             temperature=0.6,
-            max_tokens=800,
+            **llm_params(800),
         )
         raw = response.choices[0].message.content.strip()
 

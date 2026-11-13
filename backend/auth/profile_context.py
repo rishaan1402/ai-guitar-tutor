@@ -8,6 +8,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import ChordAttempt, User
+from personalization.mastery import GRADED, user_mastery
+from personalization.thresholds import STRUGGLING
 
 
 async def build_user_context(
@@ -33,13 +35,14 @@ async def build_user_context(
             func.max(ChordAttempt.score).label("best"),
             func.avg(ChordAttempt.score).label("avg"),
         )
-        .where(ChordAttempt.user_id == user_id)
+        .where(ChordAttempt.user_id == user_id, GRADED)
         .group_by(ChordAttempt.chord_name)
     )
     chord_stats = rows.all()
 
-    mastered = [r for r in chord_stats if r.best >= 0.95]
-    struggling = [r for r in chord_stats if r.best is not None and r.best < 0.5]
+    mastery = await user_mastery(db, user_id)
+    mastered = [r for r in chord_stats if mastery.get(r.chord_name) and mastery[r.chord_name].is_mastered]
+    struggling = [r for r in chord_stats if r.best is not None and r.best < STRUGGLING]
     total_attempts = sum(r.attempts for r in chord_stats)
 
     if total_attempts > 50:

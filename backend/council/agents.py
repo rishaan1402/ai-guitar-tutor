@@ -5,7 +5,7 @@ import json
 import logging
 
 from council.schemas import SongObject, AgentOutput
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
 
 logger = logging.getLogger(__name__)
 
@@ -129,13 +129,12 @@ async def _run_agent(agent_name: str, system_prompt: str, content: str) -> Agent
         try:
             response = await asyncio.wait_for(
                 client.chat.completions.create(
-                    model=GROQ_MODEL,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": f"Song data:\n{content}"},
                     ],
                     temperature=0.7,
-                    max_tokens=600,
+                    **llm_params(600),
                 ),
                 timeout=20.0,
             )

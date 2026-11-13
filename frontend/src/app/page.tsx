@@ -62,16 +62,15 @@ export default function LandingPage() {
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-20 text-center">
           <div
-            className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full glass border border-white/10 text-purple-300 mb-6"
-            style={{ animation: "fade-in-up 0.5s ease-out both" }}
+            className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full glass border border-white/10 text-purple-300 mb-6 animate-enter"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse-glow" />
             AI listens while you play
           </div>
 
           <h1
-            className="text-4xl sm:text-6xl font-black tracking-tight leading-[1.05]"
-            style={{ animation: "fade-in-up 0.5s ease-out 0.05s both" }}
+            className="text-4xl sm:text-6xl font-black tracking-tight leading-[1.05] animate-enter"
+            style={{ "--i": 1 } as React.CSSProperties}
           >
             Learn guitar chords with
             <br />
@@ -79,32 +78,32 @@ export default function LandingPage() {
           </h1>
 
           <p
-            className="text-gray-400 text-lg max-w-xl mx-auto mt-6"
-            style={{ animation: "fade-in-up 0.5s ease-out 0.1s both" }}
+            className="text-gray-400 text-lg max-w-xl mx-auto mt-6 animate-enter"
+            style={{ "--i": 2 } as React.CSSProperties}
           >
             Watch, listen, play, and get scored on what your microphone actually hears —
             not just whether you clicked &quot;done&quot;.
           </p>
 
           <div
-            className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-9"
-            style={{ animation: "fade-in-up 0.5s ease-out 0.15s both" }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-9 animate-enter"
+            style={{ "--i": 3 } as React.CSSProperties}
           >
-            <Link href="/signup" className="btn-gradient px-7 py-3 text-base w-full sm:w-auto">
-              Start Practicing Free
+            <Link href="/start" className="btn-gradient px-7 py-3 text-base w-full sm:w-auto">
+              Try it free
             </Link>
             <Link
-              href="/practice"
+              href="/signup"
               className="btn-outline px-7 py-3 text-base w-full sm:w-auto"
             >
-              Try it without an account →
+              Create a free account →
             </Link>
           </div>
 
           {/* Mock app preview */}
           <div
-            className="glass-card mt-16 max-w-3xl mx-auto text-left p-0 overflow-hidden"
-            style={{ animation: "fade-in-up 0.6s ease-out 0.2s both" }}
+            className="glass-card mt-16 max-w-3xl mx-auto text-left p-0 overflow-hidden animate-enter"
+            style={{ "--i": 4 } as React.CSSProperties}
           >
             <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/5">
               <span className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
@@ -140,7 +139,7 @@ export default function LandingPage() {
                     style={{
                       background:
                         [2, 8, 15, 20].includes(i)
-                          ? "rgba(139,92,246,0.7)"
+                          ? "rgba(var(--accent-rgb),0.7)"
                           : "rgba(255,255,255,0.06)",
                     }}
                   />
@@ -260,11 +259,11 @@ export default function LandingPage() {
           No install, no credit card — just plug in a mic and play.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href="/signup" className="btn-gradient px-7 py-3 text-base w-full sm:w-auto">
-            Start Practicing Free
+          <Link href="/start" className="btn-gradient px-7 py-3 text-base w-full sm:w-auto">
+            Try it free
           </Link>
-          <Link href="/practice" className="btn-outline px-7 py-3 text-base w-full sm:w-auto">
-            Try it without an account →
+          <Link href="/signup" className="btn-outline px-7 py-3 text-base w-full sm:w-auto">
+            Create a free account →
           </Link>
         </div>
       </section>

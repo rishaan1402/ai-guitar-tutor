@@ -5,6 +5,9 @@ import type { ChordFingering } from "@/lib/api";
 interface Props {
   fingering: ChordFingering | null;
   liveNotes?: string[]; // pitch-class names currently detected (e.g. ["G", "B", "D"])
+  /** Scale to the container width (capped) instead of the fixed 100px thumbnail. */
+  fluid?: boolean;
+  className?: string;
 }
 
 const STRINGS = 6;
@@ -19,14 +22,15 @@ const SVG_W = FRETBOARD_W + LEFT_MARGIN + 12;
 const SVG_H = FRETBOARD_H + TOP_MARGIN + 12;
 const DOT_R = 5;
 
+// Warm, distinct per finger; kept clear of the green/red used for scoring
 const FINGER_COLORS: Record<number, string> = {
-  1: "#3b82f6",
-  2: "#22c55e",
-  3: "#f59e0b",
-  4: "#ef4444",
+  1: "#e8a54b",
+  2: "#86b092",
+  3: "#e9d9b8",
+  4: "#de7a5c",
 };
 
-export default function ChordDiagram({ fingering, liveNotes }: Props) {
+export default function ChordDiagram({ fingering, liveNotes, fluid, className }: Props) {
   if (!fingering) return null;
 
   const positions = fingering.positions || [];
@@ -51,15 +55,15 @@ export default function ChordDiagram({ fingering, liveNotes }: Props) {
   const fretY = (f: number) => TOP_MARGIN + (f - startFret) * FRET_SPACING + FRET_SPACING / 2;
 
   return (
-    <div className="glass-card w-fit self-start">
+    <div className={`glass-card ${fluid ? "w-full" : "w-fit self-start"} ${className ?? ""}`}>
       <p className="text-[10px] font-semibold gradient-text text-center mb-0.5">
         {fingering.display_name}
       </p>
       <svg
         viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        width={SVG_W}
-        height={SVG_H}
-        className="mx-auto"
+        width={fluid ? undefined : SVG_W}
+        height={fluid ? undefined : SVG_H}
+        className={fluid ? "mx-auto block w-full h-auto" : "mx-auto"}
         aria-label={`Chord diagram for ${fingering.display_name}`}
       >
         {/* Glow filter for live-detected notes */}
@@ -172,17 +176,23 @@ export default function ChordDiagram({ fingering, liveNotes }: Props) {
               : baseColor;
 
             return (
-              <circle
-                key={`d-${i}`}
-                cx={x}
-                cy={y}
-                r={isLive ? DOT_R + 1 : DOT_R}
-                fill={fill}
-                stroke={isLive ? "#22c55e" : "#fff"}
-                strokeWidth={isLive ? 1.5 : 0.8}
-                filter={isLive ? "url(#liveGlow)" : undefined}
-                style={{ transition: "fill 0.15s, r 0.1s" }}
-              />
+              <g key={`d-${i}`}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={isLive ? DOT_R + 1 : DOT_R}
+                  fill={fill}
+                  stroke={isLive ? "#22c55e" : "rgba(28,18,6,0.6)"}
+                  strokeWidth={isLive ? 1.5 : 0.8}
+                  filter={isLive ? "url(#liveGlow)" : undefined}
+                  style={{ transition: "fill 0.15s, r 0.1s" }}
+                />
+                {pos.finger && !isLiveMode && (
+                  <text x={x} y={y + 2.2} fontSize={6} fill="#1c1206" textAnchor="middle" fontWeight="bold" aria-hidden>
+                    {pos.finger}
+                  </text>
+                )}
+              </g>
             );
           })}
       </svg>

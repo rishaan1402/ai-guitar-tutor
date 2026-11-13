@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Optional
+from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
+
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from db.models import LessonSessionDB
 
 from council.schemas import SongObject, LessonDocument, QuizResponse, ChordRankEntry
 
@@ -77,27 +83,90 @@ class LessonSession:
 
 
 # ---------------------------------------------------------------------------
-# In-memory store (mirrors _sessions pattern in main.py)
+# Database-backed store
+#
+# Sessions live in ``lesson_sessions`` so a lesson generated on one Cloud Run
+# instance can be practised against any other, and survives restarts.
+# ``LessonSession`` stays the in-memory working view; call ``save_session``
+# after mutating it.
 # ---------------------------------------------------------------------------
 
-_store: dict[str, LessonSession] = {}
+MAX_SCORES_PER_CHORD = 50
 
 
-def create_session(song: SongObject, lesson: LessonDocument) -> LessonSession:
-    # Use the lesson_id already set in the LessonDocument so the frontend
-    # can look up the session with the same ID it received.
-    session = LessonSession(lesson_id=lesson.lesson_id, song=song, lesson=lesson)
-    _store[lesson.lesson_id] = session
-    _cleanup()
-    return session
+def _from_row(row: LessonSessionDB) -> LessonSession:
+    return LessonSession(
+        lesson_id=row.lesson_id,
+        song=SongObject.model_validate(row.song_data),
+        lesson=LessonDocument.model_validate(row.lesson_data),
+        chord_scores={k: list(v) for k, v in (row.chord_scores or {}).items()},
+        cached_quiz=QuizResponse.model_validate(row.cached_quiz) if row.cached_quiz else None,
+        created_at=row.created_at.timestamp() if row.created_at else time.time(),
+    )
 
 
-def get_session(lesson_id: str) -> Optional[LessonSession]:
-    return _store.get(lesson_id)
+async def create_session(
+    db: AsyncSession, song: SongObject, lesson: LessonDocument, user_id: Any = None
+) -> LessonSession:
+    now = datetime.now(timezone.utc)
+    await db.execute(delete(LessonSessionDB).where(LessonSessionDB.expires_at < now))
+    db.add(LessonSessionDB(
+        lesson_id=lesson.lesson_id,
+        user_id=user_id,
+        song_data=song.model_dump(mode="json"),
+        lesson_data=lesson.model_dump(mode="json"),
+        chord_scores={},
+        expires_at=now + timedelta(seconds=SESSION_TTL),
+    ))
+    await db.commit()
+    return LessonSession(lesson_id=lesson.lesson_id, song=song, lesson=lesson)
 
 
-def _cleanup() -> None:
-    now = time.time()
-    stale = [k for k, v in _store.items() if now - v.created_at > SESSION_TTL]
-    for k in stale:
-        del _store[k]
+async def _get_row(db: AsyncSession, lesson_id: str) -> Optional[LessonSessionDB]:
+    result = await db.execute(
+        select(LessonSessionDB).where(
+            LessonSessionDB.lesson_id == lesson_id,
+            LessonSessionDB.expires_at >= datetime.now(timezone.utc),
+        )
+    )
+    return result.scalars().first()
+
+
+async def get_session(db: AsyncSession, lesson_id: str, user_id: Any = None) -> Optional[LessonSession]:
+    """Return the live session, or None if missing/expired or owned by someone else."""
+    row = await _get_row(db, lesson_id)
+    if row is None or (row.user_id is not None and row.user_id != user_id):
+        return None
+    return _from_row(row)
+
+
+async def append_score(db: AsyncSession, session: LessonSession, chord_key: str, score: float) -> None:
+    """Record one attempt atomically.
+
+    Concurrent tips for the same lesson used to read-modify-write the whole
+    JSON blob and lose updates. Lock the row (Postgres; SQLite serialises
+    writers anyway), merge into the stored scores, then commit.
+    """
+    result = await db.execute(
+        select(LessonSessionDB)
+        .where(LessonSessionDB.lesson_id == session.lesson_id)
+        .with_for_update()
+    )
+    row = result.scalars().first()
+    if row is None:
+        return
+    scores = {k: list(v) for k, v in (row.chord_scores or {}).items()}
+    scores.setdefault(chord_key, []).append(score)
+    scores[chord_key] = scores[chord_key][-MAX_SCORES_PER_CHORD:]
+    row.chord_scores = scores
+    await db.commit()
+    session.chord_scores = scores
+
+
+async def save_session(db: AsyncSession, session: LessonSession) -> None:
+    row = await _get_row(db, session.lesson_id)
+    if row is None:
+        return
+    row.lesson_data = session.lesson.model_dump(mode="json")
+    row.cached_quiz = session.cached_quiz.model_dump(mode="json") if session.cached_quiz else None
+    await db.commit()

@@ -1,11 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { safeNext } from "@/lib/auth";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<Form next="/dashboard" />}>
+      <WithNext />
+    </Suspense>
+  );
+}
+
+/** Same-site `?next=` only ("/practice?chord=C_major"); anything else → /dashboard. */
+function WithNext() {
+  const params = useSearchParams();
+  return <Form next={safeNext(params.get("next"))} />;
+}
+
+function Form({ next }: { next: string }) {
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -19,7 +34,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      router.push("/dashboard");
+      router.push(next);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -35,7 +50,7 @@ export default function LoginPage() {
           <span className="font-bold text-white">AI Guitar Tutor</span>
         </Link>
 
-        <div className="glass-card" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="glass-card animate-enter">
           <h1 className="text-2xl font-bold text-white mb-1 text-center">Welcome back</h1>
           <p className="text-gray-400 text-sm text-center mb-7">
             Log in to sync your progress and get personalized feedback
@@ -43,9 +58,10 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="field-label">Email</label>
+              <label htmlFor="login-email" className="field-label">Email</label>
               <input
-                type="email"
+                id="login-email"
+type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -55,9 +71,15 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="field-label">Password</label>
+              <div className="flex items-baseline justify-between">
+                <label htmlFor="login-password" className="field-label">Password</label>
+                <Link href="/forgot-password" className="text-xs text-purple-300 hover:text-purple-200">
+                  Forgot password?
+                </Link>
+              </div>
               <input
-                type="password"
+                id="login-password"
+type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -80,7 +102,7 @@ export default function LoginPage() {
 
         <p className="text-center text-gray-500 text-sm mt-6">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-purple-300 hover:text-purple-200 transition-colors">
+          <Link href={next !== "/dashboard" ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} className="text-purple-300 hover:text-purple-200 transition-colors">
             Sign up
           </Link>
         </p>

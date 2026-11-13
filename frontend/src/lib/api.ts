@@ -1,19 +1,69 @@
-import { getAccessToken, refreshAccessToken, setTokens, clearTokens } from "./auth";
+import { getAccessToken, getRefreshToken, refreshAccessToken, setTokens, clearTokens, loginHref } from "./auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-let sessionId: string | null = null;
-
-function getSessionId(): string {
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
+/** FastAPI sends `detail` as a string, or as a list of field errors on 422. */
+export function errorMessage(body: { detail?: unknown }, fallback: string): string {
+  const d = body.detail;
+  if (typeof d === "string") return d;
+  if (Array.isArray(d) && d.length > 0) {
+    const msg = String(d[0]?.msg ?? "");
+    // Pydantic prefixes validator messages with "Value error, "
+    return msg.replace(/^Value error, /, "") || fallback;
   }
-  return sessionId;
+  return fallback;
 }
 
-async function request<T>(path: string, options?: RequestInit, retry = true): Promise<T> {
+/** Error from the API, carrying the HTTP status so callers can tailor the message. */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+/** The browser's IANA time zone (e.g. "America/Denver"), or null if unavailable. */
+export function localTimeZone(): string | null {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  } catch {
+    return null;
+  }
+}
+
+/** `?tz=<zone>` so the server buckets days (streak, calendar) in local time. */
+function tzQuery(): string {
+  const tz = localTimeZone();
+  return tz ? `?tz=${encodeURIComponent(tz)}` : "";
+}
+
+export type AuthMode = "required" | "optional";
+
+/** Thrown by `request` when the session can't be refreshed (401 after a failed refresh). */
+export class AuthExpiredError extends ApiError {
+  constructor() {
+    super("Session expired. Please log in again.", 401);
+    this.name = "AuthExpiredError";
+  }
+}
+
+/**
+ * Fetch from the API with the stored bearer token.
+ *
+ * On a 401 the token is refreshed once (single-flight). If that fails:
+ *  - `auth: "required"` (the default) sends the learner to /login?next=<here>;
+ *  - `auth: "optional"` throws AuthExpiredError and leaves the page alone, so
+ *    the caller can retry anonymously (optional-auth endpoints now 401 on a
+ *    bad/expired token instead of silently treating it as a guest).
+ */
+async function request<T>(
+  path: string,
+  options?: RequestInit,
+  { auth = "required", retry = true }: { auth?: AuthMode; retry?: boolean } = {},
+): Promise<T> {
   const headers = new Headers(options?.headers);
-  headers.set("X-Session-Id", getSessionId());
 
   const token = getAccessToken();
   if (token) {
@@ -24,21 +74,58 @@ async function request<T>(path: string, options?: RequestInit, retry = true): Pr
 
   // If 401 and we haven't retried yet, try to refresh the token
   if (res.status === 401 && retry) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      return request<T>(path, options, false);
+    if (token) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        return request<T>(path, options, { auth, retry: false });
+      }
+      clearTokens();
     }
-    // Refresh failed — redirect to login
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
+    if (auth === "required" && typeof window !== "undefined") {
+      window.location.href = loginHref();
     }
-    throw new Error("Session expired. Please log in again.");
+    throw new AuthExpiredError();
+  }
+  if (res.status === 401 && token) {
+    // the refreshed token was rejected too
+    clearTokens();
+    if (auth === "required" && typeof window !== "undefined") {
+      window.location.href = loginHref();
+    }
+    throw new AuthExpiredError();
   }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Request failed: ${res.status}`);
+    throw new ApiError(errorMessage(body, `Request failed: ${res.status}`), res.status);
   }
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+/**
+ * Optional-auth endpoint (songs, council): signed in if we can, otherwise as a
+ * guest. A stale token never bounces the learner to /login.
+ */
+async function requestOptional<T>(path: string, options?: RequestInit): Promise<T> {
+  try {
+    return await request<T>(path, options, { auth: "optional" });
+  } catch (err) {
+    if (err instanceof AuthExpiredError) return requestAnonymous<T>(path, options);
+    throw err;
+  }
+}
+
+/** Same request with no Authorization header at all (anonymous retry). */
+async function requestAnonymous<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers);
+  headers.delete("Authorization");
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(errorMessage(body, `Request failed: ${res.status}`), res.status);
+  }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
@@ -46,30 +133,64 @@ export function listChords(): Promise<{ chords: string[] }> {
   return request("/chords");
 }
 
-export function getLesson(chord: string): Promise<{ lesson: Record<string, unknown> }> {
+export interface LessonInfo {
+  chord_name: string;
+  metadata?: Record<string, unknown>;
+  video_url?: string;
+  audio_url?: string;
+}
+
+/** Load a chord lesson. Stateless: the server keeps no per-browser session. */
+export function getLesson(chord: string): Promise<{ lesson: LessonInfo }> {
   return request(`/lesson/${encodeURIComponent(chord)}`);
 }
 
-export function learnChord(chordName: string): Promise<Record<string, unknown>> {
-  return request("/learn_chord", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chord_name: chordName }),
-  });
-}
+export const MAX_UPLOAD_MB = 2;
 
-export function submitAudio(audioBlob: Blob): Promise<Record<string, unknown>> {
+export async function submitAudio(
+  audioBlob: Blob,
+  chordName: string,
+  previousScores: number[] = [],
+): Promise<Record<string, unknown>> {
+  if (audioBlob.size > MAX_UPLOAD_MB * 1024 * 1024) {
+    throw new Error(submitErrorMessage(new ApiError("", 413)));
+  }
   const form = new FormData();
   form.append("audio", audioBlob, "recording.wav");
-  return request("/submit_audio", { method: "POST", body: form });
+  // Sending the chord and earlier scores keeps scoring stateless on the server
+  form.append("chord_name", chordName);
+  form.append("previous_scores", JSON.stringify(previousScores));
+  const opts: RequestInit = { method: "POST", body: form };
+  try {
+    return await request("/submit_audio", opts, { auth: "optional" });
+  } catch (err) {
+    if (err instanceof AuthExpiredError) {
+      // Signed out under us (revoked / expired refresh): still grade the take,
+      // just don't save it. The page tells the learner and offers sign-in.
+      try {
+        const result = await requestAnonymous<Record<string, unknown>>("/submit_audio", opts);
+        return { ...result, savedAnonymously: true };
+      } catch (err2) {
+        throw new Error(submitErrorMessage(err2));
+      }
+    }
+    throw new Error(submitErrorMessage(err));
+  }
 }
 
-export function getSession(): Promise<Record<string, unknown>> {
-  return request("/session");
-}
-
-export function resetSession(): Promise<{ status: string; message: string }> {
-  return request("/reset", { method: "POST" });
+/** Friendly copy for upload failures (size cap, unreadable format). */
+export function submitErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 413) {
+      return `That recording was too large to upload (over ${MAX_UPLOAD_MB} MB). Record a shorter take — one strum is enough.`;
+    }
+    if (err.status === 422) {
+      return err.message && !err.message.startsWith("Request failed")
+        ? err.message
+        : "We couldn't read that audio. Please record again.";
+    }
+  }
+  return err instanceof Error ? err.message : "Failed to submit audio";
 }
 
 export function getVideoUrl(chord: string): string {
@@ -80,19 +201,24 @@ export function getAudioUrl(chord: string): string {
   return `${API_BASE}/audio/${encodeURIComponent(chord)}`;
 }
 
+export interface FretPosition {
+  string: number;
+  fret?: number;
+  note?: string;
+  finger?: number;
+  action?: string;
+}
+
 export interface ChordFingering {
   chord: string;
   display_name: string;
   root: string;
   quality: string;
   notes: string[];
-  positions: {
-    string: number;
-    fret?: number;
-    note?: string;
-    finger?: number;
-    action?: string;
-  }[];
+  /** The voicing to teach first (open shape where one exists). */
+  positions: FretPosition[];
+  /** Lowest barre voicing, for players moving up the neck. */
+  alt_positions?: FretPosition[];
 }
 
 export function getFingering(chord: string): Promise<ChordFingering> {
@@ -130,7 +256,7 @@ export async function signup(
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Signup failed: ${res.status}`);
+    throw new Error(errorMessage(body, `Signup failed: ${res.status}`));
   }
   const tokens: TokenResponse = await res.json();
   setTokens(tokens.access_token, tokens.refresh_token);
@@ -149,7 +275,7 @@ export async function login(
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Login failed: ${res.status}`);
+    throw new Error(errorMessage(body, `Login failed: ${res.status}`));
   }
   const tokens: TokenResponse = await res.json();
   setTokens(tokens.access_token, tokens.refresh_token);
@@ -173,25 +299,83 @@ export function updateProfile(data: {
 }
 
 export async function logout(): Promise<void> {
+  const refreshToken = getRefreshToken();
   try {
-    await request("/api/auth/logout", { method: "POST" });
+    // The backend revokes this refresh token so it can't be reused
+    if (refreshToken) {
+      await request("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+    }
   } catch {
     // ignore errors on logout
   }
   clearTokens();
 }
 
+export async function deleteAccount(password: string): Promise<void> {
+  await request("/api/auth/me", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  clearTokens();
+}
+
+async function postPublic(path: string, payload: unknown): Promise<void> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(errorMessage(body, `Request failed: ${res.status}`));
+  }
+}
+
+export function requestPasswordReset(email: string): Promise<void> {
+  return postPublic("/api/auth/password-reset/request", { email });
+}
+
+export function confirmPasswordReset(token: string, newPassword: string): Promise<void> {
+  return postPublic("/api/auth/password-reset/confirm", { token, new_password: newPassword });
+}
+
 // ---------------------------------------------------------------------------
 // Progress (authenticated)
 // ---------------------------------------------------------------------------
 
+export type ChordStatus = "not_attempted" | "in_progress" | "mastered";
+export type MasteryStage = "new" | "learning" | "verifying" | "mastered" | "due";
+
+/** One chord in GET /api/progress/ (mastery = clean takes on 3 different days, then re-checks). */
 export interface ChordProgressItem {
   chord_name: string;
   best_score: number;
   total_attempts: number;
-  mastered: boolean;
   last_practiced: string | null;
-  streak_days: number;
+  status: ChordStatus;
+  stage: MasteryStage;
+  clean_days: number;
+  clean_days_required: number;
+  next_due: string | null;
+  due: boolean;
+}
+
+/** Teacher view of a student's chord (a subset of ChordProgressItem plus the average). */
+export interface StudentChordItem {
+  chord_name: string;
+  best_score: number;
+  total_attempts: number;
+  avg_score?: number;
+  status: ChordStatus;
+  stage?: MasteryStage;
+  clean_days?: number;
+  clean_days_required?: number;
+  next_due?: string | null;
 }
 
 export interface ProgressResponse {
@@ -202,7 +386,7 @@ export interface ProgressResponse {
 }
 
 export function getProgress(): Promise<ProgressResponse> {
-  return request("/api/progress/");
+  return request(`/api/progress/${tzQuery()}`);
 }
 
 export interface TransitionHistoryItem {
@@ -331,7 +515,7 @@ export interface TipResponse {
 }
 
 export function generateSongLesson(songQuery: string): Promise<LessonDocument> {
-  return request("/api/council/generate", {
+  return requestOptional("/api/council/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ song_query: songQuery }),
@@ -339,7 +523,7 @@ export function generateSongLesson(songQuery: string): Promise<LessonDocument> {
 }
 
 export function getSongTip(params: TipRequest): Promise<TipResponse> {
-  return request("/api/council/practice/tip", {
+  return requestOptional("/api/council/practice/tip", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
@@ -347,7 +531,7 @@ export function getSongTip(params: TipRequest): Promise<TipResponse> {
 }
 
 export function reviseSongLesson(lessonId: string): Promise<LessonDocument> {
-  return request("/api/council/practice/revise", {
+  return requestOptional("/api/council/practice/revise", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lesson_id: lessonId }),
@@ -371,7 +555,7 @@ export interface QuizResponse {
 }
 
 export function getQuiz(lessonId: string): Promise<QuizResponse> {
-  return request("/api/council/quiz", {
+  return requestOptional("/api/council/quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lesson_id: lessonId }),
@@ -395,7 +579,7 @@ export interface StudentSummary {
 
 export interface StudentProgress {
   user: UserResponse;
-  chords: ChordProgressItem[];
+  chords: StudentChordItem[];
   transitions: TransitionHistoryItem[];
 }
 
@@ -411,9 +595,10 @@ export function getStudentReport(studentId: string): Promise<{ report: string }>
   return request(`/api/teacher/students/${studentId}/report`);
 }
 
+// Field names match backend teacher/router.py class_analytics()
 export interface ClassAnalytics {
-  most_practiced: { chord_name: string; total_attempts: number }[];
-  lowest_avg_score: { chord_name: string; avg_score: number }[];
+  most_practiced_chords: { chord: string; total_attempts: number }[];
+  lowest_avg_score_chords: { chord: string; avg_score: number }[];
   total_students: number;
 }
 
@@ -484,7 +669,7 @@ export function getSystemStats(): Promise<SystemStats> {
 // ---------------------------------------------------------------------------
 
 export interface PlanItem {
-  type: "warmup" | "focus" | "new" | "transition";
+  type: "warmup" | "focus" | "new" | "transition" | "review" | "assignment";
   chord_key?: string;
   chord_symbol?: string;
   chord_a?: string;
@@ -496,6 +681,17 @@ export interface PlanItem {
   attempts?: number;
   difficulty?: string;
   miss_rate?: number;
+  /** focus: clean days so far, and what's still needed ("one more clean day"). */
+  clean_days?: number;
+  needs?: string;
+  /** review: when the re-check fell due. */
+  next_due?: string;
+  /** assignment: the teacher's note. */
+  note?: string | null;
+  /** transition: one-minute-changes target. */
+  target?: number;
+  last?: number;
+  reason?: string;
 }
 
 export interface DailyPlan {
@@ -506,7 +702,55 @@ export interface DailyPlan {
 }
 
 export function getPlan(): Promise<DailyPlan> {
-  return request("/api/plan/next");
+  return request(`/api/plan/next${tzQuery()}`);
+}
+
+export interface RecapChord {
+  chord_key: string;
+  chord_symbol: string;
+  takes: number;
+  first_score: number;
+  best_score: number;
+  last_score: number;
+  clean_takes: number;
+  stage_before: MasteryStage;
+  stage_after: MasteryStage;
+  clean_days: number;
+  clean_days_required: number;
+}
+
+export interface RecapDrill {
+  chord_a: string;
+  chord_b: string;
+  got: number;
+  prev_best_got: number | null;
+}
+
+/** GET /api/progress/recap: what changed this session (graded, persisted takes only). */
+export interface SessionRecapResponse {
+  started_at: string;
+  ended_at: string;
+  minutes: number;
+  takes: number;
+  graded_takes: number;
+  unclear_count: number | null;
+  chords: RecapChord[];
+  new_clean_days: string[];
+  newly_mastered: string[];
+  rechecked: string[];
+  personal_bests: string[];
+  drills: RecapDrill[];
+  streak: number;
+  next: PlanItem | null;
+  headline: string;
+}
+
+/** Signed-in only (401 for guests: don't call it then). 204 → undefined. */
+export function getRecap(sinceIso: string): Promise<SessionRecapResponse | undefined> {
+  const tz = localTimeZone();
+  const qs = new URLSearchParams({ since: sinceIso });
+  if (tz) qs.set("tz", tz);
+  return request(`/api/progress/recap?${qs}`, undefined, { auth: "optional" });
 }
 
 export interface CalendarDay {
@@ -516,7 +760,7 @@ export interface CalendarDay {
 }
 
 export function getCalendar(): Promise<CalendarDay[]> {
-  return request("/api/progress/calendar");
+  return request(`/api/progress/calendar${tzQuery()}`);
 }
 
 export interface ChordAttempt {
@@ -539,4 +783,101 @@ export function submitTipFeedback(tipId: string, helpful: boolean): Promise<{ st
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ helpful }),
   });
+}
+
+export function getInviteCode(): Promise<{ code: string }> {
+  return request("/api/teacher/invite-code");
+}
+
+export function rotateInviteCode(): Promise<{ code: string }> {
+  return request("/api/teacher/invite-code/rotate", { method: "POST" });
+}
+
+export function removeStudent(studentId: string): Promise<void> {
+  return request(`/api/teacher/students/${studentId}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------------------
+// Class membership (student side)
+// ---------------------------------------------------------------------------
+
+export interface TeacherInfo {
+  id: string;
+  display_name: string;
+}
+
+export interface Assignment {
+  id: string;
+  teacher_name: string;
+  chord_name: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export function joinClass(code: string): Promise<TeacherInfo> {
+  return request("/api/class/join", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+}
+
+export function getMyTeachers(): Promise<TeacherInfo[]> {
+  return request("/api/class/teachers");
+}
+
+export function leaveClass(teacherId: string): Promise<void> {
+  return request(`/api/class/teachers/${teacherId}`, { method: "DELETE" });
+}
+
+export function getMyAssignments(): Promise<Assignment[]> {
+  return request("/api/class/assignments");
+}
+
+// ---------------------------------------------------------------------------
+// Song sheets (ChordPro)
+// ---------------------------------------------------------------------------
+
+export interface SongSummary {
+  id: string;
+  title: string;
+  artist: string | null;
+  key: string | null;
+  difficulty: string | null;
+  source: "library" | "mine" | "class";
+  owner_name?: string | null;
+  visibility?: "private" | "class" | null;
+}
+
+export interface SongDetail extends SongSummary {
+  content: string;
+  can_edit: boolean;
+}
+
+export function listSongs(params: { q?: string; difficulty?: string } = {}): Promise<SongSummary[]> {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set("q", params.q);
+  if (params.difficulty) qs.set("difficulty", params.difficulty);
+  const suffix = qs.toString() ? `?${qs}` : "";
+  return requestOptional(`/api/songs${suffix}`);
+}
+
+export function getSong(id: string): Promise<SongDetail> {
+  return requestOptional(`/api/songs/${encodeURIComponent(id)}`);
+}
+
+export function saveSong(
+  content: string,
+  visibility: "private" | "class",
+  id?: string,
+): Promise<SongDetail> {
+  return request(id ? `/api/songs/${encodeURIComponent(id)}` : "/api/songs", {
+    method: id ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, visibility }),
+  });
+}
+
+export function deleteSong(id: string): Promise<void> {
+  return request(`/api/songs/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

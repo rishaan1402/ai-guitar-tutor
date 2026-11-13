@@ -41,7 +41,7 @@ export default function AssignmentForm({ student, availableChords }: Props) {
         className="field-input"
       >
         {availableChords.map((c) => (
-          <option key={c} value={c} className="bg-[#0a0a0e]">
+          <option key={c} value={c} className="bg-[#080a09]">
             {c}
           </option>
         ))}

@@ -1,21 +1,35 @@
 "use client";
 
+import { formatChord } from "@/lib/chordName";
+
 interface Props {
   videoPath: string | null;
   audioUrl: string | null;
   chordName: string;
   onVideoEnd?: () => void;
   onAudioEnd?: () => void;
+  /** Lesson still loading: reserve the video's box (no layout shift when it arrives). */
+  pending?: boolean;
 }
 
-export default function LessonVideoPlayer({ videoPath, audioUrl, chordName, onVideoEnd, onAudioEnd }: Props) {
+export default function LessonVideoPlayer({ videoPath, audioUrl, chordName, onVideoEnd, onAudioEnd, pending }: Props) {
+  if (pending) {
+    return (
+      <div className="glass rounded-2xl overflow-hidden" aria-busy="true" data-testid="video-pending">
+        <div className="px-4 py-3 border-b border-white/10">
+          <h3 className="text-lg font-semibold gradient-text">{formatChord(chordName) || "\u00a0"}</h3>
+        </div>
+        <div className="aspect-video bg-black/50 animate-pulse" />
+      </div>
+    );
+  }
   if (!videoPath && !audioUrl) return null;
 
   return (
     <div className="glass rounded-2xl overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10">
         <h3 className="text-lg font-semibold gradient-text">
-          {chordName.replace("_", " ")}
+          {formatChord(chordName)}
         </h3>
       </div>
 

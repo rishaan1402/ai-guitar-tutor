@@ -244,9 +244,9 @@ export default function TransitionTrainer() {
                     onClick={() => setSelectedPair(p)}
                     className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
                     style={{
-                      background: active ? "rgba(124,58,237,0.25)" : "rgba(255,255,255,0.06)",
-                      border: active ? "1px solid rgba(124,58,237,0.5)" : "1px solid rgba(255,255,255,0.12)",
-                      color: active ? "#a78bfa" : "rgba(255,255,255,0.6)",
+                      background: active ? "rgba(var(--accent-rgb),0.25)" : "rgba(255,255,255,0.06)",
+                      border: active ? "1px solid rgba(var(--accent-rgb),0.5)" : "1px solid rgba(255,255,255,0.12)",
+                      color: active ? "#efc27a" : "rgba(255,255,255,0.6)",
                     }}
                   >
                     {p.symbolA} ↔ {p.symbolB}
@@ -268,9 +268,9 @@ export default function TransitionTrainer() {
                   onClick={() => setSwitchInterval(s)}
                   className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all"
                   style={{
-                    background: switchInterval === s ? "rgba(124,58,237,0.25)" : "rgba(255,255,255,0.06)",
-                    border: switchInterval === s ? "1px solid rgba(124,58,237,0.5)" : "1px solid rgba(255,255,255,0.12)",
-                    color: switchInterval === s ? "#a78bfa" : "rgba(255,255,255,0.6)",
+                    background: switchInterval === s ? "rgba(var(--accent-rgb),0.25)" : "rgba(255,255,255,0.06)",
+                    border: switchInterval === s ? "1px solid rgba(var(--accent-rgb),0.5)" : "1px solid rgba(255,255,255,0.12)",
+                    color: switchInterval === s ? "#efc27a" : "rgba(255,255,255,0.6)",
                   }}
                 >
                   {s}s
@@ -336,8 +336,8 @@ export default function TransitionTrainer() {
               />
               <defs>
                 <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#7c3aed" />
-                  <stop offset="100%" stopColor="#0891b2" />
+                  <stop offset="0%" stopColor="#d98b2b" />
+                  <stop offset="100%" stopColor="#6a9576" />
                 </linearGradient>
               </defs>
               <text x={60} y={65} textAnchor="middle" fontSize={28} fontWeight="bold" fill="white">
@@ -462,7 +462,7 @@ export default function TransitionTrainer() {
                     <div key={i} className="flex flex-col items-center gap-1 flex-1">
                       <div
                         className="w-full rounded-sm"
-                        style={{ height: h, background: "linear-gradient(to top, #7c3aed, #0891b2)" }}
+                        style={{ height: h, background: "linear-gradient(to top, #d98b2b, #6a9576)" }}
                       />
                       <span className="text-xs font-bold" style={{ color: "rgba(255,255,255,0.6)" }}>{s.tpm}</span>
                     </div>

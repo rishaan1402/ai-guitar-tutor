@@ -1,0 +1,24 @@
+.git/
+.gitignore
+
+.DS_Store
+
+# Raw guitar sample library — not used by the backend image
+guitar/
+
+# Frontend — not part of the backend build context
+frontend/
+
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/guitar_tutor.db
+*.pyc
+
+# Docs / misc
+docs/
+*.md
+
+.claude/

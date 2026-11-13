@@ -58,14 +58,14 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
                 className="px-4 py-2 rounded-lg transition-all flex-shrink-0 text-sm font-medium"
                 style={{
                   background: isActive
-                    ? "rgba(124,58,237,0.35)"
+                    ? "rgba(var(--accent-rgb),0.35)"
                     : getSectionColor(section.chords),
                   border: isActive
-                    ? "2px solid rgba(167,139,250,0.9)"
+                    ? "2px solid rgba(var(--accent-soft-rgb),0.9)"
                     : "1px solid rgba(255,255,255,0.2)",
                   color: "rgba(255,255,255,0.95)",
                   transform: isActive ? "scale(1.08)" : undefined,
-                  boxShadow: isActive ? "0 0 12px rgba(124,58,237,0.4)" : undefined,
+                  boxShadow: isActive ? "0 0 12px rgba(var(--accent-rgb),0.4)" : undefined,
                 }}
               >
                 {section.name}
@@ -83,8 +83,7 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
       {/* Active section chord preview */}
       {activeData && activeData.chords.length > 0 && (
         <div
-          className="flex items-center gap-2 flex-wrap px-1"
-          style={{ animation: "fade-in-up 0.2s ease-out both" }}
+          className="flex items-center gap-2 flex-wrap px-1 animate-enter-fast"
         >
           <span className="text-xs text-gray-400 uppercase font-mono">{activeData.name}:</span>
           {activeData.chords.map((chord) => (
@@ -92,9 +91,9 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
               key={chord}
               className="text-xs px-2.5 py-1 rounded-full font-semibold"
               style={{
-                background: "rgba(124,58,237,0.2)",
-                border: "1px solid rgba(167,139,250,0.5)",
-                color: "#c4b5fd",
+                background: "rgba(var(--accent-rgb),0.2)",
+                border: "1px solid rgba(var(--accent-soft-rgb),0.5)",
+                color: "#f4d69f",
               }}
             >
               {chord}

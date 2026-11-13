@@ -1,19 +1,32 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
 import { TodaysPlan } from "./_components/TodaysPlan";
 import { StreakHeatmap } from "./_components/StreakHeatmap";
 import { QuickStats } from "./_components/QuickStats";
+import { MyClass } from "./_components/MyClass";
+import { MasteryBanner } from "./_components/MasteryBanner";
+import { ChordStages } from "./_components/ChordStages";
 import { LoadingSkeleton, CardSkeleton, StatCardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export default function DashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  // Signed-out visitors go to login before any data fetch (the widgets wait on `user`).
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
+
   return (
     <AppShell>
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
+          as="h1"
           title="Your Practice Hub"
           subtitle="Pick up where you left off and stay on track"
         />
@@ -25,6 +38,9 @@ export default function DashboardPage() {
             <TodaysPlan />
           </Suspense>
         </section>
+
+        {/* Teacher assignments + class membership (signed-in students only) */}
+        <MyClass />
 
         {/* Quick Stats */}
         <section>
@@ -40,6 +56,12 @@ export default function DashboardPage() {
           >
             <QuickStats />
           </Suspense>
+          <h3 className="text-h3 mt-6 mb-3">Your chords</h3>
+          {/* below the fold: appearing after mount doesn't shift what's on screen */}
+          <div className="mb-3">
+            <MasteryBanner />
+          </div>
+          <ChordStages />
         </section>
 
         {/* Streak Heatmap */}

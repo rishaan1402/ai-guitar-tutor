@@ -38,8 +38,8 @@ export default function SongSearchBar({ onSearch, loading }: SongSearchBarProps)
             backdropFilter: "blur(12px)",
           }}
           onFocus={(e) => {
-            e.currentTarget.style.border = "1px solid rgba(124,58,237,0.6)";
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.15)";
+            e.currentTarget.style.border = "1px solid rgba(var(--accent-rgb),0.6)";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(var(--accent-rgb),0.15)";
           }}
           onBlur={(e) => {
             e.currentTarget.style.border = "1px solid rgba(255,255,255,0.15)";

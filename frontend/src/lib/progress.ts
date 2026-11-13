@@ -55,19 +55,14 @@ export function saveProgress(data: ProgressData): void {
 // ---------------------------------------------------------------------------
 
 /** Convert API response to the local ProgressData shape. */
-function apiToProgressData(apiData: ProgressResponse): ProgressData {
+export function apiToProgressData(apiData: ProgressResponse): ProgressData {
   const chords: Record<string, ChordProgress> = {};
   for (const c of apiData.chords) {
-    const status: ChordProgress["status"] = c.mastered
-      ? "mastered"
-      : c.total_attempts > 0
-      ? "in_progress"
-      : "not_attempted";
     chords[c.chord_name] = {
       bestScore: c.best_score,
       totalAttempts: c.total_attempts,
       lastPracticedDate: c.last_practiced ?? today(),
-      status,
+      status: statusOf(c),
     };
   }
   return {
@@ -75,6 +70,12 @@ function apiToProgressData(apiData: ProgressResponse): ProgressData {
     practiceStreak: apiData.practice_streak,
     lastPracticeDate: null,
   };
+}
+
+/** The server's status, or derived from attempts if it's missing/unknown. */
+export function statusOf(c: Pick<ChordProgressItem, "status" | "total_attempts">): ChordProgress["status"] {
+  if (c.status === "mastered" || c.status === "in_progress" || c.status === "not_attempted") return c.status;
+  return c.total_attempts > 0 ? "in_progress" : "not_attempted";
 }
 
 /**

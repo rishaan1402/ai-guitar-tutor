@@ -1,0 +1,14 @@
+{title: 12-Bar Blues in A}
+{artist: Practice progression}
+{key: A}
+{time: 4/4}
+{tempo: 90}
+{difficulty: intermediate}
+{strumming: Shuffle: D - U D - U (long-short)}
+{comment: I–IV–V with dominant sevenths. The last bar is the "turnaround" back to the top.}
+
+{start_of_verse: 12 bars}
+| A7 | A7 | A7 | A7 |
+| D7 | D7 | A7 | A7 |
+| E7 | D7 | A7 | E7 |
+{end_of_verse}

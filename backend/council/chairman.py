@@ -9,7 +9,7 @@ from typing import Optional
 
 from council.schemas import SongObject, AgentOutput, LessonDocument, PracticeChord, SongSection
 from council.agents import _CHAIRMAN_PROMPT
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
 
 logger = logging.getLogger(__name__)
 
@@ -154,13 +154,12 @@ async def synthesize(song: SongObject, agent_outputs: list[AgentOutput]) -> Less
 
     try:
         response = await client.chat.completions.create(
-            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": _CHAIRMAN_PROMPT},
                 {"role": "user", "content": chairman_user},
             ],
             temperature=0.7,
-            max_tokens=400,
+            **llm_params(400),
         )
         summary = response.choices[0].message.content.strip()
     except Exception as exc:

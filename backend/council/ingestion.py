@@ -5,7 +5,7 @@ import json
 import logging
 
 from council.schemas import SongObject
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +48,13 @@ Song to analyse: {song_query}"""
         try:
             response = await asyncio.wait_for(
                 client.chat.completions.create(
-                    model=GROQ_MODEL,
                     messages=[
                         {"role": "system", "content": _SYSTEM_PROMPT},
                         {"role": "user", "content": user_prompt},
                     ],
                     response_format={"type": "json_object"},
                     temperature=0.2,
-                    max_tokens=1500,
+                    **llm_params(1500),
                 ),
                 timeout=20.0,
             )

@@ -1,6 +1,7 @@
 """Tests for the Tutor Agent — simulates a full session flow."""
 from __future__ import annotations
 
+import asyncio
 import sys
 import tempfile
 from pathlib import Path
@@ -38,7 +39,7 @@ def test_start_lesson_missing_chord() -> None:
 
 def test_submit_audio_without_lesson() -> None:
     agent = _make_agent()
-    result = agent.submit_audio("/tmp/fake.wav")
+    result = asyncio.run(agent.submit_audio("/tmp/fake.wav"))
     assert result["status"] == "error"
     print("PASS: test_submit_audio_without_lesson")
 
@@ -89,13 +90,13 @@ def test_full_session_flow_mocked() -> None:
     print(f"  Started lesson for {chord}, state={agent.state.value}")
 
     # First attempt — partial score
-    result = agent.submit_audio("/tmp/test.wav")
+    result = asyncio.run(agent.submit_audio("/tmp/test.wav"))
     assert result["status"] == "ok"
     assert agent.state == SessionState.FEEDBACK
     print(f"  Attempt 1: score={result['evaluation']['score']}, state={agent.state.value}")
 
     # Second attempt — perfect
-    result = agent.submit_audio("/tmp/test.wav")
+    result = asyncio.run(agent.submit_audio("/tmp/test.wav"))
     assert result["status"] == "ok"
     assert agent.state == SessionState.COMPLETED
     print(f"  Attempt 2: score={result['evaluation']['score']}, state={agent.state.value}")

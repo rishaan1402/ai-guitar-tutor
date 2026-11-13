@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Literal, Optional
-from pydantic import BaseModel
+from typing import Annotated
+
+from pydantic import BaseModel, Field
 
 
 # ---------------------------------------------------------------------------
@@ -103,23 +105,26 @@ class LessonDocument(BaseModel):
 # Practice session — tracks chord evaluation results within a song lesson
 # ---------------------------------------------------------------------------
 
+_Note = Annotated[str, Field(max_length=4)]
+
+
 class TipRequest(BaseModel):
-    lesson_id: str
-    chord_key: str        # e.g. "G_major"
-    chord_symbol: str     # e.g. "G" (for display in prompts)
-    score: float          # 0.0–1.0
-    detected_notes: list[str]
-    missing_notes: list[str]
-    extra_notes: list[str]
-    attempt: int
+    lesson_id: str = Field(max_length=100)
+    chord_key: str = Field(max_length=40)        # e.g. "G_major"
+    chord_symbol: str = Field(max_length=16)     # e.g. "G" (for display in prompts)
+    score: float = Field(ge=0, le=1, allow_inf_nan=False)  # 0.0–1.0
+    detected_notes: list[_Note] = Field(max_length=12)
+    missing_notes: list[_Note] = Field(max_length=12)
+    extra_notes: list[_Note] = Field(max_length=12)
+    attempt: int = Field(ge=1, le=10_000)
 
 
 class ReviseRequest(BaseModel):
-    lesson_id: str
+    lesson_id: str = Field(max_length=100)
 
 
 class GenerateRequest(BaseModel):
-    song_query: str       # e.g. "Blackbird by The Beatles"
+    song_query: str = Field(max_length=120)       # e.g. "Blackbird by The Beatles"
 
 
 # ---------------------------------------------------------------------------
@@ -139,4 +144,4 @@ class QuizResponse(BaseModel):
 
 
 class QuizRequest(BaseModel):
-    lesson_id: str
+    lesson_id: str = Field(max_length=100)

@@ -38,10 +38,10 @@ export default function LessonSuiteNav({
         let boxShadow = "none";
 
         if (isActive) {
-          borderColor = "rgba(124,58,237,0.7)";
-          bg = "rgba(124,58,237,0.15)";
-          textColor = "#c4b5fd";
-          boxShadow = "0 0 12px rgba(124,58,237,0.4)";
+          borderColor = "rgba(var(--accent-rgb),0.7)";
+          bg = "rgba(var(--accent-rgb),0.15)";
+          textColor = "#f4d69f";
+          boxShadow = "0 0 12px rgba(var(--accent-rgb),0.4)";
         } else if (isDone) {
           borderColor = "rgba(34,197,94,0.5)";
           bg = "rgba(34,197,94,0.08)";
@@ -80,7 +80,7 @@ export default function LessonSuiteNav({
               {isActive && (
                 <span
                   className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: "#c4b5fd", marginLeft: "2px" }}
+                  style={{ background: "#f4d69f", marginLeft: "2px" }}
                   aria-hidden="true"
                 />
               )}

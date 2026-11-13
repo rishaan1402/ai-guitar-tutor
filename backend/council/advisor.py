@@ -4,7 +4,7 @@ import logging
 
 from council.schemas import LessonDocument, TipRequest
 from council.session_store import LessonSession
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
 
 logger = logging.getLogger(__name__)
 
@@ -59,13 +59,12 @@ All chord progress so far:
 
     try:
         response = await client.chat.completions.create(
-            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.7,
-            max_tokens=80,
+            **llm_params(80),
         )
         return response.choices[0].message.content.strip()
     except Exception as exc:
@@ -95,13 +94,12 @@ Original practice plan:
     if client is not None:
         try:
             response = await client.chat.completions.create(
-                model=GROQ_MODEL,
                 messages=[
                     {"role": "system", "content": revise_system},
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.7,
-                max_tokens=600,
+                **llm_params(600),
             )
             revised_plan = response.choices[0].message.content.strip()
         except Exception as exc:

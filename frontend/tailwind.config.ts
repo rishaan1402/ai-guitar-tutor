@@ -1,5 +1,33 @@
 import type { Config } from "tailwindcss";
 
+const AMBER = {
+  50: "#fdf7ec",
+  100: "#faecd0",
+  200: "#f4d69f",
+  300: "#efc27a",
+  400: "#e8a54b",
+  500: "#d98b2b",
+  600: "#b86e1f",
+  700: "#93531c",
+  800: "#78431d",
+  900: "#63381b",
+  950: "#381c0b",
+};
+
+const SAGE = {
+  50: "#f2f7f3",
+  100: "#dfece2",
+  200: "#c0d9c6",
+  300: "#a3c6ab",
+  400: "#86b092",
+  500: "#6a9576",
+  600: "#527a5e",
+  700: "#41614b",
+  800: "#344d3d",
+  900: "#2a3e32",
+  950: "#15211a",
+};
+
 const config: Config = {
   darkMode: ["class"],
   content: [
@@ -45,32 +73,30 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
         // ── App-specific palette ────────────────────────────────────────
-        purple: {
-          50:  "#f5f3ff",
-          100: "#ede9fe",
-          200: "#ddd6fe",
-          300: "#c4b5fd",
-          400: "#a78bfa",
-          500: "#8b5cf6",
-          600: "#7c3aed",
-          700: "#6d28d9",
-          800: "#5b21b6",
-          900: "#4c1d95",
-          950: "#2e1065",
+        // "Night stage": the legacy purple/violet scales now resolve to warm
+        // amber stage light and cyan to sage, so every existing utility
+        // (text-purple-300, bg-cyan-500/20, ...) picks up the redesign.
+        purple: AMBER,
+        violet: AMBER,
+        amber: AMBER,
+        cyan: SAGE,
+        sage: SAGE,
+        cream: {
+          DEFAULT: "#f3ead8",
+          muted: "#cbbfa8",
+          dim: "#8f8574",
         },
-        cyan: {
-          50:  "#ecfeff",
-          100: "#cffafe",
-          200: "#a5f3fc",
-          300: "#67e8f9",
-          400: "#22d3ee",
-          500: "#06b6d4",
-          600: "#0891b2",
-          700: "#0e7490",
-          800: "#155e75",
-          900: "#164e63",
-          950: "#083344",
+        moss: {
+          950: "#060807",
+          900: "#0a0e0c",
+          800: "#101814",
+          700: "#18241d",
+          600: "#22322a",
         },
+      },
+      fontFamily: {
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-body)", "sans-serif"],
       },
       // ── Border radius (matches --radius CSS var) ──────────────────────
       borderRadius: {
@@ -80,11 +106,27 @@ const config: Config = {
       },
       // ── Typography scale ──────────────────────────────────────────────
       fontSize: {
-        display: ["3.5rem", { lineHeight: "1.1", fontWeight: "900" }],
-        h1:      ["2.25rem", { lineHeight: "1.2", fontWeight: "800" }],
-        h2:      ["1.75rem", { lineHeight: "1.25", fontWeight: "700" }],
-        h3:      ["1.25rem", { lineHeight: "1.35", fontWeight: "600" }],
+        display: ["clamp(2.75rem, 7vw, 6rem)", { lineHeight: "0.92", fontWeight: "700", letterSpacing: "-0.015em" }],
+        h1:      ["clamp(2.25rem, 4.5vw, 3.75rem)", { lineHeight: "0.95", fontWeight: "700", letterSpacing: "-0.01em" }],
+        h2:      ["clamp(1.75rem, 3vw, 2.5rem)", { lineHeight: "1", fontWeight: "700", letterSpacing: "-0.005em" }],
+        h3:      ["1.25rem", { lineHeight: "1.2", fontWeight: "600" }],
+        body:    ["1rem", { lineHeight: "1.55" }],
+        meta:    ["0.75rem", { lineHeight: "1.3", letterSpacing: "0.16em", fontWeight: "600" }],
         caption: ["0.75rem", { lineHeight: "1.4" }],
+        eyebrow: ["0.6875rem", { lineHeight: "1", fontWeight: "600", letterSpacing: "0.22em" }],
+      },
+      // ── Motion tokens (globals.css --dur-* / --ease-*) ────────────────
+      transitionDuration: {
+        instant: "90ms",
+        fast: "180ms",
+        base: "320ms",
+        slow: "640ms",
+        story: "1100ms",
+      },
+      transitionTimingFunction: {
+        "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "in-out-sine": "cubic-bezier(0.37, 0, 0.63, 1)",
+        "in-quart": "cubic-bezier(0.5, 0, 0.75, 0)",
       },
       // ── Spacing extras ────────────────────────────────────────────────
       spacing: {
@@ -95,9 +137,9 @@ const config: Config = {
       // ── Shadows / glows ───────────────────────────────────────────────
       boxShadow: {
         glass:       "0 4px 30px rgba(0,0,0,0.1)",
-        "glow-sm":   "0 0 10px rgba(139,92,246,0.3)",
-        "glow-md":   "0 0 20px rgba(139,92,246,0.4)",
-        "glow-cyan": "0 0 20px rgba(6,182,212,0.4)",
+        "glow-sm":   "0 0 12px rgba(232,165,75,0.28)",
+        "glow-md":   "0 0 28px rgba(232,165,75,0.35)",
+        "glow-cyan": "0 0 20px rgba(134,176,146,0.35)",
         "glow-green":"0 0 15px rgba(34,197,94,0.3)",
         "glow-red":  "0 0 20px rgba(239,68,68,0.4)",
       },

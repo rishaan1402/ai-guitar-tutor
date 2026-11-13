@@ -97,17 +97,17 @@ export default function LessonDisplay({
               {lesson.overall_difficulty}
             </span>
             {lesson.key && (
-              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)", color: "rgba(167,139,250,0.9)" }}>
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(var(--accent-rgb),0.15)", border: "1px solid rgba(var(--accent-rgb),0.3)", color: "rgba(var(--accent-soft-rgb),0.9)" }}>
                 🎵 {lesson.key}
               </span>
             )}
             {lesson.time_signature && (
-              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)", color: "rgba(147,197,253,0.9)" }}>
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(var(--sage-rgb),0.15)", border: "1px solid rgba(var(--sage-rgb),0.3)", color: "rgba(var(--sage-soft-rgb),0.9)" }}>
                 ⏱ {lesson.time_signature}
               </span>
             )}
             {lesson.tempo_feel && (
-              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(8,145,178,0.15)", border: "1px solid rgba(8,145,178,0.3)", color: "rgba(103,232,249,0.9)" }}>
+              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(var(--sage-rgb),0.15)", border: "1px solid rgba(var(--sage-rgb),0.3)", color: "rgba(var(--sage-soft-rgb),0.9)" }}>
                 🎸 {lesson.tempo_feel}
               </span>
             )}
@@ -118,8 +118,8 @@ export default function LessonDisplay({
         <div
           className="mt-4 p-4 rounded-xl text-sm leading-relaxed"
           style={{
-            background: "rgba(124,58,237,0.1)",
-            border: "1px solid rgba(124,58,237,0.25)",
+            background: "rgba(var(--accent-rgb),0.1)",
+            border: "1px solid rgba(var(--accent-rgb),0.25)",
             color: "rgba(255,255,255,0.8)",
             whiteSpace: "pre-wrap",
           }}
@@ -173,7 +173,7 @@ export default function LessonDisplay({
           <button
             onClick={onPlayAlong}
             className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #0891b2, #7c3aed)" }}
+            style={{ background: "linear-gradient(135deg, #6a9576, #d98b2b)" }}
           >
             🎮 Play Along
           </button>

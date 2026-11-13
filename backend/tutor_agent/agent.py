@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import logging
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
+
+from starlette.concurrency import run_in_threadpool
 
 from lesson_service import Lesson, LessonService
+from lesson_service.service import friendly_chord_name
 from audio_engine import ChordEvaluator, EvaluationResult
 from feedback_engine import FeedbackGenerator
 
@@ -22,6 +25,111 @@ class SessionState(str, Enum):
     COMPLETED = "COMPLETED"
 
 
+TUNING_WARN_CENTS = 35.0
+# Grading is the same at any attempt number; this only bounds score history.
+HISTORY_LIMIT = 20
+
+
+_ERROR_ISSUES = {"missing_audio", "processing_error", "unsupported_format"}
+
+
+def _verdict(issue: Optional[str], score: float) -> str:
+    """One word the UI can switch on: pass | unclear | fail | no_sound | error."""
+    if issue is None and score >= 1.0:
+        return "pass"
+    if issue == "unclear":
+        return "unclear"
+    if issue == "out_of_tune":
+        return "out_of_tune"
+    if issue == "no_sound":
+        return "no_sound"
+    if issue in _ERROR_ISSUES:
+        return "error"
+    return "fail"
+
+
+async def grade_attempt(
+    lesson: Lesson,
+    evaluator: ChordEvaluator,
+    feedback_generator: FeedbackGenerator,
+    audio_path: str,
+    attempt: int,
+    previous_scores: Optional[list] = None,
+    fingering_positions: Optional[list] = None,
+    user_context: str = "",
+    chord_lookup: Optional[Callable[[List[str], str], Optional[str]]] = None,
+    chord_lookup_by_strengths: Optional[Callable[[Callable[[List[str]], bool], str], Optional[str]]] = None,
+) -> Dict[str, Any]:
+    """
+    Score one attempt at a chord with no server-side session state.
+
+    The CPU-bound audio analysis runs in a worker thread so it never blocks
+    the event loop; LLM feedback is awaited (with a timeout + template
+    fallback inside the generator). The returned dict carries the raw
+    EvaluationResult under "_evaluation"; callers pop it before responding.
+    """
+    previous_scores = list(previous_scores or [])[-HISTORY_LIMIT:]
+    expected_notes = list(lesson.metadata.get("notes", []))
+    evaluation = await run_in_threadpool(evaluator.evaluate, audio_path, expected_notes)
+
+    eval_dict = evaluation.to_dict()
+    eval_dict["chord_display"] = friendly_chord_name(lesson.chord_name)
+    eval_dict["tuning_warning"] = evaluation.issue == "out_of_tune" or (
+        evaluation.issue != "no_sound" and abs(evaluation.tuning_cents) > TUNING_WARN_CENTS
+    )
+    if evaluation.issue not in (None, "unclear", "out_of_tune", "no_sound"):
+        sounds_like = None
+        # preferred: the one library chord the evaluator's own rule would PASS on
+        # these strengths (a quiet 3rd still counts); fallback: exact note match
+        if chord_lookup_by_strengths is not None and evaluation.pc_strength:
+            sounds_like = await run_in_threadpool(
+                chord_lookup_by_strengths,
+                lambda notes: evaluator.passes(evaluation.pc_strength, notes),
+                lesson.chord_name,
+            )
+        if sounds_like is None and chord_lookup is not None and evaluation.detected_notes:
+            sounds_like = chord_lookup(evaluation.detected_notes, lesson.chord_name)
+        if sounds_like:
+            # the learner cleanly played a different real chord: say which one
+            eval_dict["sounds_like"] = sounds_like
+            eval_dict["issue"] = "wrong_chord"
+    verdict = _verdict(eval_dict.get("issue"), evaluation.score)
+
+    feedback_text = await feedback_generator.agenerate(
+        eval_dict,
+        chord_name=lesson.metadata.get("display_name") or lesson.chord_name,
+        attempt=attempt,
+        score_history=previous_scores + [evaluation.score],
+        fingering_positions=list(fingering_positions or []),
+        user_context=user_context,
+    )
+
+    result: Dict[str, Any] = {
+        "status": "ok",
+        "evaluation": eval_dict,
+        "feedback": feedback_text,
+        "attempt": attempt,
+        "verdict": verdict,
+        "tuning_cents": evaluation.tuning_cents,
+        "tuning_warning": eval_dict["tuning_warning"],
+        "_evaluation": evaluation,
+    }
+
+    if verdict == "pass":
+        result["state"] = SessionState.COMPLETED.value
+        result["message"] = "Congratulations! You've completed this lesson."
+    else:
+        result["state"] = SessionState.FEEDBACK.value
+        graded = previous_scores + ([] if evaluation.issue in ("unclear", "out_of_tune")
+                                    else [evaluation.score])
+        result["best_score"] = max(graded) if graded else None
+        result["message"] = (
+            "Strum once more and let it ring." if evaluation.issue == "unclear"
+            else "Try again! You can do it."
+        )
+    return result
+
+
 class TutorAgent:
     """
     Orchestrates a guitar tutoring session.
@@ -31,7 +139,6 @@ class TutorAgent:
     processing logic itself.
     """
 
-    MAX_ATTEMPTS = 3
 
     def __init__(
         self,
@@ -100,7 +207,7 @@ class TutorAgent:
             "message": f"Watch the lesson video, then play the {chord_name} chord.",
         }
 
-    def submit_audio(self, audio_path: str, user_context: str = "") -> Dict[str, Any]:
+    async def submit_audio(self, audio_path: str, user_context: str = "") -> Dict[str, Any]:
         """
         Accept a user's audio recording for evaluation.
 
@@ -122,52 +229,20 @@ class TutorAgent:
         self._state = SessionState.ANALYZING
         self._attempt_count += 1
 
-        expected_notes = list(self._current_lesson.metadata.get("notes", []))
-        evaluation = self._evaluator.evaluate(audio_path, expected_notes)
-        self._last_evaluation = evaluation
-        self._score_history.append(evaluation.score)
-
-        feedback_text = self._feedback_generator.generate(
-            evaluation.to_dict(),
-            chord_name=self._current_lesson.chord_name,
+        result = await grade_attempt(
+            self._current_lesson,
+            self._evaluator,
+            self._feedback_generator,
+            audio_path,
             attempt=self._attempt_count,
-            score_history=list(self._score_history),
+            previous_scores=list(self._score_history),
             fingering_positions=list(self._fingering_positions),
             user_context=user_context,
         )
-
-        if evaluation.score >= 1.0:
-            self._state = SessionState.COMPLETED
-            return {
-                "status": "ok",
-                "state": self._state.value,
-                "evaluation": evaluation.to_dict(),
-                "feedback": feedback_text,
-                "attempt": self._attempt_count,
-                "message": "Congratulations! You've completed this lesson.",
-            }
-
-        if self._attempt_count >= self.MAX_ATTEMPTS:
-            self._state = SessionState.COMPLETED
-            return {
-                "status": "ok",
-                "state": self._state.value,
-                "evaluation": evaluation.to_dict(),
-                "feedback": feedback_text,
-                "attempt": self._attempt_count,
-                "message": "You've used all attempts. Review the lesson and try again later.",
-            }
-
-        self._state = SessionState.FEEDBACK
-        return {
-            "status": "ok",
-            "state": self._state.value,
-            "evaluation": evaluation.to_dict(),
-            "feedback": feedback_text,
-            "attempt": self._attempt_count,
-            "attempts_remaining": self.MAX_ATTEMPTS - self._attempt_count,
-            "message": "Try again! You can do it.",
-        }
+        self._last_evaluation = result.pop("_evaluation")
+        self._score_history.append(self._last_evaluation.score)
+        self._state = SessionState(result["state"])
+        return result
 
     def get_session_info(self) -> Dict[str, Any]:
         """Return current session state and details."""

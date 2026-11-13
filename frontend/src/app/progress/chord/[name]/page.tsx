@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { fadeInUp, staggerContainer } from "@/lib/motion";
 import useSWR from "swr";
+import { formatChord } from "@/lib/chordName";
 
 function ChordDetailContent({ chordName }: { chordName: string }) {
   const { data, error } = useSWR(
@@ -162,7 +163,7 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
       {/* Detailed attempt timeline */}
       <motion.div variants={fadeInUp} className="glass-card p-6">
         <SectionHeader title="Attempt Timeline" subtitle="Complete history of this chord" />
-        <div className="space-y-2 mt-4 max-h-96 overflow-y-auto">
+        <div className="space-y-2 mt-4 max-h-96 overflow-y-auto" tabIndex={0} role="region" aria-label="Attempt history">
           {attempts
             .slice()
             .reverse()
@@ -271,7 +272,7 @@ export default function ChordDetailPage() {
           <Link href="/progress" className="text-gray-400 hover:text-white transition-colors">
             ← Back to Progress
           </Link>
-          <h1 className="text-3xl font-bold gradient-text">{decodedChordName}</h1>
+          <h1 className="text-3xl font-bold gradient-text">{formatChord(decodedChordName)}</h1>
         </motion.div>
 
         <Suspense fallback={<LoadingSkeleton />}>

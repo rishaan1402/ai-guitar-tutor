@@ -24,6 +24,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", authRequired: true },
   { href: "/practice",  label: "Practice" },
+  { href: "/songs",     label: "Songs" },
   { href: "/progress",  label: "Progress", authRequired: true },
   { href: "/teacher",   label: "Class",    authRequired: true, teacherOnly: true },
   { href: "/admin",     label: "Admin",    authRequired: true, adminOnly: true },

@@ -13,35 +13,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 1,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 8,
-        "finger": 2,
-        "note": "F"
+        "note": "F",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 6,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 7,
-        "finger": 1,
-        "note": "D"
+        "note": "D",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 6,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       }
     ]
   },
@@ -64,31 +104,64 @@
       {
         "string": 5,
         "fret": 1,
-        "note": "A#"
+        "note": "A#",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 2,
-        "finger": 1,
-        "note": "E"
+        "note": "E",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 3,
-        "finger": 3,
-        "note": "A#"
+        "fret": 1,
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 2,
-        "finger": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 2,
-        "finger": 4,
-        "note": "F#"
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "note": "E",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#",
+        "finger": 4
       }
     ]
   },
@@ -105,36 +178,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 1,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 8,
-        "finger": 2,
-        "note": "F"
+        "note": "F",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 8,
-        "finger": 3,
-        "note": "A#"
+        "note": "A#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 7,
-        "finger": 1,
-        "note": "D"
+        "note": "D",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 6,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       }
     ]
   },
@@ -152,36 +264,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 1,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 8,
-        "finger": 2,
-        "note": "F"
+        "note": "F",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 7,
-        "finger": 1,
-        "note": "A"
+        "note": "A",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 7,
-        "finger": 1,
-        "note": "D"
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 6,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       }
     ]
   },
@@ -198,35 +349,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 1,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 8,
-        "finger": 2,
-        "note": "F"
+        "note": "F",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 8,
-        "finger": 3,
-        "note": "A#"
+        "note": "A#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 6,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 6,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       }
     ]
   },
@@ -244,34 +435,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 1,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 8,
-        "finger": 2,
-        "note": "F"
+        "note": "F",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 6,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 6,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 6,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 6,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       }
     ]
   },
@@ -292,13 +524,44 @@
       {
         "string": 5,
         "fret": 1,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 4,
         "fret": 3,
-        "finger": 3,
-        "note": "F"
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 6,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 4,
+        "action": "mute"
       },
       {
         "string": 3,
@@ -328,35 +591,72 @@
     "positions": [
       {
         "string": 6,
-        "fret": 5,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 0,
         "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 0,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 7,
-        "finger": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 5,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 6,
-        "finger": 1,
-        "note": "C#"
+        "note": "C#",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 5,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 5,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -384,26 +684,57 @@
       {
         "string": 4,
         "fret": 1,
-        "finger": 1,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 3,
-        "fret": 2,
-        "finger": 3,
-        "note": "A"
+        "fret": 0,
+        "note": "G"
       },
       {
         "string": 2,
         "fret": 1,
-        "finger": 2,
-        "note": "C"
+        "note": "C",
+        "finger": 2
       },
       {
         "string": 1,
-        "fret": 1,
-        "finger": 4,
-        "note": "E"
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C",
+        "finger": 4
       }
     ]
   },
@@ -420,36 +751,73 @@
     "positions": [
       {
         "string": 6,
-        "fret": 5,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 0,
         "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 7,
-        "finger": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 7,
-        "finger": 3,
-        "note": "A"
+        "note": "A",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 6,
-        "finger": 1,
-        "note": "C#"
+        "note": "C#",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 5,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 5,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -467,36 +835,73 @@
     "positions": [
       {
         "string": 6,
-        "fret": 5,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 0,
         "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 7,
-        "finger": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 6,
-        "finger": 1,
-        "note": "G#"
+        "note": "G#",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 6,
-        "finger": 1,
-        "note": "C#"
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 5,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 5,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -513,35 +918,73 @@
     "positions": [
       {
         "string": 6,
-        "fret": 5,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 0,
         "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 7,
-        "finger": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 7,
-        "finger": 3,
-        "note": "A"
+        "note": "A",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 5,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 5,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 5,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -559,34 +1002,72 @@
     "positions": [
       {
         "string": 6,
-        "fret": 5,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 0,
         "note": "A"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 0,
+        "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 7,
-        "finger": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 5,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 5,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 5,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 5,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -612,8 +1093,38 @@
       {
         "string": 4,
         "fret": 2,
-        "finger": 3,
-        "note": "E"
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "note": "E",
+        "finger": 3
+      },
+      {
+        "string": 4,
+        "action": "mute"
       },
       {
         "string": 3,
@@ -643,35 +1154,72 @@
     "positions": [
       {
         "string": 6,
-        "fret": 7,
-        "note": "B"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 9,
-        "finger": 2,
-        "note": "F#"
+        "fret": 2,
+        "note": "B",
+        "finger": 2
       },
       {
         "string": 4,
-        "fret": 7,
-        "note": "A"
+        "fret": 1,
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 3,
-        "fret": 8,
-        "finger": 1,
-        "note": "D#"
+        "fret": 2,
+        "note": "A",
+        "finger": 3
       },
       {
         "string": 2,
-        "fret": 7,
-        "note": "F#"
+        "fret": 0,
+        "note": "B"
       },
       {
         "string": 1,
-        "fret": 7,
-        "note": "B"
+        "fret": 2,
+        "note": "F#",
+        "finger": 4
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#",
+        "finger": 1
       }
     ]
   },
@@ -694,31 +1242,64 @@
       {
         "string": 5,
         "fret": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 3,
-        "finger": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 4,
-        "finger": 3,
-        "note": "B"
+        "fret": 2,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 3,
-        "finger": 2,
-        "note": "D"
+        "note": "D",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 3,
-        "finger": 4,
-        "note": "G"
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "note": "F",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D",
+        "finger": 4
       }
     ]
   },
@@ -735,36 +1316,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 9,
-        "finger": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 9,
-        "finger": 3,
-        "note": "B"
+        "note": "B",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 8,
-        "finger": 1,
-        "note": "D#"
+        "note": "D#",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 7,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -782,36 +1402,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 9,
-        "finger": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 8,
-        "finger": 1,
-        "note": "A#"
+        "note": "A#",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 8,
-        "finger": 1,
-        "note": "D#"
+        "note": "D#",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 7,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -828,35 +1487,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 9,
-        "finger": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 9,
-        "finger": 3,
-        "note": "B"
+        "note": "B",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 7,
-        "note": "D"
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 7,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -874,34 +1573,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 9,
-        "finger": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 7,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 7,
-        "note": "D"
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 7,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 7,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -922,13 +1662,44 @@
       {
         "string": 5,
         "fret": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 4,
         "fret": 4,
-        "finger": 3,
-        "note": "F#"
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 7,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 4,
+        "action": "mute"
       },
       {
         "string": 3,
@@ -958,35 +1729,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 11,
-        "finger": 2,
-        "note": "G#"
+        "note": "G#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 9,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 10,
-        "finger": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 9,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -1009,31 +1820,64 @@
       {
         "string": 5,
         "fret": 4,
-        "note": "C#"
+        "note": "C#",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 5,
-        "finger": 1,
-        "note": "G"
+        "note": "G",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 6,
-        "finger": 3,
-        "note": "C#"
+        "fret": 4,
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 5,
-        "finger": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 5,
-        "finger": 4,
-        "note": "A"
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 12,
+        "note": "G",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 12,
+        "note": "B",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 12,
+        "note": "E",
+        "finger": 4
       }
     ]
   },
@@ -1050,36 +1894,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 11,
-        "finger": 2,
-        "note": "G#"
+        "note": "G#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 11,
-        "finger": 3,
-        "note": "C#"
+        "note": "C#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 10,
-        "finger": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 9,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -1097,36 +1980,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 11,
-        "finger": 2,
-        "note": "G#"
+        "note": "G#",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 10,
-        "finger": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 10,
-        "finger": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 9,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -1143,35 +2065,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 11,
-        "finger": 2,
-        "note": "G#"
+        "note": "G#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 11,
-        "finger": 3,
-        "note": "C#"
+        "note": "C#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 9,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 9,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -1189,34 +2151,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 4,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 11,
-        "finger": 2,
-        "note": "G#"
+        "note": "G#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 9,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 9,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 9,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 9,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -1237,13 +2240,44 @@
       {
         "string": 5,
         "fret": 4,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 4,
         "fret": 6,
-        "finger": 3,
-        "note": "G#"
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 9,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 4,
+        "action": "mute"
       },
       {
         "string": 3,
@@ -1273,35 +2307,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 8,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 10,
-        "finger": 2,
-        "note": "G"
+        "note": "G",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 8,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 9,
-        "finger": 1,
-        "note": "E"
+        "note": "E",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 8,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 8,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       }
     ]
   },
@@ -1324,31 +2398,64 @@
       {
         "string": 5,
         "fret": 3,
-        "note": "C"
+        "note": "C",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 4,
-        "finger": 1,
-        "note": "F#"
+        "note": "F#",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 5,
-        "finger": 3,
-        "note": "C"
+        "fret": 3,
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 4,
-        "finger": 2,
-        "note": "D#"
+        "note": "D#",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 4,
-        "finger": 4,
-        "note": "G#"
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "note": "F#",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#",
+        "finger": 4
       }
     ]
   },
@@ -1365,36 +2472,71 @@
     "positions": [
       {
         "string": 6,
-        "fret": 8,
-        "note": "C"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 10,
-        "finger": 2,
-        "note": "G"
+        "fret": 3,
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 4,
-        "fret": 10,
-        "finger": 3,
-        "note": "C"
+        "fret": 2,
+        "note": "E",
+        "finger": 2
       },
       {
         "string": 3,
-        "fret": 9,
-        "finger": 1,
-        "note": "E"
-      },
-      {
-        "string": 2,
-        "fret": 8,
+        "fret": 0,
         "note": "G"
       },
       {
+        "string": 2,
+        "fret": 1,
+        "note": "C",
+        "finger": 1
+      },
+      {
         "string": 1,
-        "fret": 8,
-        "note": "C"
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
       }
     ]
   },
@@ -1412,36 +2554,70 @@
     "positions": [
       {
         "string": 6,
-        "fret": 8,
-        "note": "C"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 10,
-        "finger": 2,
-        "note": "G"
+        "fret": 3,
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 4,
-        "fret": 9,
-        "finger": 1,
-        "note": "B"
+        "fret": 2,
+        "note": "E",
+        "finger": 2
       },
       {
         "string": 3,
-        "fret": 9,
-        "finger": 1,
-        "note": "E"
-      },
-      {
-        "string": 2,
-        "fret": 8,
+        "fret": 0,
         "note": "G"
       },
       {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
         "string": 1,
-        "fret": 8,
-        "note": "C"
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
       }
     ]
   },
@@ -1458,35 +2634,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 8,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 10,
-        "finger": 2,
-        "note": "G"
+        "note": "G",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 10,
-        "finger": 3,
-        "note": "C"
+        "note": "C",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 8,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 8,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 8,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       }
     ]
   },
@@ -1504,34 +2720,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 8,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 10,
-        "finger": 2,
-        "note": "G"
+        "note": "G",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 8,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 8,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 8,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 8,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       }
     ]
   },
@@ -1552,13 +2809,44 @@
       {
         "string": 5,
         "fret": 3,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 4,
         "fret": 5,
-        "finger": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 8,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 4,
+        "action": "mute"
       },
       {
         "string": 3,
@@ -1588,35 +2876,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 13,
-        "finger": 2,
-        "note": "A#"
+        "note": "A#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 11,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 12,
-        "finger": 1,
-        "note": "G"
+        "note": "G",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 11,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -1638,32 +2966,65 @@
       },
       {
         "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 1,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 2,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#",
+        "finger": 4
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
         "fret": 6,
-        "note": "D#"
+        "note": "D#",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 7,
-        "finger": 1,
-        "note": "A"
+        "note": "A",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 8,
-        "finger": 3,
-        "note": "D#"
+        "fret": 6,
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 7,
-        "finger": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 7,
-        "finger": 4,
-        "note": "B"
+        "action": "mute"
       }
     ]
   },
@@ -1680,36 +3041,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 13,
-        "finger": 2,
-        "note": "A#"
+        "note": "A#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 13,
-        "finger": 3,
-        "note": "D#"
+        "note": "D#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 12,
-        "finger": 1,
-        "note": "G"
+        "note": "G",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 11,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -1727,36 +3127,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 13,
-        "finger": 2,
-        "note": "A#"
+        "note": "A#",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 12,
-        "finger": 1,
-        "note": "D"
+        "note": "D",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 12,
-        "finger": 1,
-        "note": "G"
+        "note": "G",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 11,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -1773,35 +3212,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 13,
-        "finger": 2,
-        "note": "A#"
+        "note": "A#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 13,
-        "finger": 3,
-        "note": "D#"
+        "note": "D#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 11,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 11,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -1819,34 +3298,75 @@
     "positions": [
       {
         "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 6,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 8,
+        "note": "A#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 13,
-        "finger": 2,
-        "note": "A#"
+        "note": "A#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 11,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 11,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 11,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 11,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -1866,14 +3386,45 @@
       },
       {
         "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 1,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
         "fret": 6,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 4,
         "fret": 8,
-        "finger": 3,
-        "note": "A#"
+        "note": "A#",
+        "finger": 3
       },
       {
         "string": 3,
@@ -1903,35 +3454,70 @@
     "positions": [
       {
         "string": 6,
-        "fret": 10,
-        "note": "D"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 12,
-        "finger": 2,
-        "note": "A"
+        "action": "mute"
       },
       {
         "string": 4,
-        "fret": 10,
-        "note": "C"
+        "fret": 0,
+        "note": "D"
       },
       {
         "string": 3,
-        "fret": 11,
-        "finger": 1,
-        "note": "F#"
+        "fret": 2,
+        "note": "A",
+        "finger": 2
       },
       {
         "string": 2,
-        "fret": 10,
-        "note": "A"
+        "fret": 1,
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 1,
-        "fret": 10,
-        "note": "D"
+        "fret": 2,
+        "note": "F#",
+        "finger": 3
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -1953,32 +3539,64 @@
       },
       {
         "string": 5,
-        "fret": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 0,
         "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 1,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F",
+        "finger": 3
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 6,
-        "finger": 1,
-        "note": "G#"
+        "note": "G#",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 7,
-        "finger": 3,
-        "note": "D"
+        "fret": 5,
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 6,
-        "finger": 2,
-        "note": "F"
+        "note": "F",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 6,
-        "finger": 4,
-        "note": "A#"
+        "action": "mute"
       }
     ]
   },
@@ -1995,36 +3613,70 @@
     "positions": [
       {
         "string": 6,
-        "fret": 10,
-        "note": "D"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 12,
-        "finger": 2,
-        "note": "A"
+        "action": "mute"
       },
       {
         "string": 4,
-        "fret": 12,
-        "finger": 3,
+        "fret": 0,
         "note": "D"
       },
       {
         "string": 3,
-        "fret": 11,
-        "finger": 1,
-        "note": "F#"
+        "fret": 2,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 2,
-        "fret": 10,
-        "note": "A"
+        "fret": 3,
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 1,
-        "fret": 10,
-        "note": "D"
+        "fret": 2,
+        "note": "F#",
+        "finger": 2
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -2042,36 +3694,70 @@
     "positions": [
       {
         "string": 6,
-        "fret": 10,
-        "note": "D"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 12,
-        "finger": 2,
-        "note": "A"
+        "action": "mute"
       },
       {
         "string": 4,
-        "fret": 11,
-        "finger": 1,
-        "note": "C#"
+        "fret": 0,
+        "note": "D"
       },
       {
         "string": 3,
-        "fret": 11,
-        "finger": 1,
-        "note": "F#"
+        "fret": 2,
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 2,
-        "fret": 10,
-        "note": "A"
+        "fret": 2,
+        "note": "C#",
+        "finger": 2
       },
       {
         "string": 1,
-        "fret": 10,
-        "note": "D"
+        "fret": 2,
+        "note": "F#",
+        "finger": 3
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -2088,35 +3774,70 @@
     "positions": [
       {
         "string": 6,
-        "fret": 10,
-        "note": "D"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 12,
-        "finger": 2,
-        "note": "A"
+        "action": "mute"
       },
       {
         "string": 4,
-        "fret": 12,
-        "finger": 3,
+        "fret": 0,
         "note": "D"
       },
       {
         "string": 3,
-        "fret": 10,
-        "note": "F"
+        "fret": 2,
+        "note": "A",
+        "finger": 2
       },
       {
         "string": 2,
-        "fret": 10,
-        "note": "A"
+        "fret": 3,
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 1,
-        "fret": 10,
-        "note": "D"
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -2134,34 +3855,70 @@
     "positions": [
       {
         "string": 6,
-        "fret": 10,
-        "note": "D"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 12,
-        "finger": 2,
-        "note": "A"
+        "action": "mute"
       },
       {
         "string": 4,
-        "fret": 10,
-        "note": "C"
+        "fret": 0,
+        "note": "D"
       },
       {
         "string": 3,
-        "fret": 10,
-        "note": "F"
+        "fret": 2,
+        "note": "A",
+        "finger": 2
       },
       {
         "string": 2,
-        "fret": 10,
-        "note": "A"
+        "fret": 1,
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 1,
-        "fret": 10,
-        "note": "D"
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 7,
+        "note": "A",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A",
+        "finger": 1
       }
     ]
   },
@@ -2181,14 +3938,46 @@
       },
       {
         "string": 5,
-        "fret": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 0,
         "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 4,
         "fret": 7,
-        "finger": 3,
-        "note": "A"
+        "note": "A",
+        "finger": 3
       },
       {
         "string": 3,
@@ -2224,8 +4013,8 @@
       {
         "string": 5,
         "fret": 2,
-        "finger": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 2
       },
       {
         "string": 4,
@@ -2235,8 +4024,8 @@
       {
         "string": 3,
         "fret": 1,
-        "finger": 1,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 2,
@@ -2247,6 +4036,42 @@
         "string": 1,
         "fret": 0,
         "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -2268,32 +4093,65 @@
       },
       {
         "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "note": "A#",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G",
+        "finger": 4
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
         "fret": 7,
-        "note": "E"
+        "note": "E",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 8,
-        "finger": 1,
-        "note": "A#"
+        "note": "A#",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 9,
-        "finger": 3,
-        "note": "E"
+        "fret": 7,
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 8,
-        "finger": 2,
-        "note": "G"
+        "note": "G",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 8,
-        "finger": 4,
-        "note": "C"
+        "action": "mute"
       }
     ]
   },
@@ -2316,20 +4174,20 @@
       {
         "string": 5,
         "fret": 2,
-        "finger": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 2,
-        "finger": 3,
-        "note": "E"
+        "note": "E",
+        "finger": 3
       },
       {
         "string": 3,
         "fret": 1,
-        "finger": 1,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 2,
@@ -2340,6 +4198,42 @@
         "string": 1,
         "fret": 0,
         "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "note": "E",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -2363,20 +4257,20 @@
       {
         "string": 5,
         "fret": 2,
-        "finger": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 1,
-        "finger": 1,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 1,
-        "finger": 1,
-        "note": "G#"
+        "note": "G#",
+        "finger": 2
       },
       {
         "string": 2,
@@ -2387,6 +4281,42 @@
         "string": 1,
         "fret": 0,
         "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -2409,14 +4339,14 @@
       {
         "string": 5,
         "fret": 2,
-        "finger": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 4,
         "fret": 2,
-        "finger": 3,
-        "note": "E"
+        "note": "E",
+        "finger": 2
       },
       {
         "string": 3,
@@ -2432,6 +4362,42 @@
         "string": 1,
         "fret": 0,
         "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "note": "E",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B",
+        "finger": 1
       }
     ]
   },
@@ -2455,8 +4421,8 @@
       {
         "string": 5,
         "fret": 2,
-        "finger": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 4,
@@ -2478,6 +4444,42 @@
         "fret": 0,
         "note": "E"
       }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 7,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 9,
+        "note": "B",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 8,
+        "note": "G",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B",
+        "finger": 1
+      }
     ]
   },
   {
@@ -2498,8 +4500,8 @@
       {
         "string": 5,
         "fret": 2,
-        "finger": 3,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 4,
@@ -2508,6 +4510,36 @@
       {
         "string": 3,
         "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 3
       },
       {
         "string": 2,
@@ -2534,34 +4566,74 @@
       {
         "string": 6,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 4,
-        "finger": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 3,
-        "finger": 1,
-        "note": "A#"
+        "note": "A#",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -2583,32 +4655,65 @@
       },
       {
         "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 5,
+        "note": "E",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 5,
+        "note": "A",
+        "finger": 4
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
         "fret": 9,
-        "note": "F#"
+        "note": "F#",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 10,
-        "finger": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 11,
-        "finger": 3,
-        "note": "F#"
+        "fret": 9,
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 10,
-        "finger": 2,
-        "note": "A"
+        "note": "A",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 10,
-        "finger": 4,
-        "note": "D"
+        "action": "mute"
       }
     ]
   },
@@ -2626,35 +4731,74 @@
       {
         "string": 6,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 4,
-        "finger": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 4,
-        "finger": 3,
-        "note": "F#"
+        "note": "F#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 3,
-        "finger": 1,
-        "note": "A#"
+        "note": "A#",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -2673,35 +4817,74 @@
       {
         "string": 6,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 4,
-        "finger": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 3,
-        "finger": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 3,
-        "finger": 1,
-        "note": "A#"
+        "note": "A#",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "note": "F",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -2719,34 +4902,74 @@
       {
         "string": 6,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 4,
-        "finger": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 4,
-        "finger": 3,
-        "note": "F#"
+        "note": "F#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 2,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "note": "F#",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -2765,33 +4988,74 @@
       {
         "string": 6,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 4,
-        "finger": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 2,
-        "note": "E"
+        "note": "E",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 2,
-        "note": "A"
+        "note": "A",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 2,
-        "note": "C#"
+        "note": "C#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 9,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 11,
+        "note": "C#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 9,
+        "note": "E",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 9,
+        "note": "C#",
+        "finger": 1
       }
     ]
   },
@@ -2808,13 +5072,14 @@
       {
         "string": 6,
         "fret": 2,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 4,
-        "finger": 3,
-        "note": "C#"
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 4,
@@ -2823,6 +5088,36 @@
       {
         "string": 3,
         "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 4,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 2,
@@ -2849,34 +5144,74 @@
       {
         "string": 6,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 3,
-        "finger": 2,
-        "note": "C"
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 1,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 2,
-        "finger": 1,
-        "note": "A"
+        "note": "A",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "note": "C",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C",
+        "finger": 1
       }
     ]
   },
@@ -2898,32 +5233,65 @@
       },
       {
         "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 4,
+        "note": "D#",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 4,
+        "note": "G#",
+        "finger": 4
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
         "fret": 8,
-        "note": "F"
+        "note": "F",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 9,
-        "finger": 1,
-        "note": "B"
+        "note": "B",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 10,
-        "finger": 3,
-        "note": "F"
+        "fret": 8,
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 9,
-        "finger": 2,
-        "note": "G#"
+        "note": "G#",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 9,
-        "finger": 4,
-        "note": "C#"
+        "action": "mute"
       }
     ]
   },
@@ -2941,35 +5309,74 @@
       {
         "string": 6,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 3,
-        "finger": 2,
-        "note": "C"
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 3,
-        "finger": 3,
-        "note": "F"
+        "note": "F",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 2,
-        "finger": 1,
-        "note": "A"
+        "note": "A",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "note": "C",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 10,
+        "note": "A",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C",
+        "finger": 1
       }
     ]
   },
@@ -2987,36 +5394,72 @@
     "positions": [
       {
         "string": 6,
-        "fret": 1,
-        "note": "F"
+        "action": "mute"
       },
       {
         "string": 5,
-        "fret": 3,
-        "finger": 2,
-        "note": "C"
+        "action": "mute"
       },
       {
         "string": 4,
-        "fret": 2,
-        "finger": 1,
-        "note": "E"
+        "fret": 3,
+        "note": "F",
+        "finger": 3
       },
       {
         "string": 3,
         "fret": 2,
-        "finger": 1,
-        "note": "A"
+        "note": "A",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 1
+      },
+      {
+        "string": 1,
+        "fret": 0,
+        "note": "E"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "note": "C",
+        "finger": 4
+      },
+      {
+        "string": 4,
+        "fret": 2,
+        "note": "E",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "note": "A",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       }
     ]
   },
@@ -3034,34 +5477,74 @@
       {
         "string": 6,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 3,
-        "finger": 2,
-        "note": "C"
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 3,
-        "finger": 3,
-        "note": "F"
+        "note": "F",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 1,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "note": "C",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "note": "F",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C",
+        "finger": 1
       }
     ]
   },
@@ -3080,33 +5563,74 @@
       {
         "string": 6,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 3,
-        "finger": 2,
-        "note": "C"
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 1,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 1,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 8,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 10,
+        "note": "C",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 9,
+        "note": "G#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 8,
+        "note": "C",
+        "finger": 1
       }
     ]
   },
@@ -3123,13 +5647,14 @@
       {
         "string": 6,
         "fret": 1,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 3,
-        "finger": 3,
-        "note": "C"
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 4,
@@ -3138,6 +5663,36 @@
       {
         "string": 3,
         "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 3,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 5,
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 2,
@@ -3164,34 +5719,74 @@
       {
         "string": 6,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 6,
-        "finger": 2,
-        "note": "D#"
+        "note": "D#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 4,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 5,
-        "finger": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 4,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 13,
+        "note": "D#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 13,
+        "note": "C",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -3213,32 +5808,65 @@
       },
       {
         "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 7,
+        "note": "F#",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 7,
+        "note": "B",
+        "finger": 4
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
         "fret": 11,
-        "note": "G#"
+        "note": "G#",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 12,
-        "finger": 1,
-        "note": "D"
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 13,
-        "finger": 3,
-        "note": "G#"
+        "fret": 11,
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 12,
-        "finger": 2,
-        "note": "B"
+        "note": "B",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 12,
-        "finger": 4,
-        "note": "E"
+        "action": "mute"
       }
     ]
   },
@@ -3256,35 +5884,74 @@
       {
         "string": 6,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 6,
-        "finger": 2,
-        "note": "D#"
+        "note": "D#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 6,
-        "finger": 3,
-        "note": "G#"
+        "note": "G#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 5,
-        "finger": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 4,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 13,
+        "note": "D#",
+        "finger": 2
+      },
+      {
+        "string": 3,
+        "fret": 13,
+        "note": "G#",
+        "finger": 3
+      },
+      {
+        "string": 2,
+        "fret": 13,
+        "note": "C",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -3303,35 +5970,74 @@
       {
         "string": 6,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 6,
-        "finger": 2,
-        "note": "D#"
+        "note": "D#",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 5,
-        "finger": 1,
-        "note": "G"
+        "note": "G",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 5,
-        "finger": 1,
-        "note": "C"
+        "note": "C",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 4,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 13,
+        "note": "D#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 12,
+        "note": "G",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 13,
+        "note": "C",
+        "finger": 4
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -3349,34 +6055,74 @@
       {
         "string": 6,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 6,
-        "finger": 2,
-        "note": "D#"
+        "note": "D#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 6,
-        "finger": 3,
-        "note": "G#"
+        "note": "G#",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 4,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 4,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 13,
+        "note": "D#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 13,
+        "note": "G#",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 12,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -3395,33 +6141,74 @@
       {
         "string": 6,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 6,
-        "finger": 2,
-        "note": "D#"
+        "note": "D#",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 4,
-        "note": "F#"
+        "note": "F#",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 4,
-        "note": "B"
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 4,
-        "note": "D#"
+        "note": "D#",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 11,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 13,
+        "note": "D#",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 11,
+        "note": "F#",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 12,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 11,
+        "note": "D#",
+        "finger": 1
       }
     ]
   },
@@ -3438,13 +6225,14 @@
       {
         "string": 6,
         "fret": 4,
-        "note": "G#"
+        "note": "G#",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 6,
-        "finger": 3,
-        "note": "D#"
+        "note": "D#",
+        "finger": 3
       },
       {
         "string": 4,
@@ -3453,6 +6241,36 @@
       {
         "string": 3,
         "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 6,
+        "note": "G#",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 8,
+        "note": "D#",
+        "finger": 3
       },
       {
         "string": 2,
@@ -3479,34 +6297,73 @@
       {
         "string": 6,
         "fret": 3,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 4,
+        "fret": 0,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 0,
         "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "note": "F",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 5,
-        "finger": 2,
-        "note": "D"
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 3,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 4,
-        "finger": 1,
-        "note": "B"
+        "note": "B",
+        "finger": 2
       },
       {
         "string": 2,
         "fret": 3,
-        "note": "D"
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       }
     ]
   },
@@ -3528,32 +6385,65 @@
       },
       {
         "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 6,
+        "note": "C#",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 6,
+        "note": "F",
+        "finger": 3
+      },
+      {
+        "string": 1,
+        "fret": 6,
+        "note": "A#",
+        "finger": 4
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
         "fret": 10,
-        "note": "G"
+        "note": "G",
+        "finger": 2
       },
       {
         "string": 4,
         "fret": 11,
-        "finger": 1,
-        "note": "C#"
+        "note": "C#",
+        "finger": 3
       },
       {
         "string": 3,
-        "fret": 12,
-        "finger": 3,
-        "note": "G"
+        "fret": 10,
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 11,
-        "finger": 2,
-        "note": "A#"
+        "note": "A#",
+        "finger": 4
       },
       {
         "string": 1,
-        "fret": 11,
-        "finger": 4,
-        "note": "D#"
+        "action": "mute"
       }
     ]
   },
@@ -3571,35 +6461,73 @@
       {
         "string": 6,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 2
       },
       {
         "string": 5,
-        "fret": 5,
-        "finger": 2,
-        "note": "D"
+        "fret": 2,
+        "note": "B",
+        "finger": 1
       },
       {
         "string": 4,
-        "fret": 5,
-        "finger": 3,
-        "note": "G"
+        "fret": 0,
+        "note": "D"
       },
       {
         "string": 3,
-        "fret": 4,
-        "finger": 1,
-        "note": "B"
+        "fret": 0,
+        "note": "G"
       },
       {
         "string": 2,
-        "fret": 3,
-        "note": "D"
+        "fret": 0,
+        "note": "B"
       },
       {
         "string": 1,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 3
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
+      },
+      {
+        "string": 5,
+        "fret": 5,
+        "note": "D",
+        "finger": 3
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 4
+      },
+      {
+        "string": 3,
+        "fret": 4,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 2,
+        "fret": 3,
+        "note": "D",
+        "finger": 1
+      },
+      {
+        "string": 1,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
       }
     ]
   },
@@ -3618,35 +6546,73 @@
       {
         "string": 6,
         "fret": 3,
+        "note": "G",
+        "finger": 3
+      },
+      {
+        "string": 5,
+        "fret": 2,
+        "note": "B",
+        "finger": 2
+      },
+      {
+        "string": 4,
+        "fret": 0,
+        "note": "D"
+      },
+      {
+        "string": 3,
+        "fret": 0,
         "note": "G"
+      },
+      {
+        "string": 2,
+        "fret": 0,
+        "note": "B"
+      },
+      {
+        "string": 1,
+        "fret": 2,
+        "note": "F#",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "fret": 3,
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 5,
-        "finger": 2,
-        "note": "D"
+        "note": "D",
+        "finger": 4
       },
       {
         "string": 4,
         "fret": 4,
-        "finger": 1,
-        "note": "F#"
+        "note": "F#",
+        "finger": 2
       },
       {
         "string": 3,
         "fret": 4,
-        "finger": 1,
-        "note": "B"
+        "note": "B",
+        "finger": 3
       },
       {
         "string": 2,
         "fret": 3,
-        "note": "D"
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       }
     ]
   },
@@ -3664,34 +6630,74 @@
       {
         "string": 6,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 5,
-        "finger": 2,
-        "note": "D"
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 5,
-        "finger": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 4
       },
       {
         "string": 3,
         "fret": 3,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 3,
-        "note": "D"
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "note": "G",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 12,
+        "note": "D",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 12,
+        "note": "G",
+        "finger": 4
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D",
+        "finger": 1
       }
     ]
   },
@@ -3710,33 +6716,74 @@
       {
         "string": 6,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 5,
-        "finger": 2,
-        "note": "D"
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 4,
         "fret": 3,
-        "note": "F"
+        "note": "F",
+        "finger": 1
       },
       {
         "string": 3,
         "fret": 3,
-        "note": "A#"
+        "note": "A#",
+        "finger": 1
       },
       {
         "string": 2,
         "fret": 3,
-        "note": "D"
+        "note": "D",
+        "finger": 1
       },
       {
         "string": 1,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 1
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "fret": 10,
+        "note": "G",
+        "finger": 1
+      },
+      {
+        "string": 4,
+        "fret": 12,
+        "note": "D",
+        "finger": 3
+      },
+      {
+        "string": 3,
+        "fret": 10,
+        "note": "F",
+        "finger": 1
+      },
+      {
+        "string": 2,
+        "fret": 11,
+        "note": "A#",
+        "finger": 2
+      },
+      {
+        "string": 1,
+        "fret": 10,
+        "note": "D",
+        "finger": 1
       }
     ]
   },
@@ -3753,13 +6800,14 @@
       {
         "string": 6,
         "fret": 3,
-        "note": "G"
+        "note": "G",
+        "finger": 1
       },
       {
         "string": 5,
         "fret": 5,
-        "finger": 3,
-        "note": "D"
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 4,
@@ -3768,6 +6816,36 @@
       {
         "string": 3,
         "action": "mute"
+      },
+      {
+        "string": 2,
+        "action": "mute"
+      },
+      {
+        "string": 1,
+        "action": "mute"
+      }
+    ],
+    "alt_positions": [
+      {
+        "string": 6,
+        "action": "mute"
+      },
+      {
+        "string": 5,
+        "action": "mute"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "note": "G",
+        "finger": 1
+      },
+      {
+        "string": 3,
+        "fret": 7,
+        "note": "D",
+        "finger": 3
       },
       {
         "string": 2,
