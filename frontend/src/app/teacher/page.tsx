@@ -65,7 +65,7 @@ export default function TeacherPage() {
   return (
     <AppShell>
       <div className="max-w-6xl mx-auto">
-        <SectionHeader title="Teacher Dashboard" subtitle="Manage your class and track their progress" />
+        <SectionHeader as="h1" kicker="Your class" title="Teacher room" subtitle="Share your invite code, assign chords, and see who has mastered what." />
 
         <InviteCodeCard />
 

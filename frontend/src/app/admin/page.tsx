@@ -56,7 +56,7 @@ export default function AdminPage() {
   return (
     <AppShell>
       <div className="max-w-6xl mx-auto space-y-8">
-        <SectionHeader title="Admin Panel" subtitle="System-wide usage and user management" />
+        <SectionHeader as="h1" kicker="Admin" title="Control room" subtitle="System-wide usage and user management." />
 
         {/* System stats */}
         {stats && <SystemStatsView stats={stats} />}

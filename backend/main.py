@@ -79,7 +79,7 @@ if _fingerings_path.exists():
 # ---------------------------------------------------------------------------
 _ON_CLOUD_RUN = bool(os.environ.get("K_SERVICE"))
 app = FastAPI(
-    title="AI Guitar Tutor",
+    title="Open Strings",
     version="1.0.0",
     # Interactive API docs only outside production.
     docs_url=None if _ON_CLOUD_RUN else "/docs",
@@ -141,7 +141,7 @@ app.include_router(plan_router)
 # ---------------------------------------------------------------------------
 @app.get("/")
 def health_check() -> Dict[str, str]:
-    return {"status": "ok", "service": "AI Guitar Tutor"}
+    return {"status": "ok", "service": "Open Strings"}
 
 
 @app.get("/chords")

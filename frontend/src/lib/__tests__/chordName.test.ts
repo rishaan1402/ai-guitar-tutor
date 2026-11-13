@@ -22,3 +22,16 @@ describe("nextBeginnerChord", () => {
     expect(nextBeginnerChord("F#_dominant7")).toBe("E_minor");
   });
 });
+
+import { chordSymbol } from "../chordName";
+
+describe("chordSymbol", () => {
+  it("keeps case and uses standard symbols", () => {
+    expect(chordSymbol("E_minor")).toBe("Em");
+    expect(chordSymbol("A_major")).toBe("A");
+    expect(chordSymbol("C_major7")).toBe("Cmaj7");
+    expect(chordSymbol("A#_half_dim7")).toBe("A#m7♭5");
+    expect(chordSymbol("G_power")).toBe("G5");
+    expect(chordSymbol("D_dominant7")).toBe("D7");
+  });
+});

@@ -14,6 +14,10 @@ import type { Evaluation } from "@/components/FeedbackDisplay";
 import ProgressDashboard from "@/components/ProgressDashboard";
 import StepIndicator from "@/components/StepIndicator";
 import ModeToggle, { AppMode } from "@/components/ModeToggle";
+
+function parseMode(v: string | null): AppMode {
+  return v === "song" || v === "transitions" ? v : "chords";
+}
 import SongCouncil from "@/components/SongCouncil";
 import type { SongCouncilContext } from "@/components/SongCouncil";
 import MetronomeWidget from "@/components/MetronomeWidget";
@@ -149,13 +153,31 @@ function SessionHeader({ title, stepText, right, extra }: { title: string; stepT
   );
 }
 
-function IdleHero() {
+const HERO: Record<AppMode, { kicker: string; title: string; body: string }> = {
+  chords: {
+    kicker: "The amp",
+    title: "Practice a chord",
+    body: "Pick a chord, watch it, hear it, then play it into your mic. You'll hear back about every string.",
+  },
+  song: {
+    kicker: "The record player",
+    title: "Learn any song",
+    body: "Name a song. You get its chord chart, tabs, a lesson for each section and a play-along.",
+  },
+  transitions: {
+    kicker: "The metronome",
+    title: "Chord changes",
+    body: "One-minute changes: switch between two chords until it's automatic, and beat your last count.",
+  },
+};
+
+function IdleHero({ mode }: { mode: AppMode }) {
+  const h = HERO[mode];
   return (
-    <header className="text-center space-y-2 animate-enter">
-      <h1 className="font-display text-h1 gradient-text tracking-tight">AI Guitar Tutor</h1>
-      <p className="text-gray-400 max-w-md mx-auto">
-        Select a chord, follow the guided steps, and get AI-powered feedback on your playing.
-      </p>
+    <header className="animate-enter">
+      <p className="label-mono text-amber-300">{h.kicker}</p>
+      <h1 className="mt-2 font-display text-h1 uppercase text-cream">{h.title}</h1>
+      <p className="mt-3 max-w-xl text-cream/70">{h.body}</p>
     </header>
   );
 }
@@ -183,7 +205,7 @@ function PracticeSkeleton() {
           <LessonVideoPlayer videoPath={null} audioUrl={null} chordName="" pending />
         </div>
         <div className="practice-skel-idle">
-          <IdleHero />
+          <IdleHero mode="chords" />
         </div>
       </div>
     </main>
@@ -202,7 +224,12 @@ function PracticeInner() {
   const params = useSearchParams();
   const router = useRouter();
   const deepChord = params.get("chord");
-  const [mode, setMode] = useState<AppMode>(() => (params.get("mode") === "transitions" ? "transitions" : "chords"));
+  const modeParam = params.get("mode");
+  const [mode, setMode] = useState<AppMode>(() => parseMode(modeParam));
+  // Nav links change only the query (/practice -> /practice?mode=song): follow them.
+  useEffect(() => {
+    setMode(parseMode(modeParam));
+  }, [modeParam]);
   /** A ?chord= deep link we're loading: the session layout renders right away. */
   const [pendingChord, setPendingChord] = useState<string | null>(deepChord);
   const [progress, setProgress] = useState<ProgressData>({ chords: {}, practiceStreak: 0, lastPracticeDate: null });
@@ -503,6 +530,13 @@ function PracticeInner() {
       setFromSong(false);
     }
     setMode(newMode);
+    // keep the URL shareable / back-button friendly
+    const q = new URLSearchParams(window.location.search);
+    q.delete("chord");
+    if (newMode === "chords") q.delete("mode");
+    else q.set("mode", newMode);
+    const qs = q.toString();
+    window.history.replaceState(null, "", qs ? `/practice?${qs}` : "/practice");
   }
 
   const chordStatuses = Object.fromEntries(
@@ -547,11 +581,7 @@ function PracticeInner() {
         {/* Brand hero + progress: hidden while a chord is active (focus mode) */}
         {!showRecap && !(isSessionActive && mode === "chords") && (
           <>
-            <IdleHero />
-
-            <div className="animate-enter" style={{ "--i": 2 } as React.CSSProperties}>
-              <ProgressDashboard progress={progress} totalChords={totalChords} />
-            </div>
+            <IdleHero mode={mode} />
           </>
         )}
 
@@ -566,8 +596,9 @@ function PracticeInner() {
         <div style={{ display: mode === "chords" && !showRecap ? "block" : "none" }}>
           {/* Chord Selector — shown when IDLE */}
           {!isSessionActive && (
-            <section className="glass-card animate-enter" style={{ "--i": 3 } as React.CSSProperties}>
-              <h2 className="text-lg font-semibold gradient-text mb-4">Choose a Chord</h2>
+            <section className="animate-enter space-y-8" style={{ "--i": 3 } as React.CSSProperties}>
+              <ProgressDashboard progress={progress} totalChords={totalChords} />
+              <h2 className="sr-only">Choose a chord</h2>
               <ChordSelector
                 onSelect={handleChordSelect}
                 disabled={loading}

@@ -82,7 +82,7 @@ export default function ProfilePage() {
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto space-y-6">
-        <SectionHeader as="h1" title="Your Profile" subtitle="Manage your account and see how practice is going" />
+        <SectionHeader as="h1" kicker="You" title="Profile" subtitle="Your account, your level, and how practice is going." />
 
         {/* Edit form */}
         <div className="glass-card">

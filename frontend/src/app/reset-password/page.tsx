@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { confirmPasswordReset } from "@/lib/api";
+import Logo from "@/components/brand/Logo";
 
 function ResetPasswordForm() {
   const token = useSearchParams().get("token") ?? "";
@@ -102,8 +103,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-2xl">🎸</span>
-          <span className="font-bold text-white">AI Guitar Tutor</span>
+          <Logo size="lg" />
         </Link>
         <div className="glass-card animate-enter">
           <h1 className="text-2xl font-bold text-white mb-1 text-center">Choose a new password</h1>

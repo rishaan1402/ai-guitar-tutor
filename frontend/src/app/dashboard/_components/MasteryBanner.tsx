@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useSWR from "swr";
+import { useAuth } from "@/context/AuthContext";
+import { getProgress } from "@/lib/api";
 
 export const MASTERY_V2_KEY = "agt:mastery-v2-seen";
 
 /** One-time note for existing learners: what "mastered" means now. */
 export function MasteryBanner() {
   const [show, setShow] = useState(false);
+  const { user } = useAuth();
+  // Only learners with history saw the old rule; new users don't need the note.
+  const { data } = useSWR(user ? "/api/progress" : null, getProgress, { revalidateOnFocus: false });
   useEffect(() => {
     try {
       setShow(window.localStorage.getItem(MASTERY_V2_KEY) !== "1");
@@ -14,7 +20,7 @@ export function MasteryBanner() {
       setShow(false);
     }
   }, []);
-  if (!show) return null;
+  if (!show || !data || data.total_attempted === 0) return null;
   const dismiss = () => {
     try {
       window.localStorage.setItem(MASTERY_V2_KEY, "1");

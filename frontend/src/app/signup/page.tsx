@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { safeNext } from "@/lib/auth";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import Logo from "@/components/brand/Logo";
 
 export default function SignupPage() {
   return (
@@ -51,8 +52,7 @@ function Form({ next }: { next: string }) {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-2xl">🎸</span>
-          <span className="font-bold text-white">AI Guitar Tutor</span>
+          <Logo size="lg" />
         </Link>
 
         <div className="glass-card animate-enter">

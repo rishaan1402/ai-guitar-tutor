@@ -1,8 +1,9 @@
 "use client";
 
-import { formatChord } from "@/lib/chordName";
 import { useEffect, useState } from "react";
 import { listChords } from "@/lib/api";
+import { BEGINNER_PATH, chordSymbol, formatChord } from "@/lib/chordName";
+import { pluck } from "@/lib/sound";
 
 interface Props {
   onSelect: (chord: string) => void;
@@ -10,145 +11,138 @@ interface Props {
   chordStatuses?: Record<string, "not_attempted" | "in_progress" | "mastered">;
 }
 
-type Difficulty = "beginner" | "intermediate" | "advanced";
-type Filter = "all" | Difficulty;
+const ROOTS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const QUALITIES: { key: string; label: string }[] = [
+  { key: "major", label: "Major" },
+  { key: "minor", label: "Minor" },
+  { key: "dominant7", label: "7" },
+  { key: "major7", label: "maj7" },
+  { key: "minor7", label: "m7" },
+  { key: "half_dim7", label: "m7♭5" },
+  { key: "power", label: "5" },
+];
+// open-string pitch for a little pluck on hover
+const ROOT_HZ: Record<string, number> = { C: 130.81, "C#": 138.59, D: 146.83, "D#": 155.56, E: 82.41, F: 87.31, "F#": 92.5, G: 98.0, "G#": 103.83, A: 110.0, "A#": 116.54, B: 123.47 };
 
-function getDifficulty(chord: string): Difficulty {
-  const q = chord.split("_").slice(1).join("_");
-  if (!q || q === "major" || q === "minor" || q === "power") return "beginner";
-  if (q === "dominant7" || q === "major7" || q === "minor7") return "intermediate";
-  return "advanced";
+function StatusDot({ status }: { status?: string }) {
+  if (status === "mastered") return <span className="text-sage-300" aria-label="mastered">★</span>;
+  if (status === "in_progress") return <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-label="in progress" />;
+  return null;
 }
 
-const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-};
-
-const DIFFICULTY_COLORS: Record<Difficulty, string> = {
-  beginner: "text-green-400 bg-green-500/10 border-green-500/20",
-  intermediate: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-  advanced: "text-red-400 bg-red-500/10 border-red-500/20",
-};
-
-export default function ChordSelector({ onSelect, disabled, chordStatuses }: Props) {
-  const [chords, setChords] = useState<string[]>([]);
-  const [selected, setSelected] = useState("");
+/**
+ * Choosing a chord: the beginner path first (one click to start), then every
+ * chord in a root × quality grid.
+ */
+export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }: Props) {
+  const [chords, setChords] = useState<Set<string> | null>(null);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
 
   useEffect(() => {
     listChords()
-      .then((data) => setChords(data.chords))
+      .then((data) => setChords(new Set(data.chords)))
       .catch((err) => setError(err.message));
   }, []);
 
-  const counts: Record<Filter, number> = {
-    all: chords.length,
-    beginner: chords.filter((c) => getDifficulty(c) === "beginner").length,
-    intermediate: chords.filter((c) => getDifficulty(c) === "intermediate").length,
-    advanced: chords.filter((c) => getDifficulty(c) === "advanced").length,
-  };
+  if (error) return <p className="text-amp-300">Couldn&apos;t load chords: {error}</p>;
 
-  const filtered = chords.filter((c) => {
-    const matchSearch = formatChord(c).toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" || getDifficulty(c) === filter;
-    return matchSearch && matchFilter;
-  });
-
-  if (error) {
-    return <p className="text-red-400">Failed to load chords: {error}</p>;
-  }
+  const path = BEGINNER_PATH.filter((c) => !chords || chords.has(c));
+  const nextIdx = path.findIndex((c) => chordStatuses[c] !== "mastered");
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search chords..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            disabled={disabled}
-            className="glass w-full pl-9 pr-4 py-2 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-50"
-          />
+    <div className="space-y-8">
+      <section aria-labelledby="path-title">
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 id="path-title" className="label-mono text-amber-300">Start here — the first eight</h3>
+          <span className="label-mono text-cream/40">one click to start</span>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {(["all", "beginner", "intermediate", "advanced"] as Filter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              disabled={disabled}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all disabled:opacity-50 ${
-                filter === f
-                  ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
-                  : "bg-white/5 text-gray-400 border-white/10 hover:bg-white/10"
-              }`}
-            >
-              {f === "all" ? "All" : DIFFICULTY_LABELS[f]} ({counts[f]})
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {filtered.length === 0 ? (
-        <p className="text-gray-500 text-sm text-center py-8">No chords found</p>
-      ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
-          {filtered.map((chord) => {
-            const diff = getDifficulty(chord);
-            const status = chordStatuses?.[chord] || "not_attempted";
-            const isSelected = selected === chord;
-
+        <ol className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8">
+          {path.map((c, i) => {
+            const status = chordStatuses[c];
+            const isNext = i === nextIdx;
             return (
-              <button
-                key={chord}
-                onClick={() => setSelected(isSelected ? "" : chord)}
-                disabled={disabled}
-                className={`
-                  glass-card flex flex-col items-center gap-1 p-2 rounded-xl text-center
-                  transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed
-                  ${isSelected ? "glow-border-active" : "hover:glass-hover"}
-                `}
-              >
-                <span className="text-xs font-semibold text-white leading-tight">
-                  {formatChord(chord)}
-                </span>
-                <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full border ${DIFFICULTY_COLORS[diff]}`}>
-                  {DIFFICULTY_LABELS[diff].slice(0, 3)}
-                </span>
-                {status === "mastered" && (
-                  <svg className="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                )}
-                {status === "in_progress" && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
-                )}
-              </button>
+              <li key={c}>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onSelect(c)}
+                  onPointerEnter={(e) => e.pointerType === "mouse" && pluck(ROOT_HZ[c.split("_")[0]] ?? 110)}
+                  aria-label={`${formatChord(c)}${isNext ? " — next up" : ""}${status === "mastered" ? " — mastered" : ""}`}
+                  className={`group relative flex h-20 w-full flex-col items-center justify-center rounded-2xl border transition-all duration-fast disabled:opacity-50 ${
+                    isNext
+                      ? "border-amber-400 bg-amber-400/10 shadow-[0_0_30px_-8px_rgba(232,165,75,0.6)]"
+                      : status === "mastered"
+                        ? "border-sage-400/40 bg-sage-400/5"
+                        : "border-cream/10 hover:border-cream/30"
+                  }`}
+                >
+                  <span className="label-mono absolute left-2 top-1.5 text-[10px] text-cream/35">{i + 1}</span>
+                  <span className="font-display text-2xl text-cream group-hover:text-amber-200">{chordSymbol(c)}</span>
+                  <span className="mt-1 flex h-3 items-center gap-1">
+                    {isNext ? <span className="label-mono text-[9px] text-amber-300">Next</span> : <StatusDot status={status} />}
+                  </span>
+                </button>
+              </li>
             );
           })}
-        </div>
-      )}
+        </ol>
+      </section>
 
-      {selected && (
-        <div
-          className="flex justify-end animate-enter-fast"
-        >
-          <button
-            onClick={() => { if (selected) onSelect(selected); }}
-            disabled={disabled}
-            className="btn-gradient px-6 py-2.5 rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Start Lesson — {formatChord(selected)}
-          </button>
+      <section aria-labelledby="all-title">
+        <h3 id="all-title" className="label-mono text-cream/50">Every chord</h3>
+        <div className="mt-3 overflow-x-auto rounded-2xl border border-cream/10">
+          <table className="w-full min-w-[560px] border-collapse text-sm">
+            <thead>
+              <tr>
+                <th scope="col" className="label-mono w-12 p-2 text-left text-cream/35">
+                  <span className="sr-only">Root</span>
+                </th>
+                {QUALITIES.map((q) => (
+                  <th key={q.key} scope="col" className="label-mono p-2 text-cream/45">
+                    {q.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ROOTS.map((r) => (
+                <tr key={r} className="border-t border-cream/5">
+                  <th scope="row" className="p-2 text-left font-display text-cream/70">
+                    {r}
+                  </th>
+                  {QUALITIES.map((q) => {
+                    const key = `${r}_${q.key}`;
+                    const exists = !chords || chords.has(key);
+                    const status = chordStatuses[key];
+                    return (
+                      <td key={q.key} className="p-1 text-center">
+                        {exists ? (
+                          <button
+                            type="button"
+                            disabled={disabled || !chords}
+                            onClick={() => onSelect(key)}
+                            aria-label={formatChord(key)}
+                            className={`inline-flex h-9 w-full min-w-[3.5rem] items-center justify-center gap-1 rounded-lg font-mono text-sm transition-colors duration-fast disabled:opacity-40 ${
+                              status === "mastered"
+                                ? "bg-sage-400/10 text-sage-200 hover:bg-sage-400/20"
+                                : "text-cream/80 hover:bg-amber-400/10 hover:text-amber-200"
+                            }`}
+                          >
+                            {chordSymbol(key)}
+                            <StatusDot status={status} />
+                          </button>
+                        ) : (
+                          <span className="text-cream/15">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </section>
     </div>
   );
 }

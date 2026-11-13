@@ -40,6 +40,11 @@ QUALITY_INTERVALS: Dict[str, List[int]] = {
     "hdim7": [0, 3, 6, 10],     # half-diminished 7th
 }
 
+# Standard chord-symbol suffixes for captions (Am, Am7, Am7b5 — not "Amin").
+DISPLAY_SYMBOL: Dict[str, str] = {
+    "maj": "", "min": "m", "7": "7", "maj7": "maj7", "min7": "m7", "hdim7": "m7b5", "5": "5",
+}
+
 QUALITY_DISPLAY: Dict[str, str] = {
     "maj": "major",
     "min": "minor",
@@ -148,7 +153,7 @@ def extract_and_save(
         notes = get_notes_for_chord(root, quality)
         metadata: Dict[str, Any] = {
             "chord": dir_name,
-            "display_name": f"{root}{'' if quality == 'maj' else quality}",
+            "display_name": f"{root}{DISPLAY_SYMBOL.get(quality, quality)}",
             "root": root,
             "quality": QUALITY_DISPLAY.get(quality, quality),
             "notes": notes,

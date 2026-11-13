@@ -54,6 +54,7 @@ export default function SongsPage() {
       <div className="max-w-4xl mx-auto">
         <SectionHeader
           as="h1"
+          kicker="The music stand"
           title="Songs"
           subtitle="Chord charts and tabs with transpose, capo, simplify and autoscroll"
           action={

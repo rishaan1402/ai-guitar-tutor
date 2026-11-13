@@ -5,6 +5,7 @@ import Link from "next/link";
 import ChordDiagram from "@/components/ChordDiagram";
 import { getFingering, type ChordFingering } from "@/lib/api";
 import { toAppChordKey } from "@/lib/chordpro";
+import { shapeFor } from "@/lib/chordShape";
 
 // Fingerings never change at runtime; share them across sheets
 const fingeringCache = new Map<string, Promise<ChordFingering | null>>();
@@ -66,7 +67,10 @@ export default function ChordPanel({ chords, activeChord, onSelect }: Props) {
             >
               <button type="button" onClick={() => onSelect(chord)} aria-label={`Show ${chord}`}>
                 {fingering ? (
-                  <ChordDiagram fingering={fingering} />
+                  (() => {
+                    const shape = shapeFor(chord, fingering.positions ?? []);
+                    return <ChordDiagram fingering={fingering} caption={shape.caption} positions={shape.positions} note={shape.note} />;
+                  })()
                 ) : (
                   <div className="glass-card w-[88px] h-[132px] flex items-center justify-center text-sm font-semibold text-violet-300">
                     {chord}

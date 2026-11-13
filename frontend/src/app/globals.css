@@ -5,19 +5,19 @@
 @tailwind utilities;
 
 /* ============================================
-   "NIGHT STAGE" DESIGN TOKENS
-   Deep moss-black, warm amber stage light,
-   sage for secondary signals. Always dark.
+   "STUDIO AT NIGHT" DESIGN TOKENS (Open Strings)
+   Warm near-black room, tungsten-amber light,
+   amp-red for live/energy, sage for "you nailed it".
    ============================================ */
 @layer base {
   :root {
-    --background: 150 14% 3%;
+    --background: 24 14% 4%;
     --foreground: 40 45% 90%;
 
-    --card: 150 14% 5%;
+    --card: 24 14% 6%;
     --card-foreground: 40 45% 90%;
 
-    --popover: 150 16% 6%;
+    --popover: 24 14% 7%;
     --popover-foreground: 40 45% 90%;
 
     --primary: 35 77% 60%;          /* amber-400 */
@@ -26,17 +26,17 @@
     --secondary: 137 18% 55%;       /* sage-400 */
     --secondary-foreground: 150 14% 4%;
 
-    --muted: 150 10% 11%;
+    --muted: 24 10% 11%;
     --muted-foreground: 38 14% 62%;
 
-    --accent: 150 16% 13%;
+    --accent: 24 12% 13%;
     --accent-foreground: 40 45% 90%;
 
     --destructive: 6 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 40 20% 90% / 0.09;
-    --input: 150 10% 10%;
+    --input: 24 10% 10%;
     --ring: 35 77% 60%;
 
     --radius: 0.625rem;
@@ -47,9 +47,10 @@
     --sage-rgb: 134, 176, 146;
     --sage-soft-rgb: 178, 207, 184;
     --cream-rgb: 243, 234, 216;
+    --amp-rgb: 217, 72, 59;
 
-    --bg-primary: #060807;
-    --bg-secondary: #0a0e0c;
+    --bg-primary: #0c0a09;
+    --bg-secondary: #14110f;
     --glass-bg: rgba(var(--cream-rgb), 0.028);
     --glass-border: rgba(var(--cream-rgb), 0.085);
     --glass-hover-bg: rgba(var(--cream-rgb), 0.05);
@@ -93,8 +94,8 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
   background:
     radial-gradient(ellipse 1100px 650px at 12% -15%, rgba(var(--accent-rgb), 0.10), transparent 60%),
-    radial-gradient(ellipse 900px 700px at 105% 15%, rgba(var(--sage-rgb), 0.07), transparent 60%),
-    radial-gradient(ellipse 1200px 600px at 50% 120%, rgba(60, 74, 47, 0.30), transparent 65%),
+    radial-gradient(ellipse 900px 700px at 105% 10%, rgba(var(--amp-rgb), 0.06), transparent 60%),
+    radial-gradient(ellipse 1200px 600px at 50% 120%, rgba(58, 21, 17, 0.35), transparent 65%),
     var(--bg-primary);
   background-attachment: fixed;
   color: #e9e1cf;
@@ -127,13 +128,19 @@ body::after {
    TYPE
    ============================================ */
 
-.font-display,
+/* Big headings shout; the display face alone does not, so chord symbols keep
+   their case (Em is not EM). Add `uppercase` explicitly where wanted. */
+.font-display {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+}
 .text-display,
 .text-h1,
 .text-h2 {
   font-family: var(--font-display), var(--font-body), sans-serif;
   text-transform: uppercase;
 }
+/* Chord symbols inside shouting headings */
+.chord-case { text-transform: none; }
 
 .text-h3 {
   font-family: var(--font-display), var(--font-body), sans-serif;
@@ -190,7 +197,7 @@ body::after {
 .glass {
   backdrop-filter: blur(18px) saturate(1.2);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  background: rgba(6, 8, 7, 0.55);
+  background: rgba(12, 10, 9, 0.55);
   border: 1px solid var(--glass-border);
 }
 
@@ -201,9 +208,9 @@ body::after {
   -webkit-backdrop-filter: blur(14px);
   background:
     linear-gradient(180deg, rgba(var(--cream-rgb), 0.045), rgba(var(--cream-rgb), 0.012) 40%),
-    rgba(10, 14, 12, 0.55);
+    rgba(20, 17, 15, 0.55);
   border: 1px solid var(--glass-border);
-  border-radius: 0.875rem;
+  border-radius: 1.25rem;
   padding: 1.25rem;
   box-shadow: 0 1px 0 rgba(var(--cream-rgb), 0.05) inset, 0 24px 60px -30px rgba(0, 0, 0, 0.7);
 }
@@ -266,21 +273,20 @@ body::after {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(180deg, #f2bd6c, #e29d42);
+  background: #e8a54b;
   color: #1c1206;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 999px;
   padding: 0.7rem 1.5rem;
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-weight: 650;
+  font-size: 0.9rem;
+  letter-spacing: 0;
   cursor: pointer;
   box-shadow: 0 0 0 1px rgba(255, 220, 160, 0.25) inset, 0 10px 30px -12px rgba(var(--accent-rgb), 0.6);
   transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s ease, filter 0.2s ease;
 }
 .btn-gradient:hover {
-  filter: brightness(1.06);
+  background: #efc27a;
   box-shadow: 0 0 0 1px rgba(255, 220, 160, 0.35) inset, 0 14px 40px -10px rgba(var(--accent-rgb), 0.75);
   transform: translateY(-1px);
 }
@@ -333,11 +339,9 @@ body::after {
 .glow-green  { box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
 
 /* Headline colour: candlelit cream into amber */
+/* Headings are plain cream now (the amber is saved for the words that matter). */
 .gradient-text {
-  background: linear-gradient(160deg, #fff6e4 10%, #f2cf93 55%, #e29d42 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #f3ead8;
 }
 
 .gradient-text-warm {
@@ -569,3 +573,69 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
   .reveal { opacity: 1; transform: none; filter: none; }
   .reveal-words .word > span { transform: none; }
 }
+
+/* ============================================
+   OPEN STRINGS: brand + room primitives
+   ============================================ */
+@keyframes os-string-ring {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(0.4px); }
+  75% { transform: translateX(-0.4px); }
+}
+.os-string-ring {
+  animation: os-string-ring 0.11s linear infinite;
+  transform-box: fill-box;
+}
+
+/* Small uppercase mono label used for readouts, tags and room signage */
+.label-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-string-ring { animation: none; }
+}
+
+/* ── The practice room ─────────────────────────────────────── */
+.os-room [data-obj] {
+  transition: filter var(--dur-base) var(--ease-out-expo), opacity var(--dur-base) var(--ease-out-expo);
+}
+.os-room:not([data-active=""]) [data-obj]:not(.is-active) { opacity: 0.62; }
+.os-room [data-obj].is-active {
+  filter: brightness(1.18) drop-shadow(0 0 22px rgba(232, 165, 75, 0.55));
+}
+@keyframes os-led { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.os-led-pulse { animation: os-led 1.2s ease-in-out infinite; }
+@keyframes os-spin-dash { to { stroke-dashoffset: -230; } }
+.os-spin-dash { animation: os-spin-dash 1.4s linear infinite; }
+@keyframes os-tick { 0%, 100% { transform: rotate(-16deg); } 50% { transform: rotate(16deg); } }
+.os-tick { animation: os-tick 0.9s ease-in-out infinite; }
+.os-room-pan { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.os-room-pan::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .os-led-pulse, .os-spin-dash, .os-tick { animation: none; }
+  .os-room g[style] { transition: none !important; transform: none !important; }
+}
+@keyframes os-neon-on {
+  0%, 18%, 22%, 26%, 100% { opacity: 1; }
+  20%, 24% { opacity: 0.35; }
+}
+.os-neon { animation: os-neon-on 6s steps(1, end) infinite; }
+@keyframes os-hotspot { 0%, 100% { box-shadow: 0 0 0 4px rgba(232,165,75,0.3); } 50% { box-shadow: 0 0 0 10px rgba(232,165,75,0); } }
+.os-hotspot { animation: os-hotspot 1.8s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .os-neon, .os-hotspot { animation: none; } }
+@keyframes os-intro-strum {
+  0% { transform: translateY(0); }
+  20% { transform: translateY(-2.5px); }
+  40% { transform: translateY(2px); }
+  60% { transform: translateY(-1.2px); }
+  80% { transform: translateY(0.6px); }
+  100% { transform: translateY(0); }
+}
+.os-intro-strum { animation: os-intro-strum 0.45s ease-out 2; }
+/* Headings focused by script (tabIndex -1, for screen readers) show no ring */
+[tabindex="-1"]:focus { outline: none; box-shadow: none; }

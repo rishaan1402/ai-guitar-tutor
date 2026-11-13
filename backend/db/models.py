@@ -1,4 +1,4 @@
-"""SQLAlchemy 2.0 ORM models for AI Guitar Tutor."""
+"""SQLAlchemy 2.0 ORM models for Open Strings."""
 from __future__ import annotations
 
 import uuid

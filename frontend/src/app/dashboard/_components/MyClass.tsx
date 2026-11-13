@@ -61,7 +61,7 @@ export function MyClass() {
 
   return (
     <section>
-      <h3 className="text-h3 mb-4">Your Class</h3>
+      <div className="mb-5"><p className="label-mono text-cream/45">Your teacher</p><h2 className="mt-1 font-display text-h3 uppercase tracking-tight text-cream">Your class</h2></div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="glass-card">
         <h4 className="text-sm font-semibold text-white mb-3">Assigned to you</h4>
@@ -142,7 +142,7 @@ export function MyClass() {
 function MyClassSkeleton() {
   return (
     <section aria-hidden>
-      <h3 className="text-h3 mb-4">Your Class</h3>
+      <div className="mb-5"><p className="label-mono text-cream/45">Your teacher</p><h2 className="mt-1 font-display text-h3 uppercase tracking-tight text-cream">Your class</h2></div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="glass-card min-h-[118px]">
           <div className="skeleton h-4 w-1/3 rounded mb-3" />

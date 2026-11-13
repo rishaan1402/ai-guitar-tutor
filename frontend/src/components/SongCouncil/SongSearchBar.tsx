@@ -16,15 +16,13 @@ export default function SongSearchBar({ onSearch, loading }: SongSearchBarProps)
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <h2 className="gradient-text text-3xl font-bold text-center mb-2">
-        Song Learning Council
-      </h2>
-      <p className="text-center text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
-        Type any song name — 4 AI specialists will build you a personalised lesson plan
-      </p>
+    <div className="w-full max-w-2xl">
+      <label htmlFor="song-query" className="label-mono mb-2 block text-cream/50">
+        Song and artist
+      </label>
       <form onSubmit={handleSubmit} className="flex gap-3">
         <input
+          id="song-query"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

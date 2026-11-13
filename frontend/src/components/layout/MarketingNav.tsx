@@ -2,47 +2,49 @@
 
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import Logo from "@/components/brand/Logo";
+import SoundToggle from "@/components/brand/SoundToggle";
+
+const LINKS = [
+  { href: "#room", label: "The room" },
+  { href: "#listen", label: "Listening" },
+  { href: "#songs", label: "Songs" },
+  { href: "#teachers", label: "Teachers" },
+];
 
 export function MarketingNav() {
   const { user, loading } = useAuth();
 
   return (
-    <nav className="sticky top-0 z-50 w-full glass border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="text-xl">🎸</span>
-          <span className="font-bold text-white tracking-tight">AI Guitar Tutor</span>
+    <nav className="sticky top-0 z-50 w-full border-b border-cream/5 bg-ink-950/75 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="shrink-0" aria-label="Open Strings home">
+          <Logo size="md" />
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          <a href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">
-            Features
-          </a>
-          <a href="#how-it-works" className="text-sm text-gray-400 hover:text-white transition-colors">
-            How it works
-          </a>
-          <a href="#for-teachers" className="text-sm text-gray-400 hover:text-white transition-colors">
-            For teachers
-          </a>
+        <div className="hidden items-center gap-7 md:flex">
+          {LINKS.map((l) => (
+            <a key={l.href} href={l.href} className="label-mono text-cream/60 transition-colors hover:text-amber-300">
+              {l.label}
+            </a>
+          ))}
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <SoundToggle />
           {loading ? (
-            <div className="w-24 h-8 skeleton rounded" />
+            <div className="h-9 w-28 rounded-full skeleton" />
           ) : user ? (
-            <Link href="/dashboard" className="btn-gradient text-sm px-4 py-2">
-              Go to Dashboard
+            <Link href="/dashboard" className="rounded-full bg-amber-400 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-amber-300">
+              Enter your room
             </Link>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="hidden sm:inline text-sm text-gray-300 hover:text-white transition-colors"
-              >
-                Log In
+              <Link href="/login" className="hidden text-sm text-cream/70 hover:text-cream sm:inline">
+                Log in
               </Link>
-              <Link href="/signup" className="btn-gradient text-sm px-4 py-2">
-                Start Free
+              <Link href="/start" className="rounded-full bg-amber-400 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-amber-300">
+                Start free
               </Link>
             </>
           )}

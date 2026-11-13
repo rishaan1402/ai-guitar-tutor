@@ -21,7 +21,7 @@ function CalendarHeatmap() {
 
   return (
     <div className="glass-card p-6">
-      <SectionHeader title="365-Day Activity Heatmap" subtitle="Your practice consistency over the past year" />
+      <SectionHeader kicker="Every day you played" title="Activity" />
       <div className="mt-4">
         <ActivityHeatmap days={data} />
       </div>
@@ -35,7 +35,7 @@ function SkillMeter({ skillLevel }: { skillLevel: string }) {
 
   return (
     <div className="glass-card p-6">
-      <SectionHeader title="Skill Level" subtitle="Your current playing ability" />
+      <SectionHeader kicker="Where you are" title="Skill level" />
       <div className="flex items-center gap-3 mt-6">
         {levels.map((level, idx) => (
           <div key={level} className="flex-1">
@@ -67,6 +67,14 @@ function ChordMasteryMatrix({ chords }: { chords: any[] }) {
         title="Chord Mastery Matrix"
         subtitle="Performance overview across all practiced chords"
       />
+      {chords.length === 0 && (
+        <p className="text-cream/60">
+          Nothing on the wall yet.{" "}
+          <Link href="/practice?chord=E_minor" className="text-amber-300 hover:text-amber-200">
+            Play your first chord (Em) →
+          </Link>
+        </p>
+      )}
       <div className="mt-6 grid grid-cols-auto gap-2 max-h-96 overflow-y-auto">
         {chords.map((chord) => (
           <Link
@@ -179,8 +187,13 @@ export default function ProgressPage() {
         animate="visible"
       >
         <motion.div variants={fadeInUp}>
-          <h1 className="text-3xl font-bold gradient-text">Your Progress</h1>
-          <p className="text-gray-400 mt-2">Track your journey to guitar mastery</p>
+          <SectionHeader
+            as="h1"
+            kicker="The record wall"
+            title="Your progress"
+            subtitle="Every chord you've played, how close each one is to mastered, and the days you showed up."
+            className="mb-0"
+          />
         </motion.div>
 
         <motion.div variants={fadeInUp}>
@@ -204,7 +217,7 @@ export default function ProgressPage() {
         </motion.div>
 
         <motion.div variants={fadeInUp} className="space-y-4">
-          <SectionHeader title="All Practiced Chords" subtitle="Click any chord to see detailed history" />
+          <SectionHeader kicker="Tap one for its history" title="Your chords" />
           <Suspense fallback={<LoadingSkeleton />}>
             <ProgressContent />
           </Suspense>

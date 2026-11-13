@@ -11,14 +11,8 @@ interface Props {
 export default function ProgressDashboard({ progress, totalChords }: Props) {
   const { totalPracticed, averageBestScore, streak, masteredCount } = getProgressSummary(progress);
 
-  if (totalPracticed === 0) {
-    return (
-      <div className="glass-card text-center py-6 px-4">
-        <p className="text-gray-300 font-medium">Welcome! Select a chord below to start your first lesson.</p>
-        <p className="text-gray-500 text-sm mt-1">Your progress will appear here after your first session.</p>
-      </div>
-    );
-  }
+  // Nothing to summarise before the first take: the chord picker says what to do.
+  if (totalPracticed === 0) return null;
 
   const stats = [
     {

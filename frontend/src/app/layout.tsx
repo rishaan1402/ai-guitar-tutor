@@ -1,13 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Chakra_Petch, Manrope } from "next/font/google";
+import { Archivo_Black, IBM_Plex_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 
-// Display: squared, technical caps for headlines. Body: open, airy sans.
-const display = Chakra_Petch({
+// Display: heavy grotesk for big statements. Mono: labels, readouts, tabs.
+// Body: open, airy sans.
+const display = Archivo_Black({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400"],
   variable: "--font-display",
+  display: "swap",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -19,17 +27,17 @@ const body = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "AI Guitar Tutor",
-  description: "Play a chord. The tutor listens to every string and tells you exactly what to fix.",
+  title: { default: "Open Strings — the guitar practice room that listens", template: "%s · Open Strings" },
+  description: "Play a chord. Open Strings listens to every string and tells you exactly what to fix — then turns any song into a chord chart, tabs and lessons.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#060807",
+  themeColor: "#0c0a09",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`}>
+    <html lang="en" className={`${display.variable} ${mono.variable} ${body.variable}`}>
       <body className="font-sans">
         <AuthProvider>
           {children}
