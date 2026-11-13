@@ -6,44 +6,33 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-
-const ROLE_BADGE: Record<string, string> = {
-  admin:   "bg-red-500/20 text-red-300 border-red-500/30",
-  teacher: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  student: "bg-green-500/20 text-green-300 border-green-500/30",
-};
+import Logo from "@/components/brand/Logo";
+import SoundToggle from "@/components/brand/SoundToggle";
 
 interface NavItem {
   href: string;
   label: string;
+  /** Path that marks this item active (defaults to href without the query). */
+  match?: string;
   authRequired?: boolean;
   teacherOnly?: boolean;
   adminOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", authRequired: true },
-  { href: "/practice",  label: "Practice" },
-  { href: "/songs",     label: "Songs" },
-  { href: "/progress",  label: "Progress", authRequired: true },
-  { href: "/teacher",   label: "Class",    authRequired: true, teacherOnly: true },
-  { href: "/admin",     label: "Admin",    authRequired: true, adminOnly: true },
+  { href: "/dashboard", label: "Room", authRequired: true },
+  { href: "/practice", label: "Practice" },
+  { href: "/practice?mode=song", label: "Learn a song", match: "#song" },
+  { href: "/songs", label: "Songs" },
+  { href: "/tuner", label: "Tuner" },
+  { href: "/progress", label: "Progress", authRequired: true },
+  { href: "/teacher", label: "Class", authRequired: true, teacherOnly: true },
+  { href: "/admin", label: "Admin", authRequired: true, adminOnly: true },
 ];
 
-function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "text-sm font-medium transition-colors px-3 py-1.5 rounded-md",
-        active
-          ? "text-white bg-white/10"
-          : "text-gray-400 hover:text-white hover:bg-white/5"
-      )}
-    >
-      {label}
-    </Link>
-  );
+function isActive(item: NavItem, pathname: string): boolean {
+  if (item.match === "#song") return false; // query-based; Practice stays lit for /practice
+  return pathname === (item.match ?? item.href.split("?")[0]);
 }
 
 export default function NavBar() {
@@ -58,7 +47,7 @@ export default function NavBar() {
     setMobileOpen(false);
   };
 
-  const visibleItems = NAV_ITEMS.filter(item => {
+  const items = NAV_ITEMS.filter((item) => {
     if (item.adminOnly && !isAdmin) return false;
     if (item.teacherOnly && !isTeacher && !isAdmin) return false;
     if (item.authRequired && !user) return false;
@@ -66,128 +55,113 @@ export default function NavBar() {
   });
 
   return (
-    <nav className="sticky top-0 z-50 w-full glass border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
-
-        {/* Logo */}
-        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 shrink-0">
-          <span className="text-xl">🎸</span>
-          <span className="font-bold text-white hidden sm:inline">AI Guitar Tutor</span>
+    <nav className="sticky top-0 z-50 w-full border-b border-cream/5 bg-ink-950/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Link href={user ? "/dashboard" : "/"} className="shrink-0" aria-label="Open Strings — your room">
+          <Logo size="md" />
         </Link>
 
-        {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-1">
-          {visibleItems.map(item => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              active={pathname === item.href}
-            />
-          ))}
+        <div className="hidden items-center gap-1 lg:flex">
+          {items.map((item) => {
+            const active = isActive(item, pathname);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "label-mono rounded-full px-3 py-2 transition-colors duration-fast",
+                  active ? "bg-amber-400/10 text-amber-300" : "text-cream/60 hover:text-cream",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Right side: user or auth buttons */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
+          <SoundToggle />
           {loading ? (
-            <div className="w-20 h-7 skeleton rounded" />
+            <div className="h-8 w-20 rounded-full skeleton" />
           ) : user ? (
-            <>
-              {/* Desktop user info */}
-              <div className="hidden md:flex items-center gap-2">
-                <Link
-                  href="/profile"
-                  className="text-sm text-gray-300 hover:text-white transition-colors"
-                >
-                  {user.display_name}
-                </Link>
-                <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full font-medium border",
-                  ROLE_BADGE[user.role] ?? "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                )}>
-                  {user.role}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="text-xs text-gray-500 hover:text-gray-300 transition-colors ml-1"
-                >
-                  Logout
-                </button>
-              </div>
+            <Link
+              href="/profile"
+              className="hidden h-9 items-center gap-2 rounded-full border border-cream/10 pl-1 pr-3 text-sm text-cream/80 hover:border-cream/25 lg:inline-flex"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 font-display text-xs text-ink-950">
+                {user.display_name.slice(0, 1).toUpperCase()}
+              </span>
+              {user.display_name}
+            </Link>
+          ) : null}
+          {!loading && user && (
+            <button onClick={handleLogout} className="label-mono hidden text-cream/40 hover:text-cream lg:inline">
+              Log out
+            </button>
+          )}
+          {loading || user ? null : (
+            <span className="hidden items-center gap-3 lg:inline-flex">
+              <Link href="/login" className="text-sm text-cream/70 hover:text-cream">
+                Log in
+              </Link>
+              <Link href="/signup" className="rounded-full bg-amber-400 px-4 py-1.5 text-sm font-semibold text-ink-950 hover:bg-amber-300">
+                Sign up
+              </Link>
+            </span>
+          )}
 
-              {/* Mobile hamburger */}
-              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                <SheetTrigger
-                  className="md:hidden p-2 text-gray-400 hover:text-white"
-                  aria-label="Open menu"
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M3 5h14M3 10h14M3 15h14" strokeLinecap="round"/>
-                  </svg>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-64 bg-[#08080c] border-white/10 p-0">
-                  <div className="flex flex-col h-full">
-                    {/* Mobile user header */}
-                    <div className="p-5 border-b border-white/10">
-                      <div className="font-semibold text-white">{user.display_name}</div>
-                      <div className={cn(
-                        "text-xs mt-1 inline-block px-2 py-0.5 rounded-full font-medium border",
-                        ROLE_BADGE[user.role]
-                      )}>
-                        {user.role}
-                      </div>
-                    </div>
-
-                    {/* Mobile nav links */}
-                    <nav className="flex-1 p-4 space-y-1">
-                      {visibleItems.map(item => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setMobileOpen(false)}
-                          className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </nav>
-
-                    {/* Mobile footer */}
-                    <div className="p-4 border-t border-white/10 space-y-2">
-                      <Link
-                        href="/profile"
-                        onClick={() => setMobileOpen(false)}
-                        className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-white/5"
-                      >
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger className="rounded-full p-2 text-cream/70 hover:text-cream lg:hidden" aria-label="Open menu">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <path d="M3 6h14M3 10h14M3 14h14" strokeLinecap="round" />
+              </svg>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72 border-cream/10 bg-ink-950 p-0">
+              <div className="flex h-full flex-col">
+                <div className="border-b border-cream/10 p-5">
+                  <Logo size="sm" />
+                  {user && <p className="mt-3 text-sm text-cream/70">Signed in as {user.display_name}</p>}
+                </div>
+                <div className="flex-1 space-y-1 p-3">
+                  {items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "block rounded-xl px-4 py-3 font-display text-lg uppercase",
+                        isActive(item, pathname) ? "bg-amber-400/10 text-amber-300" : "text-cream hover:bg-cream/5",
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+                <div className="space-y-1 border-t border-cream/10 p-3">
+                  {user ? (
+                    <>
+                      <Link href="/profile" onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-cream/80 hover:bg-cream/5">
                         Profile
                       </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-                      >
-                        Logout
+                      <button onClick={handleLogout} className="w-full rounded-xl px-4 py-3 text-left text-sm text-amp-300 hover:bg-amp-500/10">
+                        Log out
                       </button>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="text-sm text-gray-300 hover:text-white transition-colors"
-              >
-                Log In
-              </Link>
-              <Link
-                href="/signup"
-                className="text-sm btn-gradient px-4 py-1.5"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/login" onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-cream/80 hover:bg-cream/5">
+                        Log in
+                      </Link>
+                      <Link href="/signup" onClick={() => setMobileOpen(false)} className="block rounded-xl bg-amber-400 px-4 py-3 text-center text-sm font-semibold text-ink-950">
+                        Sign up free
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>

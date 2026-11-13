@@ -28,7 +28,7 @@ export function AppShell({ children }: AppShellProps) {
         position="bottom-right"
         toastOptions={{
           style: {
-            background: "rgba(6, 8, 7,0.95)",
+            background: "rgba(12, 10, 9, 0.95)",
             border: "1px solid rgba(255,255,255,0.1)",
             color: "#e5e7eb",
             backdropFilter: "blur(16px)",

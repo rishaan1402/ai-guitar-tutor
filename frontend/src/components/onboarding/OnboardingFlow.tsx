@@ -93,8 +93,9 @@ export default function OnboardingFlow({ tuneOnly = false }: Props) {
 
   const signedIn = typeof window !== "undefined" && !!getAccessToken();
   const practiceHref = "/practice?chord=A_minor";
-  const idx = STEPS.findIndex((s) => s.key === step);
-  const meta = STEPS[idx];
+  const shownSteps = tuneOnly ? STEPS.filter((s) => s.key === "permission" || s.key === "tune") : STEPS;
+  const idx = shownSteps.findIndex((s) => s.key === step);
+  const meta = shownSteps[Math.max(0, idx)];
 
   const afterTune = () => {
     if (tuneOnly) {
@@ -108,7 +109,7 @@ export default function OnboardingFlow({ tuneOnly = false }: Props) {
     <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12 space-y-8">
       <nav aria-label="Setup steps">
         <ol className="flex items-center justify-center gap-2 sm:gap-3">
-          {STEPS.map((s, i) => (
+          {shownSteps.map((s, i) => (
             <li key={s.key} className="flex items-center gap-2">
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-semibold ${

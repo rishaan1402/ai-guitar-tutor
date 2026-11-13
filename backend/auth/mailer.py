@@ -14,7 +14,7 @@ import httpx
 logger = logging.getLogger(__name__)
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-MAIL_FROM = os.environ.get("MAIL_FROM", "AI Guitar Tutor <no-reply@example.com>")
+MAIL_FROM = os.environ.get("MAIL_FROM", "Open Strings <no-reply@example.com>")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000").rstrip("/")
 
 
@@ -37,7 +37,7 @@ async def send_password_reset(to: str, token: str, minutes_valid: int) -> None:
     link = f"{FRONTEND_URL}/reset-password?token={token}"
     await send_email(
         to,
-        "Reset your AI Guitar Tutor password",
+        "Reset your Open Strings password",
         (
             "Someone asked to reset the password for this account.\n\n"
             f"Reset it here (valid for {minutes_valid} minutes):\n{link}\n\n"

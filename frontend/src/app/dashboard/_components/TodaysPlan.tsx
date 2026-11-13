@@ -75,7 +75,13 @@ interface PlanItemCardProps {
 
 /** Deep link for a plan item: chords open that chord's lesson, changes open the trainer. */
 export function planHref(item: PlanItem): string {
-  if (item.type === "transition") return "/practice?mode=transitions";
+  if (item.type === "transition") {
+    if (!item.chord_a || !item.chord_b) return "/practice?mode=transitions";
+    const q = new URLSearchParams({ mode: "transitions", a: item.chord_a, b: item.chord_b });
+    if (item.chord_a_symbol) q.set("sa", item.chord_a_symbol);
+    if (item.chord_b_symbol) q.set("sb", item.chord_b_symbol);
+    return `/practice?${q}`;
+  }
   return item.chord_key ? `/practice?chord=${encodeURIComponent(item.chord_key)}` : "/practice";
 }
 

@@ -1,27 +1,22 @@
 import Link from "next/link";
+import Logo from "@/components/brand/Logo";
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/5 mt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🎸</span>
-            <span className="font-semibold text-white">AI Guitar Tutor</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500">
-            <Link href="/practice" className="hover:text-gray-300 transition-colors">Practice</Link>
-            <a href="#features" className="hover:text-gray-300 transition-colors">Features</a>
-            <a href="#for-teachers" className="hover:text-gray-300 transition-colors">For Teachers</a>
-            <Link href="/login" className="hover:text-gray-300 transition-colors">Log In</Link>
-            <Link href="/signup" className="hover:text-gray-300 transition-colors">Sign Up</Link>
+    <footer className="mt-24 border-t border-cream/5">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <Logo size="md" />
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-cream/50">
+            <Link href="/start" className="hover:text-cream">Start</Link>
+            <Link href="/practice" className="hover:text-cream">Practice</Link>
+            <Link href="/practice?mode=song" className="hover:text-cream">Learn a song</Link>
+            <Link href="/songs" className="hover:text-cream">Songs</Link>
+            <Link href="/login" className="hover:text-cream">Log in</Link>
+            <Link href="/signup" className="hover:text-cream">Sign up</Link>
           </div>
         </div>
-
-        <p className="text-xs text-gray-600 mt-8">
-          Built for guitarists who want feedback, not just footage.
-        </p>
+        <p className="label-mono mt-8 text-cream/30">E · A · D · G · B · e — start anywhere.</p>
       </div>
     </footer>
   );

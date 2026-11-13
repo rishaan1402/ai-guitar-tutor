@@ -24,22 +24,22 @@ HEIGHT = 720
 FPS = 1
 DURATION_SECONDS = 8
 
-# Colors
-BG_COLOR = (15, 17, 23)           # dark background matching frontend
-FRETBOARD_COLOR = (50, 45, 35)    # dark wood
-STRING_COLOR = (200, 200, 200)
-FRET_COLOR = (160, 150, 130)
-NUT_COLOR = (240, 235, 220)
+# Colors: the Open Strings "studio at night" palette (see frontend/tailwind.config.ts)
+BG_COLOR = (20, 17, 15)           # ink-900
+FRETBOARD_COLOR = (58, 39, 24)    # dark rosewood
+STRING_COLOR = (233, 225, 207)
+FRET_COLOR = (185, 160, 122)
+NUT_COLOR = (243, 234, 216)
 DOT_COLORS = {
-    "beginner": (59, 130, 246),     # blue
-    "intermediate": (234, 179, 8),  # yellow
-    "advanced": (239, 68, 68),      # red
+    "beginner": (232, 165, 75),     # amber-400
+    "intermediate": (134, 176, 146),  # sage-400
+    "advanced": (217, 72, 59),      # amp-500
 }
-TEXT_COLOR = (229, 231, 235)
-MUTED_COLOR = (239, 68, 68)
-OPEN_COLOR = (74, 222, 128)
-NOTE_TEXT_COLOR = (255, 255, 255)
-SUBTITLE_COLOR = (156, 163, 175)
+TEXT_COLOR = (243, 234, 216)      # cream
+MUTED_COLOR = (232, 96, 79)       # amp-400
+OPEN_COLOR = (163, 198, 171)      # sage-300
+NOTE_TEXT_COLOR = (12, 10, 9)     # ink on the light dots
+SUBTITLE_COLOR = (169, 157, 137)  # warm gray-400
 
 # Fretboard layout
 FRETBOARD_X = 400
@@ -226,7 +226,7 @@ def draw_chord_info(
         [info_x, badge_y, info_x + tw + 24, badge_y + 32],
         radius=6, fill=badge_color,
     )
-    draw.text((info_x + 12, badge_y + 5), badge_text, fill=(255, 255, 255), font=font_body)
+    draw.text((info_x + 12, badge_y + 5), badge_text, fill=NOTE_TEXT_COLOR, font=font_body)
 
     # Instructions
     draw.text(
@@ -242,10 +242,10 @@ def draw_chord_info(
 
 
 def draw_header(draw: ImageDraw.ImageDraw) -> None:
-    """Draw the app title at the top."""
-    font = get_font(28)
-    draw.text((40, 30), "AI Guitar Tutor", fill=(100, 116, 139), font=font)
-    draw.line([(40, 70), (WIDTH - 40, 70)], fill=(55, 65, 81), width=1)
+    """Draw the brand wordmark at the top."""
+    font = get_font(26)
+    draw.text((40, 30), "OPEN STRINGS", fill=(232, 165, 75), font=font)
+    draw.line([(40, 70), (WIDTH - 40, 70)], fill=(53, 45, 39), width=1)
 
 
 def generate_chord_image(chord_data: Dict[str, Any]) -> np.ndarray:

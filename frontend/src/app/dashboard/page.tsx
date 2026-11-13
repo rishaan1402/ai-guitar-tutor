@@ -10,8 +10,17 @@ import { QuickStats } from "./_components/QuickStats";
 import { MyClass } from "./_components/MyClass";
 import { MasteryBanner } from "./_components/MasteryBanner";
 import { ChordStages } from "./_components/ChordStages";
-import { LoadingSkeleton, CardSkeleton, StatCardSkeleton } from "@/components/ui/LoadingSkeleton";
-import { SectionHeader } from "@/components/ui/SectionHeader";
+import { RoomHub } from "./_components/RoomHub";
+import { CardSkeleton, StatCardSkeleton } from "@/components/ui/LoadingSkeleton";
+
+function Heading({ kicker, title }: { kicker: string; title: string }) {
+  return (
+    <div className="mb-5">
+      <p className="label-mono text-cream/45">{kicker}</p>
+      <h2 className="mt-1 font-display text-h3 uppercase tracking-tight text-cream">{title}</h2>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -23,31 +32,21 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="space-y-8">
-        {/* Header */}
-        <SectionHeader
-          as="h1"
-          title="Your Practice Hub"
-          subtitle="Pick up where you left off and stay on track"
-        />
+      <div className="space-y-16 pb-10">
+        <RoomHub />
 
-        {/* Today's Plan */}
         <section>
-          <h3 className="text-h3 mb-4">Today's Plan</h3>
+          <Heading kicker="Today" title="Your plan" />
           <Suspense fallback={<CardSkeleton />}>
             <TodaysPlan />
           </Suspense>
         </section>
 
-        {/* Teacher assignments + class membership (signed-in students only) */}
-        <MyClass />
-
-        {/* Quick Stats */}
         <section>
-          <h3 className="text-h3 mb-4">Your Progress</h3>
+          <Heading kicker="On your wall" title="Your chords" />
           <Suspense
             fallback={
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <StatCardSkeleton key={i} />
                 ))}
@@ -56,17 +55,17 @@ export default function DashboardPage() {
           >
             <QuickStats />
           </Suspense>
-          <h3 className="text-h3 mt-6 mb-3">Your chords</h3>
-          {/* below the fold: appearing after mount doesn't shift what's on screen */}
-          <div className="mb-3">
+          <div className="mb-3 mt-6">
             <MasteryBanner />
           </div>
           <ChordStages />
         </section>
 
-        {/* Streak Heatmap */}
+        {/* Teacher assignments + class membership (signed-in students only) */}
+        <MyClass />
+
         <section>
-          <h3 className="text-h3 mb-4">365-Day Activity</h3>
+          <Heading kicker="Every day you played" title="Activity" />
           <Suspense fallback={<div className="skeleton h-48 rounded" />}>
             <StreakHeatmap />
           </Suspense>

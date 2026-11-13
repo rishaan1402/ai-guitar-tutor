@@ -26,3 +26,21 @@ export function nextBeginnerChord(current: string): string {
   if (i === -1) return BEGINNER_PATH[0];
   return BEGINNER_PATH[(i + 1) % BEGINNER_PATH.length];
 }
+
+const QUALITY_SYMBOL: Record<string, string> = {
+  major: "",
+  minor: "m",
+  dominant7: "7",
+  major7: "maj7",
+  minor7: "m7",
+  half_dim7: "m7♭5",
+  power: "5",
+};
+
+/** Chord key to its symbol: "A#_half_dim7" → "A#m7♭5", "E_minor" → "Em". */
+export function chordSymbol(key: string): string {
+  const i = key.indexOf("_");
+  if (i < 0) return key;
+  const q = key.slice(i + 1);
+  return key.slice(0, i) + (QUALITY_SYMBOL[q] ?? ` ${q.replace(/_/g, " ")}`);
+}

@@ -28,6 +28,37 @@ const SAGE = {
   950: "#15211a",
 };
 
+// Amp-grille red, full scale (errors, "live", energy)
+const AMP = {
+  50: "#fdf2f0",
+  100: "#fbe0dc",
+  200: "#f6bcb4",
+  300: "#f08a7e",
+  400: "#e8604f",
+  500: "#d9483b",
+  600: "#b5372c",
+  700: "#8c2a22",
+  800: "#6b211b",
+  900: "#4f1914",
+  950: "#2a0c09",
+};
+
+// Warm greys from the cream text colour, so every legacy text-gray-*/bg-gray-*
+// utility sits in the studio palette instead of reading cool blue-grey.
+const WARM_GRAY = {
+  50: "#faf6ee",
+  100: "#f3ead8",
+  200: "#e4d9c4",
+  300: "#cbbfa8",
+  400: "#a99d89",
+  500: "#8a7f6e",
+  600: "#6b6255",
+  700: "#4d463d",
+  800: "#2f2a25",
+  900: "#1c1916",
+  950: "#0f0d0b",
+};
+
 const config: Config = {
   darkMode: ["class"],
   content: [
@@ -76,6 +107,15 @@ const config: Config = {
         // "Night stage": the legacy purple/violet scales now resolve to warm
         // amber stage light and cyan to sage, so every existing utility
         // (text-purple-300, bg-cyan-500/20, ...) picks up the redesign.
+        // Legacy palette names resolve into the studio palette so older
+        // components can't drift off-brand.
+        gray: WARM_GRAY,
+        emerald: SAGE,
+        green: SAGE,
+        blue: SAGE,
+        red: AMP,
+        yellow: AMBER,
+        orange: AMBER,
         purple: AMBER,
         violet: AMBER,
         amber: AMBER,
@@ -86,17 +126,29 @@ const config: Config = {
           muted: "#cbbfa8",
           dim: "#8f8574",
         },
+        // "Studio at night": warm near-black walls and floor. (Kept the `moss`
+        // name so existing utilities follow the palette change.)
         moss: {
-          950: "#060807",
-          900: "#0a0e0c",
-          800: "#101814",
-          700: "#18241d",
-          600: "#22322a",
+          950: "#0c0a09",
+          900: "#14110f",
+          800: "#1c1815",
+          700: "#27211d",
+          600: "#352d27",
         },
+        ink: {
+          950: "#0c0a09",
+          900: "#14110f",
+          800: "#1c1815",
+          700: "#27211d",
+          600: "#352d27",
+        },
+        // Amp-grille red: one bold accent for energy and "live" states.
+        amp: AMP,
       },
       fontFamily: {
         sans: ["var(--font-body)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "var(--font-body)", "sans-serif"],
+        display: ["var(--font-display)", "Arial Black", "var(--font-body)", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       // ── Border radius (matches --radius CSS var) ──────────────────────
       borderRadius: {
