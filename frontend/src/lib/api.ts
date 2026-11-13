@@ -495,6 +495,33 @@ export interface LessonDocument {
   tempo_feel: string;
   song_sections: SongSection[];
   chord_functions: Record<string, string>;
+  /** ChordPro chord chart (chords only) built from the AI's song data. */
+  chart?: string;
+  strumming?: string;
+  capo?: number;
+  tempo_bpm?: number | null;
+  section_lessons?: SectionLesson[];
+}
+
+export interface SectionChange {
+  from_symbol: string;
+  to_symbol: string;
+  from_key: string | null;
+  to_key: string | null;
+}
+
+export interface SectionLesson {
+  name: string;
+  bars: string[];
+  repeat: number;
+  chords: string[];
+  new_chords: string[];
+  /** symbol -> app chord lesson key (null when the app has no lesson for it) */
+  chord_keys: Record<string, string | null>;
+  changes: SectionChange[];
+  start_bpm: number | null;
+  target_bpm: number | null;
+  steps: string[];
 }
 
 export interface TipRequest {

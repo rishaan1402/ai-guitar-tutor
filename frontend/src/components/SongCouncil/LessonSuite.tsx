@@ -6,6 +6,7 @@ import LessonSuiteNav, { Stage } from "./LessonSuiteNav";
 import LessonQuiz from "./LessonQuiz";
 import PracticeChordCard from "./PracticeChordCard";
 import PlayAlongMode from "./PlayAlongMode";
+import ChartStage from "./ChartStage";
 
 interface LessonSuiteProps {
   lesson: LessonDocument;
@@ -327,7 +328,7 @@ export default function LessonSuite({
   function completeStage(s: Stage) {
     setCompletedStages((prev) => { const next = new Set(prev); next.add(s); return next; });
     // Advance to next stage
-    const order: Stage[] = ["study", "quiz", "practice", "perform"];
+    const order: Stage[] = ["study", "chart", "quiz", "practice", "perform"];
     const nextIdx = order.indexOf(s) + 1;
     if (nextIdx < order.length) {
       setStage(order[nextIdx]);
@@ -346,6 +347,14 @@ export default function LessonSuite({
         <StudyStage
           lesson={lesson}
           onComplete={() => completeStage("study")}
+        />
+      )}
+
+      {stage === "chart" && (
+        <ChartStage
+          lesson={lesson}
+          onPracticeChord={onPracticeChord}
+          onComplete={() => completeStage("chart")}
         />
       )}
 

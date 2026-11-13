@@ -12,11 +12,14 @@ import {
 import SheetView from "./SheetView";
 import SheetToolbar from "./SheetToolbar";
 import ChordPanel from "./ChordPanel";
+import ChordTabs from "./ChordTabs";
 
 interface Props {
   content: string;
   /** Hide the toolbar and panel (compact editor preview). */
   compact?: boolean;
+  /** Show generated strum / picking tabs under the chart from the start. */
+  defaultShowTabs?: boolean;
 }
 
 const FONT_KEY = "guitar-tutor-sheet-font";
@@ -30,7 +33,7 @@ function readFont(): number {
   }
 }
 
-export default function SongSheetPlayer({ content, compact = false }: Props) {
+export default function SongSheetPlayer({ content, compact = false, defaultShowTabs = false }: Props) {
   const sheet = useMemo(() => parseChordPro(content), [content]);
   const { meta } = sheet;
 
@@ -44,6 +47,7 @@ export default function SongSheetPlayer({ content, compact = false }: Props) {
   const [fontSize, setFontSize] = useState(16);
   const [scrolling, setScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(3);
+  const [showTabs, setShowTabs] = useState(defaultShowTabs);
   const speedRef = useRef(scrollSpeed);
   speedRef.current = scrollSpeed;
 
@@ -157,12 +161,31 @@ export default function SongSheetPlayer({ content, compact = false }: Props) {
       )}
 
       <div className={compact ? "" : "grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8"}>
-        <SheetView
-          sheet={shown}
-          fontSize={compact ? 14 : fontSize}
-          activeChord={activeChord}
-          onChordClick={(c) => setActiveChord((cur) => (cur === c ? null : c))}
-        />
+        <div className="space-y-8 min-w-0">
+          <SheetView
+            sheet={shown}
+            fontSize={compact ? 14 : fontSize}
+            activeChord={activeChord}
+            onChordClick={(c) => setActiveChord((cur) => (cur === c ? null : c))}
+          />
+          {!compact && chords.length > 0 && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowTabs((v) => !v)}
+                aria-expanded={showTabs}
+                className="h-9 px-3 rounded-lg border border-white/10 text-sm text-gray-200 hover:bg-white/5"
+              >
+                {showTabs ? "Hide tabs" : "Show tabs"}
+              </button>
+              {showTabs && (
+                <div className="mt-4">
+                  <ChordTabs chords={chords} fontSize={Math.max(12, fontSize - 2)} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         {!compact && chords.length > 0 && (
           <aside className="lg:sticky lg:top-32 lg:self-start lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
             <ChordPanel chords={chords} activeChord={activeChord} onSelect={setActiveChord} />

@@ -11,7 +11,11 @@ logger = logging.getLogger(__name__)
 # Override with the GROQ_MODEL env var. llama-3.3-70b-versatile was retired;
 # gpt-oss-120b is the strongest general model on Groq as of 2026-11.
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
-_REASONING_HEADROOM = 1024
+# Lighter model for the many short calls (council agents, chairman, tips,
+# feedback). Groq rate-limits per model, so splitting the load keeps a song
+# lesson from stalling on 429 back-offs.
+GROQ_FAST_MODEL = os.environ.get("GROQ_FAST_MODEL", "openai/gpt-oss-20b")
+_REASONING_HEADROOM = 512
 
 
 def llm_params(max_tokens: int, model: str | None = None) -> dict:
@@ -272,7 +276,7 @@ Keep it encouraging and actionable. Do not use markdown or bullet points."""
         response = await client.chat.completions.create(
             messages=messages,
             temperature=0.7,
-            **llm_params(120),
+            **llm_params(120, GROQ_FAST_MODEL),
         )
         return response.choices[0].message.content.strip()
 

@@ -10,7 +10,7 @@ import ChordDiagram from "./ChordDiagram";
 
 type Phase = "idle" | "countdown" | "active" | "results";
 
-interface ChordPair {
+export interface ChordPair {
   keyA: string;
   keyB: string;
   symbolA: string;
@@ -27,9 +27,29 @@ const PRESETS: ChordPair[] = [
 
 const SESSION_DURATION = 60; // seconds
 
-export default function TransitionTrainer() {
+const KEY_RE = /^[A-G]#?_[a-z0-9_]{3,12}$/;
+const SYMBOL_RE = /^[A-G][#b]?[A-Za-z0-9#+()°ø/]{0,10}$/;
+
+/** A pair from a link like ?mode=transitions&a=G_major&b=E_minor&sa=G&sb=Em, or null if invalid. */
+export function pairFromParams(get: (k: string) => string | null): ChordPair | null {
+  const keyA = get("a"), keyB = get("b");
+  if (!keyA || !keyB || keyA === keyB || !KEY_RE.test(keyA) || !KEY_RE.test(keyB)) return null;
+  const sym = (v: string | null, fallback: string) => (v && SYMBOL_RE.test(v) ? v : fallback);
+  return { keyA, keyB, symbolA: sym(get("sa"), keyA.replace(/_.*/, "")), symbolB: sym(get("sb"), keyB.replace(/_.*/, "")) };
+}
+
+interface Props {
+  /** Start on this pair (e.g. a change from a song section lesson). */
+  initialPair?: ChordPair | null;
+}
+
+export default function TransitionTrainer({ initialPair = null }: Props = {}) {
   const [phase, setPhase] = useState<Phase>("idle");
-  const [selectedPair, setSelectedPair] = useState<ChordPair>(PRESETS[0]);
+  const [selectedPair, setSelectedPair] = useState<ChordPair>(initialPair ?? PRESETS[0]);
+  const pairs =
+    initialPair && !PRESETS.some((p) => p.keyA === initialPair.keyA && p.keyB === initialPair.keyB)
+      ? [initialPair, ...PRESETS]
+      : PRESETS;
   const [switchInterval, setSwitchInterval] = useState(2); // seconds
   const [countdown, setCountdown] = useState(3);
   const [timeLeft, setTimeLeft] = useState(SESSION_DURATION);
@@ -236,7 +256,7 @@ export default function TransitionTrainer() {
               Choose a Chord Pair
             </h3>
             <div className="flex flex-wrap gap-2">
-              {PRESETS.map((p) => {
+              {pairs.map((p) => {
                 const active = p.keyA === selectedPair.keyA && p.keyB === selectedPair.keyB;
                 return (
                   <button

@@ -20,6 +20,10 @@ class ChordEntry(BaseModel):
 class SectionEntry(BaseModel):
     name: str            # e.g. "Verse", "Chorus"
     chords: list[str]    # chord symbols used in that section
+    # Bar-by-bar chords for one pass of the section, e.g. ["G", "D", "Am7", "C D"]
+    # ("C D" = two chords sharing the bar). Optional: older lessons lack it.
+    bars: list[str] = []
+    repeat: int = 1      # how many times the bars are played in a row
 
 
 class SongObject(BaseModel):
@@ -35,6 +39,11 @@ class SongObject(BaseModel):
     techniques: list[str]             # e.g. ["fingerpicking", "barre chord"]
     theory_notes: str                 # free-text interesting harmonic observations
     feel_description: str             # e.g. "melancholic, gentle, introspective"
+    # Chart data (optional so older stored lessons still validate)
+    form: list[str] = []              # section names in playing order, e.g. ["Intro","Verse","Chorus"]
+    strumming: str = ""               # e.g. "D DU UDU"
+    capo: int = 0                     # fret of the commonly taught arrangement
+    tempo_bpm: Optional[int] = None   # approximate tempo
 
 
 # ---------------------------------------------------------------------------
@@ -81,6 +90,28 @@ class SongSection(BaseModel):
     chords: list[str]    # chord symbols used in that section
 
 
+class SectionChange(BaseModel):
+    """A chord change to drill, e.g. G -> Em."""
+    from_symbol: str
+    to_symbol: str
+    from_key: Optional[str] = None    # app chord keys when the chord has a lesson
+    to_key: Optional[str] = None
+
+
+class SectionLesson(BaseModel):
+    """A practice lesson for one section of the song, built from its chart."""
+    name: str
+    bars: list[str] = []
+    repeat: int = 1
+    chords: list[str] = []            # distinct chords in the section
+    new_chords: list[str] = []        # not seen in an earlier section
+    chord_keys: dict[str, Optional[str]] = {}   # symbol -> app lesson key (None if none)
+    changes: list[SectionChange] = []
+    start_bpm: Optional[int] = None   # slow practice tempo
+    target_bpm: Optional[int] = None  # song tempo
+    steps: list[str] = []             # what to do, in order
+
+
 class LessonDocument(BaseModel):
     lesson_id: str
     song_title: str
@@ -99,6 +130,12 @@ class LessonDocument(BaseModel):
     song_sections: list[SongSection] = []
     chord_functions: dict[str, str] = {}
     chord_ranking: list[ChordRankEntry] = []  # populated after /practice/revise
+    # ChordPro chord chart (chords only — no lyrics) and per-section lessons
+    chart: str = ""
+    strumming: str = ""
+    capo: int = 0
+    tempo_bpm: Optional[int] = None
+    section_lessons: list[SectionLesson] = []
 
 
 # ---------------------------------------------------------------------------

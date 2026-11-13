@@ -4,7 +4,7 @@ import logging
 
 from council.schemas import LessonDocument, TipRequest
 from council.session_store import LessonSession
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params, GROQ_FAST_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ All chord progress so far:
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.7,
-            **llm_params(80),
+            **llm_params(80, GROQ_FAST_MODEL),
         )
         return response.choices[0].message.content.strip()
     except Exception as exc:
@@ -99,7 +99,7 @@ Original practice plan:
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.7,
-                **llm_params(600),
+                **llm_params(600, GROQ_FAST_MODEL),
             )
             revised_plan = response.choices[0].message.content.strip()
         except Exception as exc:
