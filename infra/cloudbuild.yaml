@@ -5,9 +5,9 @@ steps:
       - -f
       - backend/Dockerfile
       - -t
-      - us-central1-docker.pkg.dev/ai-guitar-tutor-prod/guitar-tutor/backend:latest
+      - us-central1-docker.pkg.dev/$PROJECT_ID/guitar-tutor/backend:latest
       - .
 images:
-  - us-central1-docker.pkg.dev/ai-guitar-tutor-prod/guitar-tutor/backend:latest
+  - us-central1-docker.pkg.dev/$PROJECT_ID/guitar-tutor/backend:latest
 options:
   logging: CLOUD_LOGGING_ONLY
