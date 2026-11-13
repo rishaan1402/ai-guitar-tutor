@@ -7,9 +7,10 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
+from council.chart import build_chart, build_section_lessons
 from council.schemas import SongObject, AgentOutput, LessonDocument, PracticeChord, SongSection
 from council.agents import _CHAIRMAN_PROMPT
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params, GROQ_FAST_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +160,7 @@ async def synthesize(song: SongObject, agent_outputs: list[AgentOutput]) -> Less
                 {"role": "user", "content": chairman_user},
             ],
             temperature=0.7,
-            **llm_params(400),
+            **llm_params(400, GROQ_FAST_MODEL),
         )
         summary = response.choices[0].message.content.strip()
     except Exception as exc:
@@ -191,4 +192,9 @@ async def synthesize(song: SongObject, agent_outputs: list[AgentOutput]) -> Less
         tempo_feel=song.tempo_feel,
         song_sections=song_sections,
         chord_functions=chord_functions,
+        chart=build_chart(song),
+        strumming=song.strumming,
+        capo=song.capo if 0 <= song.capo <= 11 else 0,
+        tempo_bpm=song.tempo_bpm,
+        section_lessons=build_section_lessons(song),
     )

@@ -93,6 +93,7 @@ export default function SheetView({ sheet, fontSize, activeChord, onChordClick }
         return (
           <section
             key={i}
+            id={label ? sectionAnchor(label) : undefined}
             className={section.kind === "chorus" ? "border-l-2 border-violet-500/50 pl-4" : undefined}
           >
             {label && (
@@ -108,4 +109,9 @@ export default function SheetView({ sheet, fontSize, activeChord, onChordClick }
       })}
     </div>
   );
+}
+
+/** DOM id for a section heading, so lessons can jump to "Chorus" on the chart. */
+export function sectionAnchor(label: string): string {
+  return "section-" + label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }

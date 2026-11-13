@@ -17,7 +17,7 @@ import ModeToggle, { AppMode } from "@/components/ModeToggle";
 import SongCouncil from "@/components/SongCouncil";
 import type { SongCouncilContext } from "@/components/SongCouncil";
 import MetronomeWidget from "@/components/MetronomeWidget";
-import TransitionTrainer from "@/components/TransitionTrainer";
+import TransitionTrainer, { pairFromParams } from "@/components/TransitionTrainer";
 import NavBar from "@/components/NavBar";
 import {
   getLesson,
@@ -833,7 +833,7 @@ function PracticeInner() {
 
         {/* ── TRANSITIONS MODE ────────────────────────────────────── */}
         <div style={{ display: mode === "transitions" && !showRecap ? "block" : "none" }}>
-          <TransitionTrainer />
+          <TransitionTrainer initialPair={pairFromParams((k) => params.get(k))} />
         </div>
         {/* Below everything, so it never shifts the lesson when it appears after mount */}
         {showSetupHint && !showRecap && (!isSessionActive || currentStep === 3) && (

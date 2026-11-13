@@ -22,6 +22,15 @@ Rules:
 - progression: chord symbols in order of first appearance
 - sections: name each distinct section (Intro, Verse, Chorus, Bridge, Outro) and list its chords
 - techniques: only guitar-relevant techniques (e.g. fingerpicking, barre chord, hammer-on)
+- sections[].bars: the chords bar by bar for ONE pass of that section, in order. One
+  chord per bar is written "G"; two chords sharing a bar are written "C D". Use the
+  same chord symbols as in chords. sections[].repeat: how many times those bars repeat.
+- form: the section names in the order they are played through the whole song
+  (names must match sections[].name), e.g. ["Intro","Verse","Chorus","Verse","Chorus","Outro"]
+- strumming: a common strumming pattern written with D and U, e.g. "D DU UDU"
+- capo: the capo fret of the widely taught version (0 if none)
+- tempo_bpm: approximate tempo in beats per minute
+- NEVER include song lyrics or any words of the song
 - For songs with multiple versions, use the most widely-taught beginner arrangement
 - If uncertain about any field, provide your best estimate — do not refuse or leave fields empty
 """
@@ -54,9 +63,9 @@ Song to analyse: {song_query}"""
                     ],
                     response_format={"type": "json_object"},
                     temperature=0.2,
-                    **llm_params(1500),
+                    **llm_params(2500),
                 ),
-                timeout=20.0,
+                timeout=35.0,
             )
             raw = response.choices[0].message.content.strip()
             logger.info("Ingestion raw response length: %d chars", len(raw))

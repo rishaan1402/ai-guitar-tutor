@@ -5,7 +5,7 @@ import json
 import logging
 
 from council.schemas import SongObject, AgentOutput
-from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params
+from feedback_engine.generator import _get_groq_client, GROQ_MODEL, llm_params, GROQ_FAST_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ async def _run_agent(agent_name: str, system_prompt: str, content: str) -> Agent
                         {"role": "user", "content": f"Song data:\n{content}"},
                     ],
                     temperature=0.7,
-                    **llm_params(600),
+                    **llm_params(600, GROQ_FAST_MODEL),
                 ),
                 timeout=20.0,
             )

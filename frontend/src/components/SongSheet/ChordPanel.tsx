@@ -9,7 +9,7 @@ import { toAppChordKey } from "@/lib/chordpro";
 // Fingerings never change at runtime; share them across sheets
 const fingeringCache = new Map<string, Promise<ChordFingering | null>>();
 
-function loadFingering(key: string): Promise<ChordFingering | null> {
+export function loadFingering(key: string): Promise<ChordFingering | null> {
   if (!fingeringCache.has(key)) {
     fingeringCache.set(key, getFingering(key).catch(() => null));
   }

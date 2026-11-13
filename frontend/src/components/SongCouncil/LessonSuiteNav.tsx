@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export type Stage = "study" | "quiz" | "practice" | "perform";
+export type Stage = "study" | "chart" | "quiz" | "practice" | "perform";
 
 interface LessonSuiteNavProps {
   stage: Stage;
@@ -12,6 +12,7 @@ interface LessonSuiteNavProps {
 
 const STAGES: { key: Stage; label: string; emoji: string }[] = [
   { key: "study", label: "Study", emoji: "📖" },
+  { key: "chart", label: "Chart", emoji: "🎼" },
   { key: "quiz", label: "Quiz", emoji: "🧠" },
   { key: "practice", label: "Practice", emoji: "🎸" },
   { key: "perform", label: "Perform", emoji: "🎮" },
