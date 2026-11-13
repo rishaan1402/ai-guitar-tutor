@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ChordFingering } from "@/lib/api";
+import { shapeFor } from "@/lib/chordShape";
 import { chordTab, type TabPattern } from "@/lib/chordTab";
 import { toAppChordKey } from "@/lib/chordpro";
 import { loadFingering } from "./ChordPanel";
@@ -76,7 +77,7 @@ export default function ChordTabs({ chords, fontSize = 14 }: Props) {
                   style={{ fontSize }}
                   aria-label={`${c} ${pattern} tab`}
                 >
-                  {chordTab(f.positions, pattern).join("\n")}
+                  {chordTab(shapeFor(c, f.positions).positions, pattern).join("\n")}
                 </pre>
               ) : (
                 <p className="text-xs text-gray-500">{f === undefined ? "Loading…" : "No fingering for this chord yet."}</p>

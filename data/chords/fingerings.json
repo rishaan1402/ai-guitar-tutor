@@ -87,7 +87,7 @@
   },
   {
     "chord": "A#_half_dim7",
-    "display_name": "A#hdim7",
+    "display_name": "A#m7b5",
     "root": "A#",
     "quality": "half_dim7",
     "notes": [
@@ -338,7 +338,7 @@
   },
   {
     "chord": "A#_minor",
-    "display_name": "A#min",
+    "display_name": "A#m",
     "root": "A#",
     "quality": "minor",
     "notes": [
@@ -423,7 +423,7 @@
   },
   {
     "chord": "A#_minor7",
-    "display_name": "A#min7",
+    "display_name": "A#m7",
     "root": "A#",
     "quality": "minor7",
     "notes": [
@@ -662,7 +662,7 @@
   },
   {
     "chord": "A_half_dim7",
-    "display_name": "Ahdim7",
+    "display_name": "Am7b5",
     "root": "A",
     "quality": "half_dim7",
     "notes": [
@@ -907,7 +907,7 @@
   },
   {
     "chord": "A_minor",
-    "display_name": "Amin",
+    "display_name": "Am",
     "root": "A",
     "quality": "minor",
     "notes": [
@@ -990,7 +990,7 @@
   },
   {
     "chord": "A_minor7",
-    "display_name": "Amin7",
+    "display_name": "Am7",
     "root": "A",
     "quality": "minor7",
     "notes": [
@@ -1225,7 +1225,7 @@
   },
   {
     "chord": "B_half_dim7",
-    "display_name": "Bhdim7",
+    "display_name": "Bm7b5",
     "root": "B",
     "quality": "half_dim7",
     "notes": [
@@ -1476,7 +1476,7 @@
   },
   {
     "chord": "B_minor",
-    "display_name": "Bmin",
+    "display_name": "Bm",
     "root": "B",
     "quality": "minor",
     "notes": [
@@ -1561,7 +1561,7 @@
   },
   {
     "chord": "B_minor7",
-    "display_name": "Bmin7",
+    "display_name": "Bm7",
     "root": "B",
     "quality": "minor7",
     "notes": [
@@ -1803,7 +1803,7 @@
   },
   {
     "chord": "C#_half_dim7",
-    "display_name": "C#hdim7",
+    "display_name": "C#m7b5",
     "root": "C#",
     "quality": "half_dim7",
     "notes": [
@@ -2054,7 +2054,7 @@
   },
   {
     "chord": "C#_minor",
-    "display_name": "C#min",
+    "display_name": "C#m",
     "root": "C#",
     "quality": "minor",
     "notes": [
@@ -2139,7 +2139,7 @@
   },
   {
     "chord": "C#_minor7",
-    "display_name": "C#min7",
+    "display_name": "C#m7",
     "root": "C#",
     "quality": "minor7",
     "notes": [
@@ -2381,7 +2381,7 @@
   },
   {
     "chord": "C_half_dim7",
-    "display_name": "Chdim7",
+    "display_name": "Cm7b5",
     "root": "C",
     "quality": "half_dim7",
     "notes": [
@@ -2623,7 +2623,7 @@
   },
   {
     "chord": "C_minor",
-    "display_name": "Cmin",
+    "display_name": "Cm",
     "root": "C",
     "quality": "minor",
     "notes": [
@@ -2708,7 +2708,7 @@
   },
   {
     "chord": "C_minor7",
-    "display_name": "Cmin7",
+    "display_name": "Cm7",
     "root": "C",
     "quality": "minor7",
     "notes": [
@@ -2950,7 +2950,7 @@
   },
   {
     "chord": "D#_half_dim7",
-    "display_name": "D#hdim7",
+    "display_name": "D#m7b5",
     "root": "D#",
     "quality": "half_dim7",
     "notes": [
@@ -3201,7 +3201,7 @@
   },
   {
     "chord": "D#_minor",
-    "display_name": "D#min",
+    "display_name": "D#m",
     "root": "D#",
     "quality": "minor",
     "notes": [
@@ -3286,7 +3286,7 @@
   },
   {
     "chord": "D#_minor7",
-    "display_name": "D#min7",
+    "display_name": "D#m7",
     "root": "D#",
     "quality": "minor7",
     "notes": [
@@ -3523,7 +3523,7 @@
   },
   {
     "chord": "D_half_dim7",
-    "display_name": "Dhdim7",
+    "display_name": "Dm7b5",
     "root": "D",
     "quality": "half_dim7",
     "notes": [
@@ -3763,7 +3763,7 @@
   },
   {
     "chord": "D_minor",
-    "display_name": "Dmin",
+    "display_name": "Dm",
     "root": "D",
     "quality": "minor",
     "notes": [
@@ -3843,7 +3843,7 @@
   },
   {
     "chord": "D_minor7",
-    "display_name": "Dmin7",
+    "display_name": "Dm7",
     "root": "D",
     "quality": "minor7",
     "notes": [
@@ -4077,7 +4077,7 @@
   },
   {
     "chord": "E_half_dim7",
-    "display_name": "Ehdim7",
+    "display_name": "Em7b5",
     "root": "E",
     "quality": "half_dim7",
     "notes": [
@@ -4322,7 +4322,7 @@
   },
   {
     "chord": "E_minor",
-    "display_name": "Emin",
+    "display_name": "Em",
     "root": "E",
     "quality": "minor",
     "notes": [
@@ -4403,7 +4403,7 @@
   },
   {
     "chord": "E_minor7",
-    "display_name": "Emin7",
+    "display_name": "Em7",
     "root": "E",
     "quality": "minor7",
     "notes": [
@@ -4639,7 +4639,7 @@
   },
   {
     "chord": "F#_half_dim7",
-    "display_name": "F#hdim7",
+    "display_name": "F#m7b5",
     "root": "F#",
     "quality": "half_dim7",
     "notes": [
@@ -4890,7 +4890,7 @@
   },
   {
     "chord": "F#_minor",
-    "display_name": "F#min",
+    "display_name": "F#m",
     "root": "F#",
     "quality": "minor",
     "notes": [
@@ -4975,7 +4975,7 @@
   },
   {
     "chord": "F#_minor7",
-    "display_name": "F#min7",
+    "display_name": "F#m7",
     "root": "F#",
     "quality": "minor7",
     "notes": [
@@ -5217,7 +5217,7 @@
   },
   {
     "chord": "F_half_dim7",
-    "display_name": "Fhdim7",
+    "display_name": "Fm7b5",
     "root": "F",
     "quality": "half_dim7",
     "notes": [
@@ -5465,7 +5465,7 @@
   },
   {
     "chord": "F_minor",
-    "display_name": "Fmin",
+    "display_name": "Fm",
     "root": "F",
     "quality": "minor",
     "notes": [
@@ -5550,7 +5550,7 @@
   },
   {
     "chord": "F_minor7",
-    "display_name": "Fmin7",
+    "display_name": "Fm7",
     "root": "F",
     "quality": "minor7",
     "notes": [
@@ -5792,7 +5792,7 @@
   },
   {
     "chord": "G#_half_dim7",
-    "display_name": "G#hdim7",
+    "display_name": "G#m7b5",
     "root": "G#",
     "quality": "half_dim7",
     "notes": [
@@ -6043,7 +6043,7 @@
   },
   {
     "chord": "G#_minor",
-    "display_name": "G#min",
+    "display_name": "G#m",
     "root": "G#",
     "quality": "minor",
     "notes": [
@@ -6128,7 +6128,7 @@
   },
   {
     "chord": "G#_minor7",
-    "display_name": "G#min7",
+    "display_name": "G#m7",
     "root": "G#",
     "quality": "minor7",
     "notes": [
@@ -6369,7 +6369,7 @@
   },
   {
     "chord": "G_half_dim7",
-    "display_name": "Ghdim7",
+    "display_name": "Gm7b5",
     "root": "G",
     "quality": "half_dim7",
     "notes": [
@@ -6618,7 +6618,7 @@
   },
   {
     "chord": "G_minor",
-    "display_name": "Gmin",
+    "display_name": "Gm",
     "root": "G",
     "quality": "minor",
     "notes": [
@@ -6703,7 +6703,7 @@
   },
   {
     "chord": "G_minor7",
-    "display_name": "Gmin7",
+    "display_name": "Gm7",
     "root": "G",
     "quality": "minor7",
     "notes": [

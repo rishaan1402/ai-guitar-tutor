@@ -96,3 +96,12 @@ class TestChordHelpers:
         assert chord_key_for("Bbm") == "A#_minor"
         assert chord_key_for("Gsus4") is None          # not taught: no link, not "G major"
         assert chord_key_for("D/F#") == "D_major"
+
+
+class TestPracticeChordResolver:
+    def test_unknown_quality_gets_no_lesson_or_diagram(self):
+        from council.chairman import _resolve_practice_chords
+        song = _song(progression=["G", "Gsus4", "Cadd9", "D/F#", "Bbm", "Am7"])
+        got = {p.symbol: p.chord_key for p in _resolve_practice_chords(song)}
+        assert got == {"G": "G_major", "Gsus4": None, "Cadd9": None,
+                       "D/F#": "D_major", "Bbm": "A#_minor", "Am7": "A_minor7"}

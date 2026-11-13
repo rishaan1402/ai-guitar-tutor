@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { displayChord, mapChords, parseChordPro, chordsInSheet, type DisplayOptions, type Line } from "@/lib/chordpro";
+import { shapeFor } from "@/lib/chordShape";
 import { chordTab } from "@/lib/chordTab";
 import { toAppChordKey } from "@/lib/chordpro";
 import { loadFingering } from "@/components/SongSheet/ChordPanel";
@@ -94,7 +95,7 @@ export default function ChartDemo() {
       <div className="min-w-0 rounded-2xl bg-black/30 p-4">
         <p className="label-mono text-cream/50">Picking tab · {chord}</p>
         {fing && fing.positions?.length ? (
-          <pre className="mt-3 overflow-x-auto font-mono text-sm leading-tight text-cream/85">{chordTab(fing.positions, "arpeggio").join("\n")}</pre>
+          <pre className="mt-3 overflow-x-auto font-mono text-sm leading-tight text-cream/85">{chordTab(shapeFor(chord, fing.positions).positions, "arpeggio").join("\n")}</pre>
         ) : (
           <p className="mt-3 text-sm text-cream/50">{fing === undefined ? "Loading the shape…" : "Pick another chord to see its tab."}</p>
         )}
