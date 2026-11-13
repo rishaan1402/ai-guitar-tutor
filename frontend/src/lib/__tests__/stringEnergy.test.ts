@@ -6,6 +6,7 @@ import {
   stringEnergies,
   stringTargets,
   stringVerdicts,
+  extraFramesNeeded,
 } from "../stringEnergy";
 import type { ChordFingering } from "../api";
 
@@ -84,6 +85,21 @@ describe("stringTargets", () => {
     expect(t.slice(1).map((x) => x.midi)).toEqual([48, 52, 55, 60, 64]);
   });
 
+  it("C major: strings 1 (E4 over E3) and 2 (C4 over C3) are octave-ambiguous; 3–5 are not", () => {
+    const t = stringTargets(C_MAJOR);
+    const amb = Object.fromEntries(t.map((x) => [x.string, x.ambiguous]));
+    expect(amb).toEqual({ 6: false, 5: false, 4: false, 3: false, 2: true, 1: true });
+  });
+
+  it("E minor: strings 1 (E4) and 4 (E3) over E2 are ambiguous; string 5 (B2) is not", () => {
+    const t = stringTargets(E_MINOR);
+    const amb = Object.fromEntries(t.map((x) => [x.string, x.ambiguous]));
+    expect(amb[1]).toBe(true);
+    expect(amb[4]).toBe(true);
+    expect(amb[5]).toBe(false);
+    expect(amb[6]).toBe(false);
+  });
+
   it("missing fingering → six muted strings", () => {
     expect(stringTargets(null).every((x) => x.muted)).toBe(true);
   });
@@ -142,14 +158,44 @@ describe("stringEnergies", () => {
     expect(s.energy[3]).toBeGreaterThan(0.6); // G3 string lit
   });
 
-  it("a non-chord peak (B2 under C major) flashes an extra on the nearest string", () => {
+  it("a non-chord peak (B2 under C major) that persists 100 ms flashes an extra on the nearest string", () => {
     const s = createEnergyState();
     feed(s, spectrum(-100), 0.5);
     const targets = stringTargets(C_MAJOR);
-    stringEnergies(spectrum(-100, [[midiToHz(47), -20]]), SR, FFT, targets, s, 1 / 60);
-    expect(s.extra[1]).toBeGreaterThan(0.9); // string 5 (C3) is the nearest
+    const b2 = spectrum(-100, [[midiToHz(47), -20]]);
+    for (let i = 0; i < 5; i++) stringEnergies(b2, SR, FFT, targets, s, 1 / 60);
+    expect(s.extra[1]).toBe(0); // 5 frames: not yet
+    stringEnergies(b2, SR, FFT, targets, s, 1 / 60);
+    expect(s.extra[1]).toBeGreaterThan(0.9); // 6th frame: string 5 (C3) is the nearest
     feed(s, spectrum(-100), 0.6);
     expect(s.extra[1]).toBeLessThan(0.1); // a short flash
+  });
+
+  it("a 1-frame non-chord peak (attack transient) never sets extra", () => {
+    const s = createEnergyState();
+    feed(s, spectrum(-100), 0.5);
+    const targets = stringTargets(C_MAJOR);
+    // transient, gone, transient again: the run resets in between
+    for (let k = 0; k < 4; k++) {
+      stringEnergies(spectrum(-100, [[midiToHz(47), -20]]), SR, FFT, targets, s, 1 / 60);
+      stringEnergies(spectrum(-100), SR, FFT, targets, s, 1 / 60);
+    }
+    for (const x of Array.from(s.extra)) expect(x).toBe(0);
+    expect(s.xrun.size).toBe(0);
+  });
+
+  it("persistence scales with the analyser frame rate (6 frames at 60 fps, 3 at 30 fps)", () => {
+    expect(extraFramesNeeded(0.1, 1 / 60)).toBe(6);
+    expect(extraFramesNeeded(0.1, 1 / 30)).toBe(3);
+    expect(extraFramesNeeded(0.1, 1 / 120)).toBe(12);
+  });
+
+  it("a peak within 60 c of a chord tone's 2nd–4th partial is not an extra", () => {
+    const s = createEnergyState();
+    feed(s, spectrum(-100), 0.5);
+    // E3 × 3 (≈ B4, not a chord tone) about 35 c sharp (inharmonic / leaky partial): an extra at ±30 c
+    feed(s, spectrum(-100, [[E3, -20], [E3 * 3 * Math.pow(2, 40 / 1200), -26]]), 0.3);
+    for (const x of Array.from(s.extra)) expect(x).toBe(0);
   });
 
   it("chord-tone octaves and upper partials are not extras", () => {
@@ -163,7 +209,14 @@ describe("stringEnergies", () => {
 describe("stringVerdicts", () => {
   it("missing E for C major marks both strings that carry E (4 and 1)", () => {
     const v = stringVerdicts({ missing_notes: ["E"] }, stringTargets(C_MAJOR));
-    expect(v).toEqual(["muted", "ok", "missing", "ok", "ok", "missing"]);
+    // string 2 (C4 over C3) can't be confirmed by ear, so it's never "ok"
+    expect(v).toEqual(["muted", "ok", "missing", "ok", "cant_tell", "missing"]);
+  });
+
+  it("an octave-doubled string is never confirmed 'ok' after a clean take", () => {
+    const v = stringVerdicts({ missing_notes: [] }, stringTargets(C_MAJOR));
+    expect(v).toEqual(["muted", "ok", "ok", "ok", "cant_tell", "cant_tell"]);
+    expect(v.filter((x, i) => stringTargets(C_MAJOR)[i].ambiguous && x === "ok")).toHaveLength(0);
   });
 
   it("unclear notes are 'unclear', and a heard open low E on a muted string is 'extra'", () => {

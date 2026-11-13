@@ -138,8 +138,7 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses }: Pro
 
       {selected && (
         <div
-          className="flex justify-end"
-          style={{ animation: "fade-in-up 0.2s ease-out both" }}
+          className="flex justify-end animate-enter-fast"
         >
           <button
             onClick={() => { if (selected) onSelect(selected); }}

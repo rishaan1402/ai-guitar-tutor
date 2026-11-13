@@ -83,11 +83,17 @@ export default function ListeningStage({ fingering, analyser, state, verdicts, c
     state === "done" && verdicts
       ? `Strings for ${name}: ` +
         targets
-          .map((t, i) => `string ${t.string} ${verdicts[i] === "muted" ? "muted" : `${t.note ?? ""} ${verdicts[i]}`}`)
+          .map((t, i) =>
+            verdicts[i] === "muted"
+              ? `string ${t.string} muted`
+              : verdicts[i] === "cant_tell"
+              ? `string ${t.string}: can't tell by ear`
+              : `string ${t.string} ${t.note ?? ""} ${verdicts[i]}`,
+          )
           .join(", ")
       : listening
-      ? `Listening: each string of ${name} lights up when its note is heard`
-      : `String view of ${name}`;
+      ? `Listening: each string of ${name} lights up when its note is heard` + ambiguousNote(targets)
+      : `String view of ${name}` + ambiguousNote(targets);
 
   return (
     <div className={`relative rounded-2xl glass overflow-hidden ${className ?? ""}`}>
@@ -103,4 +109,10 @@ export default function ListeningStage({ fingering, analyser, state, verdicts, c
       />
     </div>
   );
+}
+
+/** ", string 2: can't tell by ear" for octave-doubled strings. */
+function ambiguousNote(targets: { string: number; ambiguous: boolean }[]): string {
+  const amb = targets.filter((t) => t.ambiguous);
+  return amb.length ? ". " + amb.map((t) => `string ${t.string}: can't tell by ear`).join(", ") : "";
 }

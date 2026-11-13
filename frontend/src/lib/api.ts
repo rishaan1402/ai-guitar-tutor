@@ -1,4 +1,4 @@
-import { getAccessToken, getRefreshToken, refreshAccessToken, setTokens, clearTokens } from "./auth";
+import { getAccessToken, getRefreshToken, refreshAccessToken, setTokens, clearTokens, loginHref } from "./auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -39,7 +39,30 @@ function tzQuery(): string {
   return tz ? `?tz=${encodeURIComponent(tz)}` : "";
 }
 
-async function request<T>(path: string, options?: RequestInit, retry = true): Promise<T> {
+export type AuthMode = "required" | "optional";
+
+/** Thrown by `request` when the session can't be refreshed (401 after a failed refresh). */
+export class AuthExpiredError extends ApiError {
+  constructor() {
+    super("Session expired. Please log in again.", 401);
+    this.name = "AuthExpiredError";
+  }
+}
+
+/**
+ * Fetch from the API with the stored bearer token.
+ *
+ * On a 401 the token is refreshed once (single-flight). If that fails:
+ *  - `auth: "required"` (the default) sends the learner to /login?next=<here>;
+ *  - `auth: "optional"` throws AuthExpiredError and leaves the page alone, so
+ *    the caller can retry anonymously (optional-auth endpoints now 401 on a
+ *    bad/expired token instead of silently treating it as a guest).
+ */
+async function request<T>(
+  path: string,
+  options?: RequestInit,
+  { auth = "required", retry = true }: { auth?: AuthMode; retry?: boolean } = {},
+): Promise<T> {
   const headers = new Headers(options?.headers);
 
   const token = getAccessToken();
@@ -51,17 +74,53 @@ async function request<T>(path: string, options?: RequestInit, retry = true): Pr
 
   // If 401 and we haven't retried yet, try to refresh the token
   if (res.status === 401 && retry) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      return request<T>(path, options, false);
+    if (token) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        return request<T>(path, options, { auth, retry: false });
+      }
+      clearTokens();
     }
-    // Refresh failed — redirect to login
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
+    if (auth === "required" && typeof window !== "undefined") {
+      window.location.href = loginHref();
     }
-    throw new Error("Session expired. Please log in again.");
+    throw new AuthExpiredError();
+  }
+  if (res.status === 401 && token) {
+    // the refreshed token was rejected too
+    clearTokens();
+    if (auth === "required" && typeof window !== "undefined") {
+      window.location.href = loginHref();
+    }
+    throw new AuthExpiredError();
   }
 
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(errorMessage(body, `Request failed: ${res.status}`), res.status);
+  }
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+/**
+ * Optional-auth endpoint (songs, council): signed in if we can, otherwise as a
+ * guest. A stale token never bounces the learner to /login.
+ */
+async function requestOptional<T>(path: string, options?: RequestInit): Promise<T> {
+  try {
+    return await request<T>(path, options, { auth: "optional" });
+  } catch (err) {
+    if (err instanceof AuthExpiredError) return requestAnonymous<T>(path, options);
+    throw err;
+  }
+}
+
+/** Same request with no Authorization header at all (anonymous retry). */
+async function requestAnonymous<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers);
+  headers.delete("Authorization");
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new ApiError(errorMessage(body, `Request failed: ${res.status}`), res.status);
@@ -101,9 +160,20 @@ export async function submitAudio(
   // Sending the chord and earlier scores keeps scoring stateless on the server
   form.append("chord_name", chordName);
   form.append("previous_scores", JSON.stringify(previousScores));
+  const opts: RequestInit = { method: "POST", body: form };
   try {
-    return await request("/submit_audio", { method: "POST", body: form });
+    return await request("/submit_audio", opts, { auth: "optional" });
   } catch (err) {
+    if (err instanceof AuthExpiredError) {
+      // Signed out under us (revoked / expired refresh): still grade the take,
+      // just don't save it. The page tells the learner and offers sign-in.
+      try {
+        const result = await requestAnonymous<Record<string, unknown>>("/submit_audio", opts);
+        return { ...result, savedAnonymously: true };
+      } catch (err2) {
+        throw new Error(submitErrorMessage(err2));
+      }
+    }
     throw new Error(submitErrorMessage(err));
   }
 }
@@ -278,13 +348,34 @@ export function confirmPasswordReset(token: string, newPassword: string): Promis
 // Progress (authenticated)
 // ---------------------------------------------------------------------------
 
+export type ChordStatus = "not_attempted" | "in_progress" | "mastered";
+export type MasteryStage = "new" | "learning" | "verifying" | "mastered" | "due";
+
+/** One chord in GET /api/progress/ (mastery = clean takes on 3 different days, then re-checks). */
 export interface ChordProgressItem {
   chord_name: string;
   best_score: number;
   total_attempts: number;
-  mastered: boolean;
   last_practiced: string | null;
-  streak_days: number;
+  status: ChordStatus;
+  stage: MasteryStage;
+  clean_days: number;
+  clean_days_required: number;
+  next_due: string | null;
+  due: boolean;
+}
+
+/** Teacher view of a student's chord (a subset of ChordProgressItem plus the average). */
+export interface StudentChordItem {
+  chord_name: string;
+  best_score: number;
+  total_attempts: number;
+  avg_score?: number;
+  status: ChordStatus;
+  stage?: MasteryStage;
+  clean_days?: number;
+  clean_days_required?: number;
+  next_due?: string | null;
 }
 
 export interface ProgressResponse {
@@ -424,7 +515,7 @@ export interface TipResponse {
 }
 
 export function generateSongLesson(songQuery: string): Promise<LessonDocument> {
-  return request("/api/council/generate", {
+  return requestOptional("/api/council/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ song_query: songQuery }),
@@ -432,7 +523,7 @@ export function generateSongLesson(songQuery: string): Promise<LessonDocument> {
 }
 
 export function getSongTip(params: TipRequest): Promise<TipResponse> {
-  return request("/api/council/practice/tip", {
+  return requestOptional("/api/council/practice/tip", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
@@ -440,7 +531,7 @@ export function getSongTip(params: TipRequest): Promise<TipResponse> {
 }
 
 export function reviseSongLesson(lessonId: string): Promise<LessonDocument> {
-  return request("/api/council/practice/revise", {
+  return requestOptional("/api/council/practice/revise", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lesson_id: lessonId }),
@@ -464,7 +555,7 @@ export interface QuizResponse {
 }
 
 export function getQuiz(lessonId: string): Promise<QuizResponse> {
-  return request("/api/council/quiz", {
+  return requestOptional("/api/council/quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lesson_id: lessonId }),
@@ -488,7 +579,7 @@ export interface StudentSummary {
 
 export interface StudentProgress {
   user: UserResponse;
-  chords: ChordProgressItem[];
+  chords: StudentChordItem[];
   transitions: TransitionHistoryItem[];
 }
 
@@ -578,7 +669,7 @@ export function getSystemStats(): Promise<SystemStats> {
 // ---------------------------------------------------------------------------
 
 export interface PlanItem {
-  type: "warmup" | "focus" | "new" | "transition";
+  type: "warmup" | "focus" | "new" | "transition" | "review" | "assignment";
   chord_key?: string;
   chord_symbol?: string;
   chord_a?: string;
@@ -590,6 +681,17 @@ export interface PlanItem {
   attempts?: number;
   difficulty?: string;
   miss_rate?: number;
+  /** focus: clean days so far, and what's still needed ("one more clean day"). */
+  clean_days?: number;
+  needs?: string;
+  /** review: when the re-check fell due. */
+  next_due?: string;
+  /** assignment: the teacher's note. */
+  note?: string | null;
+  /** transition: one-minute-changes target. */
+  target?: number;
+  last?: number;
+  reason?: string;
 }
 
 export interface DailyPlan {
@@ -600,7 +702,55 @@ export interface DailyPlan {
 }
 
 export function getPlan(): Promise<DailyPlan> {
-  return request("/api/plan/next");
+  return request(`/api/plan/next${tzQuery()}`);
+}
+
+export interface RecapChord {
+  chord_key: string;
+  chord_symbol: string;
+  takes: number;
+  first_score: number;
+  best_score: number;
+  last_score: number;
+  clean_takes: number;
+  stage_before: MasteryStage;
+  stage_after: MasteryStage;
+  clean_days: number;
+  clean_days_required: number;
+}
+
+export interface RecapDrill {
+  chord_a: string;
+  chord_b: string;
+  got: number;
+  prev_best_got: number | null;
+}
+
+/** GET /api/progress/recap: what changed this session (graded, persisted takes only). */
+export interface SessionRecapResponse {
+  started_at: string;
+  ended_at: string;
+  minutes: number;
+  takes: number;
+  graded_takes: number;
+  unclear_count: number | null;
+  chords: RecapChord[];
+  new_clean_days: string[];
+  newly_mastered: string[];
+  rechecked: string[];
+  personal_bests: string[];
+  drills: RecapDrill[];
+  streak: number;
+  next: PlanItem | null;
+  headline: string;
+}
+
+/** Signed-in only (401 for guests: don't call it then). 204 → undefined. */
+export function getRecap(sinceIso: string): Promise<SessionRecapResponse | undefined> {
+  const tz = localTimeZone();
+  const qs = new URLSearchParams({ since: sinceIso });
+  if (tz) qs.set("tz", tz);
+  return request(`/api/progress/recap?${qs}`, undefined, { auth: "optional" });
 }
 
 export interface CalendarDay {
@@ -709,11 +859,11 @@ export function listSongs(params: { q?: string; difficulty?: string } = {}): Pro
   if (params.q) qs.set("q", params.q);
   if (params.difficulty) qs.set("difficulty", params.difficulty);
   const suffix = qs.toString() ? `?${qs}` : "";
-  return request(`/api/songs${suffix}`);
+  return requestOptional(`/api/songs${suffix}`);
 }
 
 export function getSong(id: string): Promise<SongDetail> {
-  return request(`/api/songs/${encodeURIComponent(id)}`);
+  return requestOptional(`/api/songs/${encodeURIComponent(id)}`);
 }
 
 export function saveSong(

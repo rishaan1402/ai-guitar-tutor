@@ -369,8 +369,12 @@ const AMBER: [number, number, number] = [239, 194, 122];
 const CORAL: [number, number, number] = [222, 122, 92];
 const LISTEN_SAGE: [number, number, number] = [134, 176, 146];
 const FRETS_SHOWN = 5;
-/** Expected strings still silent this long into a take pulse amber. */
-const SILENT_AFTER_S = 0.6;
+/** Expected strings still silent this long into a take pulse amber… */
+export const SILENT_AFTER_S = 0.8;
+/** …if their energy is below this. */
+export const SILENT_BELOW = 0.15;
+/** Neutral grey for "can't tell by ear" (octave-doubled) strings. */
+const CANT_TELL: [number, number, number] = [176, 172, 164];
 
 const ZERO6 = new Float32Array(6);
 
@@ -378,6 +382,7 @@ function verdictColor(v: StringVerdict): [number, number, number] {
   if (v === "ok") return LISTEN_SAGE;
   if (v === "extra") return CORAL;
   if (v === "missing" || v === "unclear") return AMBER;
+  if (v === "cant_tell") return CANT_TELL;
   return CREAM;
 }
 
@@ -498,20 +503,30 @@ function ListenField({ className, targets, energyRef, extraRef, state, verdicts,
         let alpha = 0.28;
         let dashed = false;
         let glowAlpha = 0;
+        let dash: [number, number] = [4, 5];
         if (verd) {
           const v = verd[i];
           rgb = verdictColor(v);
-          dashed = v === "muted";
-          alpha = v === "muted" ? 0.2 : v === "unclear" ? 0.7 : 0.9;
+          dashed = v === "muted" || v === "cant_tell";
+          if (v === "cant_tell") dash = [2, 3];
+          alpha = v === "muted" ? 0.2 : v === "unclear" || v === "cant_tell" ? 0.6 : 0.9;
           glowAlpha = v === "ok" || v === "missing" ? 0.2 : 0;
         } else if (t.muted) {
           dashed = true;
           alpha = 0.2;
+        } else if (t.ambiguous) {
+          // Octave-doubled: its pitch is a lower string's harmonic, so it lights
+          // even when muted. Neutral grey "can't tell" — never green, never amber.
+          rgb = CANT_TELL;
+          dashed = true;
+          dash = [2, 3];
+          alpha = 0.3 + 0.35 * Math.min(1, e * 1.4);
+          glowAlpha = 0.12 * e;
         } else {
           rgb = mix(CREAM, LISTEN_SAGE, Math.min(1, e * 1.6)) as [number, number, number];
           alpha = 0.3 + 0.65 * Math.min(1, e * 1.4);
           glowAlpha = 0.35 * e;
-          if (st === "recording" && recFor > SILENT_AFTER_S && e < 0.2) {
+          if (st === "recording" && recFor > SILENT_AFTER_S && e < SILENT_BELOW) {
             rgb = AMBER;
             alpha = reduceMotion ? 0.8 : 0.45 + 0.45 * pulse;
             glowAlpha = reduceMotion ? 0.12 : 0.18 * pulse;
@@ -546,7 +561,7 @@ function ListenField({ className, targets, energyRef, extraRef, state, verdicts,
           pts.forEach(([x, y], k) => (k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
           ctx.stroke();
         };
-        if (dashed) ctx.setLineDash([4, 5]);
+        if (dashed) ctx.setLineDash(dash);
         if (glow && glowAlpha > 0.01) stroke(thickness * 6, glowAlpha);
         stroke(thickness, alpha);
         if (dashed) ctx.setLineDash([]);
@@ -567,7 +582,7 @@ function ListenField({ className, targets, energyRef, extraRef, state, verdicts,
         ctx.font = `600 11px ${font}`;
         ctx.textBaseline = "middle";
         ctx.fillStyle = `rgba(${rgb.join(",")},${t.muted && !verd ? 0.45 : Math.max(0.55, alpha)})`;
-        ctx.fillText(t.muted ? "×" : t.note ?? "", 6, y0);
+        ctx.fillText(t.muted ? "×" : t.ambiguous ? `${t.note ?? ""}?` : t.note ?? "", 6, y0);
       }
 
       // Level baseline: a 2 px glow along the bottom while listening.

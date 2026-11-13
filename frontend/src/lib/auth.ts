@@ -30,12 +30,25 @@ export function clearTokens(): void {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
+let inflight: Promise<string | null> | null = null;
+
 /**
  * Exchange the stored refresh token for a new access token.
  * Returns the new access token on success, or null if refresh fails.
  * On failure, clears all tokens (forces re-login).
+ *
+ * Single-flight: refresh tokens rotate (the old one is revoked), so parallel
+ * 401s must share one refresh, or the second would fail and log the user out.
  */
-export async function refreshAccessToken(): Promise<string | null> {
+export function refreshAccessToken(): Promise<string | null> {
+  if (inflight) return inflight;
+  inflight = doRefresh().finally(() => {
+    inflight = null;
+  });
+  return inflight;
+}
+
+async function doRefresh(): Promise<string | null> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return null;
 
@@ -58,4 +71,24 @@ export async function refreshAccessToken(): Promise<string | null> {
     clearTokens();
     return null;
   }
+}
+
+/**
+ * A `next=` target from the query string, accepted only if it is a same-site
+ * path ("/practice?chord=C_major"); anything else ("//evil.com", "https://…",
+ * "/\\evil") falls back to the dashboard.
+ */
+export function safeNext(next: string | null | undefined, fallback = "/dashboard"): string {
+  if (!next || typeof next !== "string") return fallback;
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
+  if (/[\u0000-\u001f\\]/.test(next)) return fallback;
+  if (/^\/login(?:[/?#]|$)/.test(next)) return fallback;
+  return next;
+}
+
+/** "/login?next=<current path>" for the page we're on. */
+export function loginHref(path?: string): string {
+  const here =
+    path ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : "/dashboard");
+  return `/login?next=${encodeURIComponent(safeNext(here))}`;
 }

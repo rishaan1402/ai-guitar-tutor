@@ -11,7 +11,8 @@ import { useReducedMotion } from "@/lib/motion";
 import { isActivationKey, isInteractiveTarget } from "@/lib/hotkeys";
 import { useCoarsePointer } from "@/lib/usePointer";
 import { cardFor, takeVerdict, type Verdict } from "@/lib/verdict";
-import { COPY, UNCLEAR_STREAK_NUDGE, micCheckHeadline, tuningCopy } from "@/lib/feedbackCopy";
+import Link from "next/link";
+import { COPY, UNCLEAR_STREAK_NUDGE, centsPhrase, micCheckHeadline, tuningCopy } from "@/lib/feedbackCopy";
 import { pitchClass, stringTargets, stringVerdicts } from "@/lib/stringEnergy";
 import { formatChord } from "@/lib/chordName";
 
@@ -152,6 +153,12 @@ export default function FeedbackDisplay({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Move focus to the result headline so keyboard / screen-reader users land on it.
+  const headRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    headRef.current?.focus({ preventScroll: true });
+  }, [evaluation]);
+
   if (!feedback && !evaluation) return null;
 
   const verdict = verdictProp ?? evaluation?.verdict ?? takeVerdict({ evaluation });
@@ -184,7 +191,7 @@ export default function FeedbackDisplay({
   const showTuning = (tuningWarning ?? evaluation?.tuning_warning) && cents != null;
 
   return (
-    <div className="glass-card space-y-5" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+    <div className="glass-card space-y-5 animate-enter">
       <Confetti active={currentScore >= 0.8 && !reduceMotion} />
       {/* (graded takes only: unclear / no-sound takes return the neutral card above) */}
 
@@ -207,7 +214,7 @@ export default function FeedbackDisplay({
           />
         )}
         <div className="flex-1 min-w-0 space-y-2 text-center sm:text-left">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+          <p ref={headRef} tabIndex={-1} className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 outline-none" data-testid="take-headline">
             {isCompleted ? "Lesson complete" : `Take ${scoreHistory.length || attempt}`}
             {bestScore !== null && scoreHistory.length > 1 && (
               <span className="normal-case tracking-normal font-medium">
@@ -398,7 +405,7 @@ export default function FeedbackDisplay({
 }
 
 interface NeutralProps {
-  kind: "strum_again" | "mic_check";
+  kind: "strum_again" | "tune" | "mic_check";
   feedback: string | null;
   evaluation: Evaluation | null;
   fingering: ChordFingering | null;
@@ -427,29 +434,46 @@ function NeutralTakeCard({
   tuningWarning,
 }: NeutralProps) {
   const unclear = kind === "strum_again";
-  const headline = unclear ? feedback || COPY.unclearFallback : micCheckHeadline(evaluation?.issue);
+  const tune = kind === "tune";
+  const headline = unclear
+    ? feedback || COPY.unclearFallback
+    : tune
+    ? COPY.tuneHeadline
+    : micCheckHeadline(evaluation?.issue);
   const notes = unclear ? evaluation?.unclear_notes ?? [] : [];
   // unclear_notes lists borderline chord tones first, then borderline non-chord notes.
   const expected = new Set((evaluation?.expected_notes ?? []).map(pitchClass));
   const tones = notes.filter((n) => expected.has(pitchClass(n)));
   const strays = notes.filter((n) => !expected.has(pitchClass(n)));
   const showNudge = unclearStreak >= UNCLEAR_STREAK_NUDGE;
+  const headingRef = useRef<HTMLParagraphElement>(null);
+  // Move focus to the result so keyboard / screen-reader users land on it.
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true });
+  }, [kind]);
+  const eyebrow = unclear ? "Not sure" : tune ? "Tuning" : "Mic check";
   return (
     <div
-      className="glass-card space-y-4 border border-cream/15"
-      style={{ animation: "fade-in-up 0.4s ease-out both", borderLeft: "3px solid #efc27a" }}
+      className="glass-card space-y-4 border border-cream/15 animate-enter"
+      style={{ borderLeft: "3px solid #efc27a" }}
       data-testid="neutral-take"
       data-kind={kind}
     >
       <p className="sr-only" aria-live="polite" role="status">
-        {unclear ? "Not sure — strum again. " : "Mic check. "}
-        {headline} {COPY.doesntCount}
+        {eyebrow}. {headline} {tune && feedback ? feedback : ""} {COPY.doesntCount}
       </p>
       <div className="space-y-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
-          {unclear ? "Not sure" : "Mic check"}
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">{eyebrow}</p>
+        <p ref={headingRef} tabIndex={-1} className="text-gray-100 text-base leading-relaxed outline-none" data-testid="take-headline">
+          {headline}
         </p>
-        <p className="text-gray-100 text-base leading-relaxed">{headline}</p>
+        {tune && feedback && <p className="text-sm text-gray-300 leading-relaxed">{feedback}</p>}
+        {tune && tuningCents != null && (
+          <p className="inline-flex items-center gap-2 text-xs text-cream/90 rounded-full border border-cream/25 bg-cream/5 px-2.5 py-1" data-testid="tune-cents">
+            <span aria-hidden className={`inline-block h-1.5 w-1.5 rounded-full bg-amber-300`} />
+            {centsPhrase(tuningCents)}
+          </p>
+        )}
         <p className="text-sm text-gray-400">{COPY.doesntCount}</p>
         {(tones.length > 0 || strays.length > 0) && (
           <div className="flex flex-wrap items-center gap-1.5 pt-1">
@@ -475,7 +499,7 @@ function NeutralTakeCard({
             ))}
           </div>
         )}
-        {tuningWarning && tuningCents != null && (
+        {!tune && tuningWarning && tuningCents != null && (
           <p className="text-xs text-amber-300/90 rounded-lg border border-amber-400/25 bg-amber-400/5 px-2.5 py-1.5" data-testid="tuning-hint">
             {tuningCopy(tuningCents)}
           </p>
@@ -511,6 +535,15 @@ function NeutralTakeCard({
           >
             {COPY.strumAgain}
           </button>
+        )}
+        {(tune || showNudge) && (
+          <Link
+            href="/start?step=tune"
+            className="text-sm text-gray-300 hover:text-amber-200 underline underline-offset-4 decoration-white/20"
+            data-testid="open-tuner"
+          >
+            {COPY.openTuner}
+          </Link>
         )}
         {!coarse && <span className="hidden sm:inline text-xs text-gray-500 sm:ml-auto">Space = strum again</span>}
       </div>

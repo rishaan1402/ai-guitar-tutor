@@ -7,6 +7,7 @@ import {
   AutoStopDetector,
   CLIP_DBFS,
   DB_FLOOR,
+  GapDetector,
   PrerollBuffer,
   TOO_QUIET_DBFS,
   dbfsToLevel,
@@ -21,6 +22,7 @@ import {
   type StopReason,
 } from "@/lib/audioCapture";
 import { COPY, LIVE_HINT } from "@/lib/feedbackCopy";
+import { micErrorMessage, openMic } from "@/lib/mic";
 import { useReducedMotion } from "@/lib/motion";
 import { useCoarsePointer } from "@/lib/usePointer";
 import { isActivationKey, isInteractiveTarget } from "@/lib/hotkeys";
@@ -40,11 +42,17 @@ interface Props {
   onPhase?: (phase: RecorderPhase) => void;
   /** A take was dropped because nothing (or almost nothing) was heard. Not uploaded. */
   onSilentTake?: () => void;
+  /** A take was dropped because the device skipped audio (busy main thread). Not uploaded. */
+  onDroppedTake?: () => void;
+  /** Reuse an already-open mic stream (onboarding); it is not stopped on teardown. */
+  stream?: MediaStream | null;
   /** Show the built-in level meter (off when a listening stage replaces it). */
   meter?: boolean;
 }
 
 const BUFFER_SIZE = 2048;
+/** AudioWorklet capture processor (public/worklets/capture.js). */
+const WORKLET_URL = "/worklets/capture.js";
 /** Recording cap, measured from the onset. */
 const MAX_SECONDS = 6;
 /** Give up waiting for a strum after this long armed. */
@@ -73,6 +81,8 @@ export default function MicrophoneRecorder({
   onAnalyser,
   onPhase,
   onSilentTake,
+  onDroppedTake,
+  stream: sharedStream = null,
   meter = true,
 }: Props) {
   const reduceMotion = useReducedMotion();
@@ -89,6 +99,11 @@ export default function MicrophoneRecorder({
   const stageAnalyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const workletRef = useRef<AudioWorkletNode | null>(null);
+  /** Audio went missing during this take (gap in the block clock): don't upload it. */
+  const droppedRef = useRef(false);
+  const sharedStreamRef = useRef<MediaStream | null>(sharedStream);
+  sharedStreamRef.current = sharedStream;
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Float32Array[]>([]);
   const samplesRef = useRef(0);
@@ -115,6 +130,8 @@ export default function MicrophoneRecorder({
   onAnalyserRef.current = onAnalyser;
   const onSilentRef = useRef(onSilentTake);
   onSilentRef.current = onSilentTake;
+  const onDroppedRef = useRef(onDroppedTake);
+  onDroppedRef.current = onDroppedTake;
   const onPhaseRef = useRef(onPhase);
   onPhaseRef.current = onPhase;
 
@@ -139,15 +156,29 @@ export default function MicrophoneRecorder({
       processor.onaudioprocess = null;
       processor.disconnect();
     }
+    const worklet = workletRef.current;
+    if (worklet) {
+      worklet.port.onmessage = null;
+      try {
+        worklet.port.postMessage("stop");
+        worklet.port.close();
+      } catch {
+        // already closed
+      }
+      worklet.disconnect();
+    }
     sourceRef.current?.disconnect();
     analyserRef.current?.disconnect();
     stageAnalyserRef.current?.disconnect();
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    if (streamRef.current && streamRef.current !== sharedStreamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+    }
     const ctx = audioContextRef.current;
     if (ctx && ctx.state !== "closed") ctx.close().catch(() => {});
     if (stageAnalyserRef.current) onAnalyserRef.current?.(null);
 
     processorRef.current = null;
+    workletRef.current = null;
     sourceRef.current = null;
     analyserRef.current = null;
     stageAnalyserRef.current = null;
@@ -169,6 +200,8 @@ export default function MicrophoneRecorder({
       const chunks = chunksRef.current;
       const recorded = p === "recording";
       const loudEnough = toDbfs(takePeakRef.current) >= TOO_QUIET_DBFS;
+      const dropped = droppedRef.current;
+      droppedRef.current = false;
       teardown();
       setPhase("idle");
       setElapsed(0);
@@ -176,6 +209,13 @@ export default function MicrophoneRecorder({
       hintRef.current = null;
 
       if (reason === "cancel" || (reason === "user" && !recorded)) return;
+      if (recorded && dropped) {
+        // Part of the take never reached us; grading it would be unfair.
+        setNotice(COPY.deviceBusy);
+        onDroppedRef.current?.();
+        requestAnimationFrame(() => buttonRef.current?.focus());
+        return;
+      }
       if (reason === "silent" || !recorded || !loudEnough) {
         setNotice(COPY.micCheck);
         onSilentRef.current?.();
@@ -316,38 +356,51 @@ export default function MicrophoneRecorder({
 
     let stream: MediaStream;
     try {
-      // No sampleRate constraint: use the device's native rate and encode at it.
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          channelCount: 1,
-        },
-      });
+      const shared = sharedStreamRef.current;
+      stream =
+        shared && shared.getAudioTracks?.().some((t) => t.readyState === "live")
+          ? shared
+          : await openMic();
     } catch (err) {
       audioContext.close().catch(() => {});
       if (token !== openTokenRef.current || !mountedRef.current) return;
-      const name = err instanceof DOMException ? err.name : "";
       setPhase("idle");
-      setError(
-        name === "NotFoundError"
-          ? "No microphone found. Plug one in and try again."
-          : "Microphone access denied. Please allow microphone permissions.",
-      );
+      setError(micErrorMessage(err));
       return;
     }
     // Cancelled (Esc / unmount) while the permission prompt was up.
     if (token !== openTokenRef.current || !mountedRef.current) {
-      stream.getTracks().forEach((t) => t.stop());
+      if (stream !== sharedStreamRef.current) stream.getTracks().forEach((t) => t.stop());
       audioContext.close().catch(() => {});
       return;
+    }
+
+    // Capture on the audio thread where supported (no dropouts under main-thread load).
+    let worklet: AudioWorkletNode | null = null;
+    if (audioContext.audioWorklet && typeof AudioWorkletNode !== "undefined") {
+      try {
+        await audioContext.audioWorklet.addModule(WORKLET_URL);
+        worklet = new AudioWorkletNode(audioContext, "agt-capture", {
+          numberOfInputs: 1,
+          numberOfOutputs: 1,
+          channelCount: 1,
+          channelCountMode: "explicit",
+        });
+      } catch {
+        worklet = null; // fall back to ScriptProcessor
+      }
+      if (token !== openTokenRef.current || !mountedRef.current) {
+        worklet?.disconnect();
+        if (stream !== sharedStreamRef.current) stream.getTracks().forEach((t) => t.stop());
+        audioContext.close().catch(() => {});
+        return;
+      }
     }
 
     try {
       const sr = audioContext.sampleRate;
       const source = audioContext.createMediaStreamSource(stream);
-      const processor = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
+      const processor = worklet ? null : audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.5;
@@ -377,10 +430,19 @@ export default function MicrophoneRecorder({
       hintRef.current = null;
       historyRef.current = [];
 
-      processor.onaudioprocess = (e) => {
+      const gaps = new GapDetector();
+      droppedRef.current = false;
+
+      /** One block of mic audio, from the worklet or the ScriptProcessor. */
+      const onBlock = (input: Float32Array, startFrame: number | null) => {
         const p = phaseRef.current;
         if (p !== "armed" && p !== "recording") return;
-        const input = new Float32Array(e.inputBuffer.getChannelData(0));
+        const gap = gaps.push(startFrame, input.length);
+        if (gap > 0) {
+          if (p === "recording") droppedRef.current = true;
+          // While armed, start the pre-roll afresh so a take never spans the gap.
+          else preroll.clear();
+        }
         samplesRef.current += input.length;
         const t = samplesRef.current / sr;
         const { rms, peak } = frameStats(input);
@@ -409,15 +471,32 @@ export default function MicrophoneRecorder({
         if (why) finish(why);
       };
 
+      if (worklet) {
+        worklet.port.onmessage = (e: MessageEvent<{ frame: number; buf: Float32Array }>) => {
+          onBlock(e.data.buf, e.data.frame);
+        };
+        source.connect(worklet);
+        worklet.connect(audioContext.destination);
+      } else if (processor) {
+        processor.onaudioprocess = (e) => {
+          const pt = (e as AudioProcessingEvent).playbackTime;
+          onBlock(
+            new Float32Array(e.inputBuffer.getChannelData(0)),
+            typeof pt === "number" && pt > 0 ? pt * sr : null,
+          );
+        };
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+      }
+
       source.connect(analyser);
-      source.connect(processor);
-      processor.connect(audioContext.destination);
 
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
       stageAnalyserRef.current = stageAnalyser;
       sourceRef.current = source;
       processorRef.current = processor;
+      workletRef.current = worklet;
       streamRef.current = stream;
       rollingWindowRef.current = [];
       lastNotesRef.current = [];
@@ -447,7 +526,7 @@ export default function MicrophoneRecorder({
         }, 80);
       }
     } catch {
-      stream.getTracks().forEach((t) => t.stop());
+      if (stream !== sharedStreamRef.current) stream.getTracks().forEach((t) => t.stop());
       teardown();
       setPhase("idle");
       setError("Couldn't start audio capture in this browser.");

@@ -109,9 +109,24 @@ const config: Config = {
         display: ["clamp(2.75rem, 7vw, 6rem)", { lineHeight: "0.92", fontWeight: "700", letterSpacing: "-0.015em" }],
         h1:      ["clamp(2.25rem, 4.5vw, 3.75rem)", { lineHeight: "0.95", fontWeight: "700", letterSpacing: "-0.01em" }],
         h2:      ["clamp(1.75rem, 3vw, 2.5rem)", { lineHeight: "1", fontWeight: "700", letterSpacing: "-0.005em" }],
-        h3:      ["1.125rem", { lineHeight: "1.2", fontWeight: "600", letterSpacing: "0.02em" }],
+        h3:      ["1.25rem", { lineHeight: "1.2", fontWeight: "600" }],
+        body:    ["1rem", { lineHeight: "1.55" }],
+        meta:    ["0.75rem", { lineHeight: "1.3", letterSpacing: "0.16em", fontWeight: "600" }],
         caption: ["0.75rem", { lineHeight: "1.4" }],
         eyebrow: ["0.6875rem", { lineHeight: "1", fontWeight: "600", letterSpacing: "0.22em" }],
+      },
+      // ── Motion tokens (globals.css --dur-* / --ease-*) ────────────────
+      transitionDuration: {
+        instant: "90ms",
+        fast: "180ms",
+        base: "320ms",
+        slow: "640ms",
+        story: "1100ms",
+      },
+      transitionTimingFunction: {
+        "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "in-out-sine": "cubic-bezier(0.37, 0, 0.63, 1)",
+        "in-quart": "cubic-bezier(0.5, 0, 0.75, 0)",
       },
       // ── Spacing extras ────────────────────────────────────────────────
       spacing: {

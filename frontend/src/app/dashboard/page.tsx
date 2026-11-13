@@ -8,6 +8,8 @@ import { TodaysPlan } from "./_components/TodaysPlan";
 import { StreakHeatmap } from "./_components/StreakHeatmap";
 import { QuickStats } from "./_components/QuickStats";
 import { MyClass } from "./_components/MyClass";
+import { MasteryBanner } from "./_components/MasteryBanner";
+import { ChordStages } from "./_components/ChordStages";
 import { LoadingSkeleton, CardSkeleton, StatCardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
@@ -24,6 +26,7 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
+          as="h1"
           title="Your Practice Hub"
           subtitle="Pick up where you left off and stay on track"
         />
@@ -53,6 +56,12 @@ export default function DashboardPage() {
           >
             <QuickStats />
           </Suspense>
+          <h3 className="text-h3 mt-6 mb-3">Your chords</h3>
+          {/* below the fold: appearing after mount doesn't shift what's on screen */}
+          <div className="mb-3">
+            <MasteryBanner />
+          </div>
+          <ChordStages />
         </section>
 
         {/* Streak Heatmap */}

@@ -1,11 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { safeNext } from "@/lib/auth";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={<Form next="/dashboard" />}>
+      <WithNext />
+    </Suspense>
+  );
+}
+
+/** Same-site `?next=` only ("/practice?chord=C_major"); anything else → /dashboard. */
+function WithNext() {
+  const params = useSearchParams();
+  return <Form next={safeNext(params.get("next"))} />;
+}
+
+function Form({ next }: { next: string }) {
   const { signup } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -24,7 +39,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup(email, password, displayName);
-      router.push("/dashboard");
+      router.push(next);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
@@ -40,7 +55,7 @@ export default function SignupPage() {
           <span className="font-bold text-white">AI Guitar Tutor</span>
         </Link>
 
-        <div className="glass-card" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="glass-card animate-enter">
           <h1 className="text-2xl font-bold text-white mb-1 text-center">Create account</h1>
           <p className="text-gray-400 text-sm text-center mb-7">
             Save your progress and get AI feedback tailored to your skill level
@@ -48,9 +63,10 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="field-label">Display name</label>
+              <label htmlFor="signup-display-name" className="field-label">Display name</label>
               <input
-                type="text"
+                id="signup-display-name"
+type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
@@ -60,9 +76,10 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="field-label">Email</label>
+              <label htmlFor="signup-email" className="field-label">Email</label>
               <input
-                type="email"
+                id="signup-email"
+type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -72,9 +89,10 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="field-label">Password</label>
+              <label htmlFor="signup-password" className="field-label">Password</label>
               <input
-                type="password"
+                id="signup-password"
+type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -98,7 +116,7 @@ export default function SignupPage() {
 
         <p className="text-center text-gray-500 text-sm mt-6">
           Already have an account?{" "}
-          <Link href="/login" className="text-purple-300 hover:text-purple-200 transition-colors">
+          <Link href={next !== "/dashboard" ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="text-purple-300 hover:text-purple-200 transition-colors">
             Log in
           </Link>
         </p>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { applyTake, cardFor, isGraded, nextUnclearStreak, takeVerdict } from "../verdict";
-import { COPY, UNCLEAR_STREAK_NUDGE, micCheckHeadline, tuningCopy } from "../feedbackCopy";
+import { UNGRADED_ISSUES, applyTake, cardFor, isGraded, nextUnclearStreak, takeVerdict } from "../verdict";
+import { COPY, UNCLEAR_STREAK_NUDGE, centsPhrase, micCheckHeadline, tuningCopy } from "../feedbackCopy";
 
 describe("takeVerdict", () => {
   it("uses the server's top-level verdict when present", () => {
@@ -50,6 +50,34 @@ describe("verdict → UI", () => {
     expect(n).toBe(UNCLEAR_STREAK_NUDGE);
     expect(nextUnclearStreak(n, "fail")).toBe(0);
     expect(nextUnclearStreak(n, "pass")).toBe(0);
+  });
+});
+
+describe("out_of_tune (round 3)", () => {
+  it("a top-level out_of_tune verdict → neutral tune card, not graded", () => {
+    const v = takeVerdict({ verdict: "out_of_tune", evaluation: { issue: "out_of_tune", score: 0.99 } });
+    expect(v).toBe("out_of_tune");
+    expect(cardFor(v)).toBe("tune");
+    expect(isGraded(v)).toBe(false);
+  });
+
+  it("derived from the evaluation issue for responses without a verdict", () => {
+    expect(takeVerdict({ evaluation: { issue: "out_of_tune", score: 0.99 } })).toBe("out_of_tune");
+  });
+
+  it("never enters the score history and counts towards the can't-grade streak", () => {
+    const h = [{ attempt: 1, score: 0.67 }];
+    expect(applyTake(h, "out_of_tune", 2, 0.99)).toBe(h);
+    expect(nextUnclearStreak(1, "out_of_tune")).toBe(2);
+    expect(nextUnclearStreak(1, "dropped")).toBe(2);
+    expect(UNGRADED_ISSUES.has("out_of_tune")).toBe(true);
+  });
+
+  it("tuning copy: sharp → tune down, flat → tune up", () => {
+    expect(tuningCopy(42)).toMatch(/42 cents sharp.*Tune down/);
+    expect(tuningCopy(-42)).toMatch(/42 cents flat.*Tune up/);
+    expect(centsPhrase(12.4)).toBe("12 cents sharp");
+    expect(centsPhrase(-7.6)).toBe("8 cents flat");
   });
 });
 

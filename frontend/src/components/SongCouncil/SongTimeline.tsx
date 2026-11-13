@@ -83,8 +83,7 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
       {/* Active section chord preview */}
       {activeData && activeData.chords.length > 0 && (
         <div
-          className="flex items-center gap-2 flex-wrap px-1"
-          style={{ animation: "fade-in-up 0.2s ease-out both" }}
+          className="flex items-center gap-2 flex-wrap px-1 animate-enter-fast"
         >
           <span className="text-xs text-gray-400 uppercase font-mono">{activeData.name}:</span>
           {activeData.chords.map((chord) => (

@@ -9,6 +9,11 @@ export const COPY = {
     "I couldn't hear the guitar. Check the mic — the meter should reach the green band — and strum again.",
   /** Server said no_sound / unreadable audio. */
   noSound: "I couldn't hear that one clearly. Strum a bit harder, or move the phone closer to the soundhole.",
+  /** The capture path skipped audio (busy device): the take wasn't uploaded. */
+  deviceBusy: "Your device was busy and missed part of that — strum again. It doesn't count.",
+  /** Neutral "tune" card (right shape, detuned guitar). */
+  tuneHeadline: "Your guitar is out of tune",
+  openTuner: "Open the tuner",
   processingError: "I couldn't read that recording. Strum once more — it doesn't count against you.",
   noisy: "Too much background sound to be sure. Try again in a quieter spot. This one doesn't count against you.",
   clipped: "That was loud enough to distort. Move the phone back a little.",
@@ -35,10 +40,14 @@ export const LIVE_HINT: Record<"too_quiet" | "clipping", string> = {
   clipping: "Clipping — back off from the mic a little.",
 };
 
-/** "Your guitar sounds about 30 cents flat…" */
+/** "about 12 cents sharp" (positive = sharp). */
+export function centsPhrase(cents: number): string {
+  return `${Math.round(Math.abs(cents))} cents ${cents < 0 ? "flat" : "sharp"}`;
+}
+
+/** "Your guitar sounds about 30 cents flat… Tune up first." (positive = sharp → tune down). */
 export function tuningCopy(cents: number): string {
-  const n = Math.round(Math.abs(cents));
-  return `Your guitar sounds about ${n} cents ${cents < 0 ? "flat" : "sharp"}, which can make right chords sound wrong. Tune up first.`;
+  return `Your guitar sounds about ${centsPhrase(cents)}, which can make right chords sound wrong. Tune ${cents > 0 ? "down" : "up"} first.`;
 }
 
 /** Headline for the neutral mic-check card, by server issue. */

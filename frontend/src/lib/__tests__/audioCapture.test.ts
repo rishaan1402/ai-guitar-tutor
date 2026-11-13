@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   AutoStopDetector,
+  GapDetector,
   dbfsToLevel,
   encodeWav,
   encodeWavBuffer,
@@ -179,6 +180,97 @@ describe("AutoStopDetector", () => {
     expect(why).toBe("max");
     expect(t - d.armedAt!).toBeGreaterThanOrEqual(6 - 1e-9);
     expect(t).toBeGreaterThan(8);
+  });
+});
+
+describe("AutoStopDetector: quiet-player arming (round 3)", () => {
+  const frame = 2048 / 48000;
+  const db = (x: number) => 10 ** (x / 20);
+  // deterministic ±20 % jitter so room tone isn't a flat line
+  const jitter = (i: number) => 1 + 0.2 * Math.sin(i * 12.9898) * Math.cos(i * 4.1414);
+
+  it("uses floorFactor 2.5 and minStrumRms 0.001 by default", () => {
+    const d = new AutoStopDetector();
+    expect(d.floorFactor).toBe(2.5);
+    expect(d.minStrumRms).toBe(0.001);
+  });
+
+  it("a −52 dBFS-RMS strum over a −62 dBFS floor arms", () => {
+    const d = new AutoStopDetector({ noStrumSeconds: 8, maxSeconds: 14, maxAfterArmSeconds: 6 });
+    const floor = db(-62);
+    const strumAt = 1.2;
+    let t = 0;
+    let i = 0;
+    let why = null;
+    while (t < 10 && !why) {
+      t += frame;
+      i++;
+      const rms = floor * jitter(i) + (t >= strumAt ? db(-52) * Math.exp(-(t - strumAt) / 0.8) : 0);
+      why = d.update(rms, t);
+    }
+    expect(d.armed).toBe(true);
+    expect(d.armedAt!).toBeGreaterThanOrEqual(strumAt);
+    expect(d.armedAt! - strumAt).toBeLessThan(5 * frame);
+  });
+
+  it("3 s of −62 dBFS room tone alone does not arm", () => {
+    const d = new AutoStopDetector();
+    let t = 0;
+    let i = 0;
+    let why = null;
+    while (t < 3.2 && !why) {
+      t += frame;
+      i++;
+      why = d.update(db(-62) * jitter(i), t);
+    }
+    expect(d.armed).toBe(false);
+    expect(why).toBe("silent");
+  });
+
+  it("a quiet strum stops once it sinks back into the room (not at the 6 s cap)", () => {
+    const d = new AutoStopDetector({ noStrumSeconds: 8, maxSeconds: 14, maxAfterArmSeconds: 6 });
+    const floor = db(-62);
+    let t = 0;
+    let why = null;
+    while (t < 14 && !why) {
+      t += frame;
+      why = d.update(floor + (t >= 1 ? db(-50) * Math.exp(-(t - 1) / 0.4) : 0), t);
+    }
+    expect(why).toBe("decay");
+    expect(t - d.armedAt!).toBeLessThan(5);
+  });
+});
+
+describe("GapDetector", () => {
+  it("contiguous blocks are never a gap", () => {
+    const g = new GapDetector();
+    for (let i = 0; i < 50; i++) expect(g.push(i * 2048, 2048)).toBe(0);
+    expect(g.missing).toBe(0);
+  });
+
+  it("flags two skipped ScriptProcessor buffers (the 93 ms dropout seen under load)", () => {
+    const g = new GapDetector();
+    g.push(0, 2048);
+    g.push(2048, 2048);
+    expect(g.push(4096 + 4096, 2048)).toBe(4096);
+    expect(g.missing).toBe(4096);
+    expect(g.lastGapBlock).toBe(3);
+  });
+
+  it("tolerates rounding jitter from playbackTime × sampleRate", () => {
+    const g = new GapDetector();
+    const sr = 44100;
+    for (let i = 0; i < 40; i++) expect(g.push(((i * 2048) / sr) * sr + (i % 2 ? 0.4 : -0.4), 2048)).toBe(0);
+  });
+
+  it("ignores blocks without a clock and resyncs when the clock restarts", () => {
+    const g = new GapDetector();
+    expect(g.push(undefined, 2048)).toBe(0);
+    expect(g.push(NaN, 2048)).toBe(0);
+    g.push(100000, 2048);
+    expect(g.push(0, 2048)).toBe(0); // went backwards
+    expect(g.push(2048, 2048)).toBe(0);
+    expect(g.missing).toBe(0);
   });
 });
 

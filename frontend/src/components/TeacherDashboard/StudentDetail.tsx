@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getStudentProgress, getStudentReport, type StudentSummary, type StudentProgress } from "@/lib/api";
+import { formatChord } from "@/lib/chordName";
+import StageChip from "@/components/StageChip";
 
 interface Props {
   student: StudentSummary;
@@ -68,11 +70,11 @@ export default function StudentDetail({ student }: Props) {
           ) : (
             <div className="space-y-2">
               {progress.chords.map((c) => (
-                <div key={c.chord_name} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-300 w-20 font-mono">{c.chord_name}</span>
+                <div key={c.chord_name} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-sm text-gray-300 w-24 truncate font-mono">{formatChord(c.chord_name)}</span>
                   <div className="flex-1 bg-white/5 rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full ${c.mastered ? "bg-green-500" : "bg-purple-500"}`}
+                      className={`h-2 rounded-full ${c.status === "mastered" ? "bg-green-500" : "bg-purple-500"}`}
                       style={{ width: `${Math.round(c.best_score * 100)}%` }}
                     />
                   </div>
@@ -82,7 +84,7 @@ export default function StudentDetail({ student }: Props) {
                   <span className="text-xs text-gray-500 w-16 text-right">
                     {c.total_attempts} tries
                   </span>
-                  {c.mastered && <span className="text-green-400 text-xs">✓</span>}
+                  <StageChip item={c} className="basis-full sm:basis-auto w-fit" />
                 </div>
               ))}
             </div>

@@ -60,6 +60,15 @@
     --glow-cyan: rgba(var(--sage-rgb), 0.32);
 
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
+    --ease-in-quart: cubic-bezier(0.5, 0, 0.75, 0);
+    /* motion tokens (lib/motion.ts DUR mirrors these) */
+    --dur-instant: 90ms;
+    --dur-fast: 180ms;
+    --dur-base: 320ms;
+    --dur-slow: 640ms;
+    --dur-story: 1100ms;
+    --stagger: 60ms;
   }
 }
 
@@ -386,6 +395,28 @@ body::after {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Entrance / exit utilities: set --i on siblings to stagger them. */
+.animate-enter {
+  animation: fade-in-up var(--dur-slow) var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+.animate-enter-fast {
+  animation: fade-in-up var(--dur-base) var(--ease-out-expo) both;
+}
+.animate-exit {
+  animation: fade-out var(--dur-fast) var(--ease-in-quart) both;
+}
+
+/* /practice Suspense fallback: pick the skeleton that matches the URL before first paint. */
+.practice-skel-deeplink { display: none; }
+html[data-practice-deeplink="1"] .practice-skel-deeplink { display: block; }
+html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
+
 @keyframes countdown-pulse {
   0%   { transform: scale(0.5); opacity: 0; }
   40%  { transform: scale(1.15); opacity: 1; }
@@ -534,6 +565,7 @@ body::after {
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
   }
+  .animate-enter { animation-delay: 0ms !important; }
   .reveal { opacity: 1; transform: none; filter: none; }
   .reveal-words .word > span { transform: none; }
 }

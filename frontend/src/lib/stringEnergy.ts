@@ -36,19 +36,36 @@ export interface StringTarget {
   fret: number | null;
   /** Pitch-class name ("E"), or null when muted. */
   note: string | null;
+  /**
+   * Another sounding string sits exactly 12, 19 or 24 semitones below this one
+   * (C4 over C3, E4 over E2), so this string's pitch is that string's 2nd/3rd/4th
+   * harmonic: by ear we can't tell whether it rang. Shown as "can't tell",
+   * never confirmed green and never "missing".
+   */
+  ambiguous: boolean;
 }
+
+/** Intervals (semitones) at which a lower string's harmonic lands on a higher string's pitch. */
+export const AMBIGUOUS_INTERVALS: readonly number[] = [12, 19, 24];
 
 /** Six targets, low E (string 6) first, from the teaching voicing in /fingering/{chord}. */
 export function stringTargets(fingering: ChordFingering | null | undefined): StringTarget[] {
   const positions = fingering?.positions ?? [];
-  return [6, 5, 4, 3, 2, 1].map((s) => {
+  const base = [6, 5, 4, 3, 2, 1].map((s): StringTarget => {
     const p = positions.find((q) => q.string === s);
     if (!p || p.action === "mute" || p.fret === undefined || p.fret === null) {
-      return { string: s, midi: null, muted: true, fret: null, note: null };
+      return { string: s, midi: null, muted: true, fret: null, note: null, ambiguous: false };
     }
     const midi = OPEN_MIDI[s] + p.fret;
-    return { string: s, midi, muted: false, fret: p.fret, note: p.note ?? NOTE_NAMES[midi % 12] };
+    return { string: s, midi, muted: false, fret: p.fret, note: p.note ?? NOTE_NAMES[midi % 12], ambiguous: false };
   });
+  const sounding = base.filter((t) => t.midi !== null).map((t) => t.midi as number);
+  for (const t of base) {
+    if (t.midi === null) continue;
+    const m = t.midi;
+    t.ambiguous = AMBIGUOUS_INTERVALS.some((iv) => sounding.includes(m - iv));
+  }
+  return base;
 }
 
 export function midiToHz(midi: number): number {
@@ -89,6 +106,17 @@ export interface EnergyOptions {
    * a neighbouring note (B2 for C3) briefly looks like this string.
    */
   confirmSeconds?: number;
+  /** An extra-note peak must persist this long before it flashes (round 3: 100 ms = 6 frames at 60 fps). */
+  extraPersistSeconds?: number;
+}
+
+/** Peaks within this many cents of the 2nd–4th (and higher) partial of a chord tone are never extras. */
+export const PARTIAL_EXCLUDE_CENTS = 60;
+
+/** Frames an extra must persist at this frame interval (6 at 60 fps). */
+export function extraFramesNeeded(persistSeconds: number, dt: number): number {
+  if (!(dt > 0)) return 6;
+  return Math.max(2, Math.ceil(persistSeconds / dt - 1e-6));
 }
 
 export interface EnergyState {
@@ -103,6 +131,12 @@ export interface EnergyState {
   extra: Float32Array;
   /** Seconds each string's raw target has stayed above the confirm level. */
   heldFor: Float32Array;
+  /**
+   * Consecutive frames each candidate extra note (keyed by Math.round(midi))
+   * has been seen. An attack transient lasts a frame or two; a real extra note
+   * rings, so only peaks that persist ~100 ms flash coral.
+   */
+  xrun: Map<number, number>;
   opts: Required<EnergyOptions>;
 }
 
@@ -116,6 +150,7 @@ export function createEnergyState(opts: EnergyOptions = {}): EnergyState {
     energy: new Float32Array(6),
     extra: new Float32Array(6),
     heldFor: new Float32Array(6),
+    xrun: new Map(),
     opts: {
       floorSeconds: opts.floorSeconds ?? 0.3,
       attackSeconds: opts.attackSeconds ?? 0.03,
@@ -126,6 +161,7 @@ export function createEnergyState(opts: EnergyOptions = {}): EnergyState {
       extraFlashSeconds: opts.extraFlashSeconds ?? 0.18,
       relDb: opts.relDb ?? 30,
       confirmSeconds: opts.confirmSeconds ?? 0.12,
+      extraPersistSeconds: opts.extraPersistSeconds ?? 0.1,
     },
   };
 }
@@ -266,6 +302,9 @@ export function stringEnergies(
     if (chordMidis.length) {
       const floorDb = 20 * Math.log10(median(Array.from(floor)));
       const peaks = detectPeaks(freqDb, sampleRate, fftSize, Math.max(-75, floorDb + o.extraDb), 8);
+      const need = extraFramesNeeded(o.extraPersistSeconds, dt);
+      const prev = state.xrun;
+      const seen = new Map<number, number>();
       for (const p of peaks) {
         if (p.freq < 75 || p.freq > 1100) continue;
         const m = 69 + 12 * Math.log2(p.freq / 440);
@@ -278,9 +317,14 @@ export function stringEnergies(
         const isPartial = chordMidis.some((c) => {
           const h = p.freq / midiToHz(c);
           const k = Math.round(h);
-          return k >= 2 && k <= 10 && Math.abs(1200 * Math.log2(h / k)) <= 30;
+          return k >= 2 && k <= 10 && Math.abs(1200 * Math.log2(h / k)) <= PARTIAL_EXCLUDE_CENTS;
         });
         if (isPartial) continue;
+        const k = Math.round(m);
+        if (seen.has(k)) continue;
+        const run = (prev.get(k) ?? 0) + 1;
+        seen.set(k, run);
+        if (run < need) continue;
         // Nearest string by pitch (its sounding note, or the open note when muted).
         let best = 0;
         let bestD = Infinity;
@@ -294,12 +338,14 @@ export function stringEnergies(
         });
         state.extra[best] = 1;
       }
+      // keys not seen this frame reset
+      state.xrun = seen;
     }
   }
   return state;
 }
 
-export type StringVerdict = "ok" | "missing" | "unclear" | "extra" | "muted";
+export type StringVerdict = "ok" | "missing" | "unclear" | "extra" | "muted" | "cant_tell";
 
 interface EvalLike {
   missing_notes?: string[];
@@ -323,6 +369,7 @@ export function stringVerdicts(evaluation: EvalLike | null | undefined, targets:
     const pc = t.midi % 12;
     if (missing.has(pc)) return "missing";
     if (unclear.has(pc)) return "unclear";
-    return "ok";
+    // An octave-doubled string can't be confirmed by ear: never shown as "ok".
+    return t.ambiguous ? "cant_tell" : "ok";
   });
 }

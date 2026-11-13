@@ -188,4 +188,38 @@ describe("MicrophoneRecorder", () => {
     fireEvent.keyDown(document.body, { key: "Escape" });
     expect(onAnalyser).toHaveBeenLastCalledWith(null);
   });
+
+  it("a dropout during the take (busy device): not uploaded, neutral 'strum again' notice", async () => {
+    const onDroppedTake = vi.fn();
+    const { onComplete } = await arm(vi.fn(), { onDroppedTake });
+    let frameNo = 0;
+    const timed = (v: number, n: number, skip = 0) => {
+      frameNo += skip;
+      act(() => {
+        for (let i = 0; i < n; i++) {
+          const ev = { ...toneFrame(v), playbackTime: ((frameNo++) * FRAME) / 48000 };
+          processor.onaudioprocess?.(ev);
+        }
+      });
+    };
+    timed(0.0008, 10);
+    timed(0.2, 6);
+    expect(screen.getByRole("button", { name: /stop recording/i })).toBeTruthy();
+    timed(0.1, 3, 2); // two buffers never arrived
+    timed(0.0008, 40);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(onDroppedTake).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("mic-check").textContent).toMatch(/device was busy/i);
+  });
+
+  it("contiguous playbackTime never counts as a dropout", async () => {
+    const { onComplete } = await arm();
+    let frameNo = 0;
+    act(() => {
+      for (const [v, n] of [[0.0008, 10], [0.2, 6], [0.1, 6], [0.0008, 40]] as const) {
+        for (let i = 0; i < n; i++) processor.onaudioprocess?.({ ...toneFrame(v), playbackTime: ((frameNo++) * FRAME) / 48000 });
+      }
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
 });

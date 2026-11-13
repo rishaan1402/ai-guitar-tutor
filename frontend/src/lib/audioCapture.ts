@@ -103,7 +103,11 @@ export interface AutoStopOptions {
   maxSeconds?: number;
   /** Cap measured from the moment the detector arms instead (armed-recording mode). */
   maxAfterArmSeconds?: number;
-  /** Stop once RMS stays below this fraction of the strum's peak RMS… */
+  /**
+   * Stop once RMS stays below this fraction of the strum's peak RMS (or below
+   * `floorStopFactor` × the room's noise floor, whichever is higher, so a quiet
+   * strum over room tone doesn't run the full cap)…
+   */
   decayRatio?: number;
   /** …for this long. */
   holdSeconds?: number;
@@ -117,6 +121,8 @@ export interface AutoStopOptions {
    */
   floorFactor?: number;
   minStrumRms?: number;
+  /** Multiple of the measured noise floor that also counts as "decayed" (0 disables). */
+  floorStopFactor?: number;
   /** Consecutive loud frames needed to arm (3 × 2048 samples ≈ 128 ms at 48 kHz). */
   sustainFrames?: number;
   /** Ignore loudness before this time (the key/mouse click that started the take). */
@@ -148,6 +154,8 @@ export class AutoStopDetector {
   readonly noStrumSeconds: number;
   readonly floorFactor: number;
   readonly minStrumRms: number;
+  readonly floorStopFactor: number;
+  private floorRms = 0;
   private floorFrames: number[] = [];
   private threshold: number | null = null;
   private peakRms = 0;
@@ -165,8 +173,12 @@ export class AutoStopDetector {
     this.sustainFrames = opts.sustainFrames ?? 3;
     this.ignoreSeconds = opts.ignoreSeconds ?? 0.3;
     this.noStrumSeconds = opts.noStrumSeconds ?? 3;
-    this.floorFactor = opts.floorFactor ?? 4;
-    this.minStrumRms = opts.minStrumRms ?? 0.0025;
+    // Quiet-player arming (round 3, measured on 300 clips over −62 dBFS room
+    // tone): a −38 dBFS strum arms 59 % → 99 % with 0 % false arms on room
+    // tone, clicks and a −45 dB fan.
+    this.floorFactor = opts.floorFactor ?? 2.5;
+    this.minStrumRms = opts.minStrumRms ?? 0.001;
+    this.floorStopFactor = opts.floorStopFactor ?? 1.5;
   }
 
   /** The loud-frame threshold in use (strumRms until the floor is known). */
@@ -194,6 +206,7 @@ export class AutoStopDetector {
         else {
           const xs = this.floorFrames.sort((a, b) => a - b);
           const floor = xs.length ? xs[xs.length >> 1] : this.strumRms;
+          this.floorRms = xs.length ? floor : 0;
           this.threshold =
             this.floorFactor > 0
               ? Math.min(this.strumRms, Math.max(this.minStrumRms, this.floorFactor * floor))
@@ -223,12 +236,68 @@ export class AutoStopDetector {
     if (rms >= this.loudRms) this._loudRun += 1;
     else this._loudRun = 0;
     if (rms > this.peakRms) this.peakRms = rms;
-    if (rms < this.peakRms * this.decayRatio) {
+    // The floor rule only applies when the strum stood well clear of the room
+    // (a sound that was already playing during the floor window can't "decay" into it).
+    const floorStop = this.floorStopFactor * this.floorRms;
+    const quietBelow = Math.max(this.peakRms * this.decayRatio, floorStop < 0.5 * this.peakRms ? floorStop : 0);
+    if (rms < quietBelow) {
       if (this.quietSince === null) this.quietSince = t;
       return t - this.quietSince >= this.holdSeconds ? "decay" : null;
     }
     this.quietSince = null;
     return null;
+  }
+}
+
+/**
+ * Detects audio the capture path never delivered (a busy main thread makes
+ * ScriptProcessorNode skip whole buffers). Feed each block's start frame
+ * (`e.playbackTime × sampleRate`, or the worklet's `currentFrame`); a jump of
+ * at least half a block past the expected frame is a gap. Blocks without a
+ * usable clock (undefined / NaN / non-increasing) are ignored, so browsers
+ * that don't report one never produce false alarms.
+ */
+export class GapDetector {
+  private next: number | null = null;
+  /** Total frames missing since the last reset. */
+  missing = 0;
+  /** Block index (count of blocks seen) at which the latest gap was found, or -1. */
+  lastGapBlock = -1;
+  private blocks = 0;
+
+  constructor(readonly tolerance = 0.5) {}
+
+  /** Returns the frames missing before this block (0 if contiguous or unknown). */
+  push(startFrame: number | null | undefined, length: number): number {
+    this.blocks++;
+    if (startFrame == null || !Number.isFinite(startFrame)) return 0;
+    const start = Math.round(startFrame);
+    let gap = 0;
+    if (this.next !== null) {
+      const d = start - this.next;
+      if (d >= this.tolerance * length) {
+        gap = d;
+        this.missing += d;
+        this.lastGapBlock = this.blocks;
+      } else if (d < -length) {
+        // clock went backwards (context restarted): resync, no gap
+        this.next = null;
+      }
+    }
+    this.next = start + length;
+    return gap;
+  }
+
+  /** Blocks pushed so far. */
+  get count(): number {
+    return this.blocks;
+  }
+
+  reset(): void {
+    this.next = null;
+    this.missing = 0;
+    this.lastGapBlock = -1;
+    this.blocks = 0;
   }
 }
 

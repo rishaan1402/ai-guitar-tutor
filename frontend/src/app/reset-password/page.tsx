@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
           <span className="text-2xl">🎸</span>
           <span className="font-bold text-white">AI Guitar Tutor</span>
         </Link>
-        <div className="glass-card" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="glass-card animate-enter">
           <h1 className="text-2xl font-bold text-white mb-1 text-center">Choose a new password</h1>
           {/* useSearchParams needs a Suspense boundary for static rendering */}
           <Suspense fallback={null}>

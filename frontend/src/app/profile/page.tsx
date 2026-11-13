@@ -6,6 +6,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { updateProfile, getProgress, deleteAccount, type ProgressResponse } from "@/lib/api";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { formatChord } from "@/lib/chordName";
+import StageChip from "@/components/StageChip";
 
 const SKILL_LEVELS = ["beginner", "intermediate", "advanced"];
 
@@ -80,15 +82,16 @@ export default function ProfilePage() {
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto space-y-6">
-        <SectionHeader title="Your Profile" subtitle="Manage your account and see how practice is going" />
+        <SectionHeader as="h1" title="Your Profile" subtitle="Manage your account and see how practice is going" />
 
         {/* Edit form */}
         <div className="glass-card">
           <h2 className="text-lg font-semibold text-white mb-4">Account Settings</h2>
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="field-label">Display Name</label>
+              <label htmlFor="profile-name" className="field-label">Display Name</label>
               <input
+                id="profile-name"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -98,8 +101,10 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="field-label">Skill Level</label>
+              <label htmlFor="profile-skill" className="field-label">Skill Level</label>
               <select
+                id="profile-skill"
+                aria-describedby="profile-skill-hint"
                 value={skillLevel}
                 onChange={(e) => setSkillLevel(e.target.value)}
                 className="field-input"
@@ -110,19 +115,19 @@ export default function ProfilePage() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">
+              <p id="profile-skill-hint" className="text-xs text-gray-500 mt-1">
                 AI feedback adapts to your skill level
               </p>
             </div>
 
             <div>
-              <label className="field-label">Email</label>
-              <p className="text-gray-400 text-sm">{user.email}</p>
+              <p id="profile-email-label" className="field-label">Email</p>
+              <p id="profile-email" aria-labelledby="profile-email-label" className="text-gray-400 text-sm">{user.email}</p>
             </div>
 
             <div>
-              <label className="field-label">Role</label>
-              <p className="text-gray-400 text-sm capitalize">{user.role}</p>
+              <p id="profile-role-label" className="field-label">Role</p>
+              <p id="profile-role" aria-labelledby="profile-role-label" className="text-gray-400 text-sm capitalize">{user.role}</p>
             </div>
 
             {saveMsg && (
@@ -144,8 +149,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Progress summary */}
+        {/* Same footprint while loading, so the danger zone below doesn't jump */}
+        {!progress && <div className="glass-card min-h-[188px]" aria-hidden />}
         {progress && (
-          <div className="glass-card">
+          <div className="glass-card min-h-[188px]">
             <h2 className="text-lg font-semibold text-white mb-4">Practice Stats</h2>
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="text-center">
@@ -167,18 +174,18 @@ export default function ProfilePage() {
                 <h3 className="text-sm font-medium text-gray-300 mb-3">Chord Progress</h3>
                 <div className="space-y-2">
                   {progress.chords.slice(0, 10).map((c) => (
-                    <div key={c.chord_name} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-300 w-16 font-mono">{c.chord_name}</span>
+                    <div key={c.chord_name} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="text-sm text-gray-300 w-24 truncate font-mono">{formatChord(c.chord_name)}</span>
                       <div className="flex-1 bg-white/5 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${c.mastered ? "bg-green-500" : "bg-purple-500"}`}
+                          className={`h-2 rounded-full ${c.status === "mastered" ? "bg-green-500" : "bg-purple-500"}`}
                           style={{ width: `${Math.round(c.best_score * 100)}%` }}
                         />
                       </div>
                       <span className="text-xs text-gray-400 w-10 text-right">
                         {Math.round(c.best_score * 100)}%
                       </span>
-                      {c.mastered && <span className="text-green-400 text-xs">✓</span>}
+                  <StageChip item={c} className="basis-full sm:basis-auto w-fit" />
                     </div>
                   ))}
                 </div>

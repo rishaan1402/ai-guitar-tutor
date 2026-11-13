@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
           <span className="font-bold text-white">AI Guitar Tutor</span>
         </Link>
 
-        <div className="glass-card" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="glass-card animate-enter">
           <h1 className="text-2xl font-bold text-white mb-1 text-center">Reset your password</h1>
           {sent ? (
             <p className="text-gray-300 text-sm text-center mt-4" role="status">

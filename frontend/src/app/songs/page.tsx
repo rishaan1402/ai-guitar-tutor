@@ -53,6 +53,7 @@ export default function SongsPage() {
     <AppShell>
       <div className="max-w-4xl mx-auto">
         <SectionHeader
+          as="h1"
           title="Songs"
           subtitle="Chord charts and tabs with transpose, capo, simplify and autoscroll"
           action={
