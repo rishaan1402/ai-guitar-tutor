@@ -16,7 +16,7 @@ Older documents in `docs/` that mention `ai-guitar-tutor-prod` or the
 | Cloud SQL | `guitar-tutor-db` (Postgres 16, `db-f1-micro`), database `guitar_tutor`, user `guitar` |
 | Artifact Registry | `us-central1-docker.pkg.dev/guitar-tutor-prod-2/guitar-tutor/backend` |
 | Lesson assets | public bucket `gs://guitar-tutor-prod-2-lessons` (`<chord>/lesson.mp4`, `reference.wav`, `metadata.json`) |
-| Secrets (Secret Manager) | `JWT_SECRET_KEY`, `DATABASE_URL` (Unix-socket DSN via `/cloudsql/...`), `GROQ_API_KEY` (optional) |
+| Secrets (Secret Manager) | `JWT_SECRET_KEY`, `DATABASE_URL` (Unix-socket DSN via `/cloudsql/...`), `GROQ_API_KEY` |
 
 The Cloud Run service account (`<project-number>-compute@developer.gserviceaccount.com`)
 has `roles/secretmanager.secretAccessor` and `roles/cloudsql.client`.
@@ -30,7 +30,7 @@ gcloud run deploy guitar-tutor-backend \
   --image=us-central1-docker.pkg.dev/guitar-tutor-prod-2/guitar-tutor/backend:latest \
   --region=us-central1 --allow-unauthenticated --port=8000 \
   --add-cloudsql-instances=guitar-tutor-prod-2:us-central1:guitar-tutor-db \
-  --set-secrets=JWT_SECRET_KEY=JWT_SECRET_KEY:latest,DATABASE_URL=DATABASE_URL:latest \
+  --set-secrets=JWT_SECRET_KEY=JWT_SECRET_KEY:latest,DATABASE_URL=DATABASE_URL:latest,GROQ_API_KEY=GROQ_API_KEY:latest \
   --set-env-vars=LESSON_ASSETS_BASE_URL=https://storage.googleapis.com/guitar-tutor-prod-2-lessons \
   --memory=1Gi --cpu=1 --max-instances=3
 ```
