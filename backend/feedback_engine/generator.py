@@ -8,7 +8,24 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-GROQ_MODEL = "llama-3.3-70b-versatile"
+# Override with the GROQ_MODEL env var. llama-3.3-70b-versatile was retired;
+# gpt-oss-120b is the strongest general model on Groq as of 2026-11.
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
+_REASONING_HEADROOM = 1024
+
+
+def llm_params(max_tokens: int, model: str | None = None) -> dict:
+    """Model + token settings for a Groq chat completion.
+
+    Reasoning models (gpt-oss, qwen3) spend hidden reasoning tokens out of the
+    same budget, so short answers would come back empty: keep reasoning low and
+    add headroom on top of the visible-answer budget.
+    """
+    model = model or GROQ_MODEL
+    if model.startswith(("openai/gpt-oss", "qwen/")):
+        return {"model": model, "max_tokens": max_tokens + _REASONING_HEADROOM,
+                "extra_body": {"reasoning_effort": "low"}}
+    return {"model": model, "max_tokens": max_tokens}
 
 # Lazily initialised Groq client — only created if GROQ_API_KEY is set
 _groq_client = None
@@ -253,10 +270,9 @@ Keep it encouraging and actionable. Do not use markdown or bullet points."""
         messages.append({"role": "user", "content": prompt})
 
         response = await client.chat.completions.create(
-            model=GROQ_MODEL,
             messages=messages,
             temperature=0.7,
-            max_tokens=120,
+            **llm_params(120),
         )
         return response.choices[0].message.content.strip()
 

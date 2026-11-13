@@ -41,7 +41,10 @@ deploy applies pending migrations automatically.
 To enable LLM features (Council song lessons, LLM feedback), create the
 `GROQ_API_KEY` secret and add `GROQ_API_KEY=GROQ_API_KEY:latest` to
 `--set-secrets`. Without it the app falls back to template feedback and the
-Council endpoints return 503.
+Council endpoints return 503. The model defaults to `openai/gpt-oss-120b`
+(Groq retired `llama-3.3-70b-versatile`); override it with the `GROQ_MODEL`
+env var. Reasoning models get low reasoning effort and extra token headroom
+(`feedback_engine/generator.py:llm_params`).
 
 To lock CORS to the frontend, set `ALLOWED_ORIGINS=https://<your-vercel-domain>`
 (comma-separated for several). Unset, any origin may call the API without

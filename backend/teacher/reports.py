@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.profile_context import build_user_context
 from db.models import ChordAttempt
-from feedback_engine.generator import GROQ_MODEL, _get_groq_client
+from feedback_engine.generator import GROQ_MODEL, _get_groq_client, llm_params
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +60,12 @@ async def generate_student_report(db: AsyncSession, student_id: uuid.UUID) -> st
 
     try:
         response = await client.chat.completions.create(
-            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": _REPORT_SYSTEM},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.6,
-            max_tokens=400,
+            **llm_params(400),
         )
         return response.choices[0].message.content.strip()
     except Exception as exc:
