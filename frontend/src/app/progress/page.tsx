@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { fadeInUp, staggerContainer } from "@/lib/motion";
 import useSWR from "swr";
+import { formatChord } from "@/lib/chordName";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 
 function CalendarHeatmap() {
@@ -63,19 +64,15 @@ function SkillMeter({ skillLevel }: { skillLevel: string }) {
 function ChordMasteryMatrix({ chords }: { chords: any[] }) {
   return (
     <div className="glass-card p-6">
-      <SectionHeader
-        title="Chord Mastery Matrix"
-        subtitle="Performance overview across all practiced chords"
-      />
       {chords.length === 0 && (
         <p className="text-cream/60">
           Nothing on the wall yet.{" "}
-          <Link href="/practice?chord=E_minor" className="text-amber-300 hover:text-amber-200">
-            Play your first chord (Em) →
+          <Link href="/practice?chord=A_minor" className="text-amber-300 hover:text-amber-200">
+            Play your first chord (Am) →
           </Link>
         </p>
       )}
-      <div className="mt-6 grid grid-cols-auto gap-2 max-h-96 overflow-y-auto">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6 max-h-96 overflow-y-auto">
         {chords.map((chord) => (
           <Link
             key={chord.chord_name}
@@ -86,21 +83,21 @@ function ChordMasteryMatrix({ chords }: { chords: any[] }) {
               style={{
                 borderColor:
                   chord.best_score >= 0.8
-                    ? "rgba(34,197,94,0.5)"
+                    ? "rgba(134,176,146,0.5)"
                     : chord.best_score >= 0.5
-                    ? "rgba(234,179,8,0.5)"
-                    : "rgba(239,68,68,0.5)",
+                    ? "rgba(232,165,75,0.5)"
+                    : "rgba(232,96,79,0.5)",
                 background:
                   chord.best_score >= 0.8
-                    ? "rgba(34,197,94,0.1)"
+                    ? "rgba(134,176,146,0.1)"
                     : chord.best_score >= 0.5
-                    ? "rgba(234,179,8,0.1)"
-                    : "rgba(239,68,68,0.1)",
+                    ? "rgba(232,165,75,0.1)"
+                    : "rgba(232,96,79,0.1)",
               }}
             >
-              <p className="font-semibold text-sm text-white">{chord.chord_name}</p>
+              <p className="font-semibold text-sm text-white">{formatChord(chord.chord_name)}</p>
               <p className="text-xs text-gray-400 mt-1">{Math.round(chord.best_score * 100)}%</p>
-              <p className="text-xs text-gray-500 mt-0.5">{chord.total_attempts} attempts</p>
+              <p className="text-xs text-gray-500 mt-0.5">{chord.total_attempts} {chord.total_attempts === 1 ? "attempt" : "attempts"}</p>
             </div>
           </Link>
         ))}
@@ -124,7 +121,7 @@ function StatsOverview() {
       <div className="glass-card p-4">
         <p className="text-xs text-gray-400 uppercase">Chords Mastered</p>
         <p className="text-3xl font-bold gradient-text mt-2">{data.mastered_count}</p>
-        <p className="text-xs text-gray-500 mt-1">of {data.total_attempted}</p>
+        <p className="text-xs text-gray-500 mt-1">{data.total_attempted ? `of ${data.total_attempted} played` : "none played yet"}</p>
       </div>
       <div className="glass-card p-4">
         <p className="text-xs text-gray-400 uppercase">Total Attempts</p>
@@ -133,8 +130,8 @@ function StatsOverview() {
       </div>
       <div className="glass-card p-4">
         <p className="text-xs text-gray-400 uppercase">Average Score</p>
-        <p className="text-3xl font-bold text-green-400 mt-2">{(avgScore * 100).toFixed(0)}%</p>
-        <p className="text-xs text-gray-500 mt-1">current skill level</p>
+        <p className="text-3xl font-bold text-green-400 mt-2">{data.chords.length ? `${(avgScore * 100).toFixed(0)}%` : "—"}</p>
+        <p className="text-xs text-gray-500 mt-1">{data.chords.length ? "best take, per chord" : "no graded takes yet"}</p>
       </div>
       <div className="glass-card p-4">
         <p className="text-xs text-gray-400 uppercase">Practice Streak</p>

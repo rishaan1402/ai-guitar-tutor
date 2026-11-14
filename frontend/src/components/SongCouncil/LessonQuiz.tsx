@@ -89,7 +89,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
       <div className="w-full max-w-2xl mx-auto py-8 fade-in-up">
         <div
           className="glass-card p-6 text-center"
-          style={{ border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}
+          style={{ border: "1px solid rgba(232,96,79,0.3)", color: "#ee8a7c" }}
         >
           <p className="mb-4">⚠️ {error}</p>
           <button
@@ -112,7 +112,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
       <div className="w-full max-w-2xl mx-auto py-12 flex flex-col items-center gap-4 fade-in-up">
         <div
           className="glass-card p-8 text-center animate-quiz-correct"
-          style={{ border: "1px solid rgba(34,197,94,0.4)" }}
+          style={{ border: "1px solid rgba(134,176,146,0.4)" }}
         >
           <div className="text-4xl mb-3">🎉</div>
           <p className="text-lg font-bold" style={{ color: "#86efac" }}>
@@ -141,9 +141,9 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
           <span
             className="text-sm font-semibold px-3 py-1 rounded-full"
             style={{
-              background: correctCount >= 2 ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
-              border: `1px solid ${correctCount >= 2 ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
-              color: correctCount >= 2 ? "#86efac" : "#f87171",
+              background: correctCount >= 2 ? "rgba(134,176,146,0.15)" : "rgba(232,96,79,0.15)",
+              border: `1px solid ${correctCount >= 2 ? "rgba(134,176,146,0.4)" : "rgba(232,96,79,0.4)"}`,
+              color: correctCount >= 2 ? "#86efac" : "#ee8a7c",
             }}
           >
             {correctCount}/{questions.length} correct
@@ -164,9 +164,9 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
               animationDelay: `${qi * 0.1}s`,
               border: submitted
                 ? isCorrect
-                  ? "1px solid rgba(34,197,94,0.5)"
+                  ? "1px solid rgba(134,176,146,0.5)"
                   : isWrong
-                  ? "1px solid rgba(239,68,68,0.5)"
+                  ? "1px solid rgba(232,96,79,0.5)"
                   : "1px solid rgba(255,255,255,0.1)"
                 : "1px solid rgba(255,255,255,0.1)",
             }}
@@ -190,13 +190,13 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
                   optBorder = "rgba(var(--accent-rgb),0.6)";
                   optColor = "#f4d69f";
                 } else if (isCorrectOption) {
-                  optBg = "rgba(34,197,94,0.15)";
-                  optBorder = "rgba(34,197,94,0.5)";
+                  optBg = "rgba(134,176,146,0.15)";
+                  optBorder = "rgba(134,176,146,0.5)";
                   optColor = "#86efac";
                 } else if (isWrongSelection) {
-                  optBg = "rgba(239,68,68,0.15)";
-                  optBorder = "rgba(239,68,68,0.5)";
-                  optColor = "#f87171";
+                  optBg = "rgba(232,96,79,0.15)";
+                  optBorder = "rgba(232,96,79,0.5)";
+                  optColor = "#ee8a7c";
                 }
 
                 return (

@@ -70,7 +70,10 @@ async def grade_attempt(
     """
     previous_scores = list(previous_scores or [])[-HISTORY_LIMIT:]
     expected_notes = list(lesson.metadata.get("notes", []))
-    evaluation = await run_in_threadpool(evaluator.evaluate, audio_path, expected_notes)
+    reference = getattr(lesson, "reference_audio_path", None)
+    evaluation = await run_in_threadpool(
+        evaluator.evaluate, audio_path, expected_notes, str(reference) if reference else None,
+    )
 
     eval_dict = evaluation.to_dict()
     eval_dict["chord_display"] = friendly_chord_name(lesson.chord_name)

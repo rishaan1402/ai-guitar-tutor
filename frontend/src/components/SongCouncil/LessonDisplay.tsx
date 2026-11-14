@@ -69,10 +69,10 @@ export default function LessonDisplay({
 }: LessonDisplayProps) {
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#22c55e"
+      ? "#86b092"
       : lesson.overall_difficulty === "intermediate"
-      ? "#eab308"
-      : "#ef4444";
+      ? "#e8a54b"
+      : "#e8604f";
 
   return (
     <div className="w-full max-w-3xl mx-auto fade-in-up space-y-4">

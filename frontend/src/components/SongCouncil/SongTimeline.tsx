@@ -36,9 +36,9 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
 
     const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
 
-    if (avgScore >= 0.8) return "rgba(34,197,94,0.3)"; // green - mastered
-    if (avgScore >= 0.5) return "rgba(234,179,8,0.3)"; // yellow - intermediate
-    return "rgba(239,68,68,0.3)"; // red - needs work
+    if (avgScore >= 0.8) return "rgba(134,176,146,0.3)"; // green - mastered
+    if (avgScore >= 0.5) return "rgba(232,165,75,0.3)"; // yellow - intermediate
+    return "rgba(232,96,79,0.3)"; // red - needs work
   };
 
   const activeData = activeSection

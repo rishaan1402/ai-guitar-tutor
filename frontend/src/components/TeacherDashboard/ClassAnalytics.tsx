@@ -29,7 +29,7 @@ export default function ClassAnalyticsView({ analytics }: Props) {
                   <span className="text-gray-500 mr-2">{i + 1}.</span>
                   {formatChord(item.chord)}
                 </span>
-                <span className="text-gray-400">{item.total_attempts} attempts</span>
+                <span className="text-gray-400">{item.total_attempts} {item.total_attempts === 1 ? "attempt" : "attempts"}</span>
               </li>
             ))}
           </ol>

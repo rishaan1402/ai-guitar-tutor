@@ -80,10 +80,10 @@ function StudyStage({
 }) {
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#22c55e"
+      ? "#86b092"
       : lesson.overall_difficulty === "intermediate"
-      ? "#eab308"
-      : "#ef4444";
+      ? "#e8a54b"
+      : "#e8604f";
 
   return (
     <div className="space-y-4 animate-stage-unlock">
@@ -274,8 +274,8 @@ function PracticeStage({
           <div
             className="mt-4 p-3 rounded-xl text-center text-sm font-medium animate-quiz-correct"
             style={{
-              background: "rgba(34,197,94,0.1)",
-              border: "1px solid rgba(34,197,94,0.3)",
+              background: "rgba(134,176,146,0.1)",
+              border: "1px solid rgba(134,176,146,0.3)",
               color: "#86efac",
             }}
           >

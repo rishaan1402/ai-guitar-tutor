@@ -381,13 +381,13 @@ export default function TransitionTrainer({ initialPair = null }: Props = {}) {
               style={{
                 background: liveNotes.length === 0
                   ? "rgba(255,255,255,0.05)"
-                  : isOnChord ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
+                  : isOnChord ? "rgba(134,176,146,0.15)" : "rgba(232,96,79,0.15)",
                 border: liveNotes.length === 0
                   ? "1px solid rgba(255,255,255,0.1)"
-                  : isOnChord ? "1px solid rgba(34,197,94,0.4)" : "1px solid rgba(239,68,68,0.3)",
+                  : isOnChord ? "1px solid rgba(134,176,146,0.4)" : "1px solid rgba(232,96,79,0.3)",
                 color: liveNotes.length === 0
                   ? "rgba(255,255,255,0.3)"
-                  : isOnChord ? "#22c55e" : "#ef4444",
+                  : isOnChord ? "#86b092" : "#e8604f",
               }}
             >
               {liveNotes.length === 0 ? "🎸 Play to detect notes" : isOnChord ? "✓ On chord!" : "Keep pressing..."}
@@ -404,9 +404,9 @@ export default function TransitionTrainer({ initialPair = null }: Props = {}) {
                 onClick={() => { gotCountRef.current += 1; setGotCount((c) => c + 1); }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold transition-all"
                 style={{
-                  background: "rgba(34,197,94,0.15)",
-                  border: "1px solid rgba(34,197,94,0.4)",
-                  color: "#22c55e",
+                  background: "rgba(134,176,146,0.15)",
+                  border: "1px solid rgba(134,176,146,0.4)",
+                  color: "#86b092",
                 }}
               >
                 ✓ Got it! ({gotCount})
@@ -415,9 +415,9 @@ export default function TransitionTrainer({ initialPair = null }: Props = {}) {
                 onClick={() => { missCountRef.current += 1; setMissCount((c) => c + 1); }}
                 className="flex-1 py-3 rounded-xl text-sm font-bold transition-all"
                 style={{
-                  background: "rgba(239,68,68,0.1)",
-                  border: "1px solid rgba(239,68,68,0.3)",
-                  color: "#ef4444",
+                  background: "rgba(232,96,79,0.1)",
+                  border: "1px solid rgba(232,96,79,0.3)",
+                  color: "#e8604f",
                 }}
               >
                 ✗ Missed ({missCount})
@@ -458,11 +458,11 @@ export default function TransitionTrainer({ initialPair = null }: Props = {}) {
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>transitions in 60s</p>
             <div className="flex justify-center gap-6 mt-2">
               <div>
-                <p className="text-2xl font-bold" style={{ color: "#22c55e" }}>{gotCount}</p>
+                <p className="text-2xl font-bold" style={{ color: "#86b092" }}>{gotCount}</p>
                 <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Got it</p>
               </div>
               <div>
-                <p className="text-2xl font-bold" style={{ color: "#ef4444" }}>{missCount}</p>
+                <p className="text-2xl font-bold" style={{ color: "#e8604f" }}>{missCount}</p>
                 <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Missed</p>
               </div>
             </div>

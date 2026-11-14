@@ -12,9 +12,9 @@ interface PracticeChordCardProps {
 }
 
 function scoreColor(score: number) {
-  if (score >= 0.8) return "#22c55e";
-  if (score >= 0.5) return "#eab308";
-  return "#ef4444";
+  if (score >= 0.8) return "#86b092";
+  if (score >= 0.5) return "#e8a54b";
+  return "#e8604f";
 }
 
 function ScoreSparkline({ history }: { history: number[] }) {
@@ -29,7 +29,7 @@ function ScoreSparkline({ history }: { history: number[] }) {
     <svg width={width} height={BAR_MAX_H} viewBox={`0 0 ${width} ${BAR_MAX_H}`}>
       {bars.map((s, i) => {
         const h = Math.max(2, Math.round(s * BAR_MAX_H));
-        const color = s >= 0.8 ? "#22c55e" : s >= 0.5 ? "#eab308" : "#ef4444";
+        const color = s >= 0.8 ? "#86b092" : s >= 0.5 ? "#e8a54b" : "#e8604f";
         return (
           <rect
             key={i}

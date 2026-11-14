@@ -30,7 +30,7 @@ describe("slashVoicing", () => {
     const v = slashVoicing(pos(key), bass);
     expect(v).not.toBeNull();
     expect(lowest(v!)).toBe(bass);
-    for (const n of pcs(pos(key))) expect(pcs(v!).has(n)).toBe(true);
+    for (const n of Array.from(pcs(pos(key)))) expect(pcs(v!).has(n)).toBe(true);
     expect(v!.filter((x) => x.fret && x.fret > 0 && x.action !== "mute").every((x) => x.finger)).toBe(true);
   });
 
@@ -58,6 +58,6 @@ describe("helpers", () => {
 
 describe("every lesson fingering sounds exactly its notes", () => {
   it.each(Object.keys(data))("%s", (k) => {
-    expect([...pcs(pos(k))].sort()).toEqual([...new Set(data[k].notes)].sort());
+    expect(Array.from(pcs(pos(k))).sort()).toEqual(Array.from(new Set(data[k].notes)).sort());
   });
 });
