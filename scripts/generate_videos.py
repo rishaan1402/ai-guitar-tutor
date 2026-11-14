@@ -308,12 +308,13 @@ def frame(lesson: Lesson, t: float) -> np.ndarray:
     draw_header(d, lesson)
 
     if t < T_TITLE:
-        a = ease(t / 0.5)
+        # fully drawn from frame 0: the first frame is the video's poster in the app
+        a = 1.0
         level_c = LEVEL_COLORS.get(lesson.level, AMBER)
-        centered(d, (WIDTH / 2, 280 - 20 * (1 - a)), lesson.symbol, font(150, bold=True), mix(BG, CREAM, a))
+        centered(d, (WIDTH / 2, 280), lesson.symbol, font(150, bold=True), mix(BG, CREAM, a))
         centered(d, (WIDTH / 2, 400), lesson.full_name, font(34), mix(BG, GRAY, a))
-        centered(d, (WIDTH / 2, 460), "   ".join(lesson.notes), font(28, mono=True), mix(BG, AMBER, ease((t - 0.3) / 0.5)))
-        b = ease((t - 0.5) / 0.4)
+        centered(d, (WIDTH / 2, 460), "   ".join(lesson.notes), font(28, mono=True), AMBER)
+        b = 1.0
         if b > 0:
             label = lesson.level.capitalize()
             w = d.textlength(label, font=font(20, bold=True)) + 32

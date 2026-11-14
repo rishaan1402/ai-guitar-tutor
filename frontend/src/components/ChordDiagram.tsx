@@ -77,7 +77,7 @@ export default function ChordDiagram({ fingering, caption, positions: override, 
 
   return (
     <div className={`glass-card ${fluid ? "w-full" : "w-fit self-start"} ${className ?? ""}`}>
-      <p className="text-[10px] font-semibold gradient-text text-center mb-0.5">
+      <p className={`${fluid ? "text-base" : "text-[10px]"} font-semibold gradient-text text-center mb-0.5`}>
         {title}
       </p>
       <svg
@@ -234,7 +234,7 @@ export default function ChordDiagram({ fingering, caption, positions: override, 
             );
           })}
       </svg>
-      <p className="text-[8px] text-gray-500 text-center mt-0.5">
+      <p className={`${fluid ? "text-xs" : "text-[8px]"} text-gray-500 text-center mt-0.5`}>
         {(override ? sounding : fingering.notes).join(" ")}
       </p>
       {note && <p className="text-[9px] text-amber-300/80 text-center mt-0.5">{note}</p>}

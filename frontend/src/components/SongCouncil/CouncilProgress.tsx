@@ -57,12 +57,12 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                     className="w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all duration-500"
                     style={{
                       background: done
-                        ? "rgba(34,197,94,0.25)"
+                        ? "rgba(134,176,146,0.25)"
                         : active_
                         ? "rgba(var(--accent-rgb),0.3)"
                         : "rgba(255,255,255,0.05)",
                       border: done
-                        ? "1px solid rgba(34,197,94,0.5)"
+                        ? "1px solid rgba(134,176,146,0.5)"
                         : active_
                         ? "1px solid rgba(var(--accent-rgb),0.6)"
                         : "1px solid rgba(255,255,255,0.1)",
@@ -75,7 +75,7 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                   <span
                     className="text-xs text-center max-w-20"
                     style={{
-                      color: done ? "#22c55e" : active_ ? "#efc27a" : "rgba(255,255,255,0.35)",
+                      color: done ? "#86b092" : active_ ? "#efc27a" : "rgba(255,255,255,0.35)",
                     }}
                   >
                     {step.label}
@@ -86,7 +86,7 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                     className="h-px w-8 transition-all duration-700"
                     style={{
                       background: done
-                        ? "rgba(34,197,94,0.5)"
+                        ? "rgba(134,176,146,0.5)"
                         : "rgba(255,255,255,0.1)",
                     }}
                   />

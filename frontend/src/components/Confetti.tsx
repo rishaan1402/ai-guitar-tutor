@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const COLORS = ["#efc27a", "#a3c6ab", "#a3c6ab", "#f59e0b", "#ef4444", "#22c55e", "#ec4899"];
+const COLORS = ["#efc27a", "#a3c6ab", "#a3c6ab", "#e8a54b", "#e8604f", "#86b092", "#ec4899"];
 
 interface Props {
   active: boolean;

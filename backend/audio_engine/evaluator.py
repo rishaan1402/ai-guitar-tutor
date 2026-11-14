@@ -81,14 +81,45 @@ class ChordEvaluator:
     X_LO, X_HI = 0.12, 0.30            # non-chord pc: < X_LO clean, >= X_HI definite extra
     MIN_WIN_S = 0.5                    # shorter analysis windows can't PASS (only unclear)
     EXTRA_PENALTY = 0.25               # per extra note; a wrong chord can't look "green"
+    # Per-chord calibration: a chord tone that is quiet even in the chord's own reference
+    # recording (the 3rd of Em / E7 / Emaj7 / Em7 sits on one string while root and 5th
+    # ring on several) gets a pass bar of REF_FRAC x its reference strength, never below
+    # REF_FLOOR and never above P_HI. The fail bar (P_LO) is unchanged.
+    REF_FRAC = 0.6
+    REF_FLOOR = 0.045
 
     _dict_cache: Dict[Tuple, np.ndarray] = {}
 
     def __init__(self, sr: int = ANALYSIS_SR, **_ignored: Any) -> None:
         self._sr = sr
+        self._ref_cache: Dict[str, Optional[np.ndarray]] = {}
+
+    def _reference_strengths(self, reference_path: Optional[str]) -> Optional[np.ndarray]:
+        """Pitch-class strengths of a chord's reference recording (cached)."""
+        if not reference_path:
+            return None
+        key = str(reference_path)
+        if key not in self._ref_cache:
+            try:
+                strengths, _ = self.analyse(Path(key)) if Path(key).is_file() else (None, {})
+            except Exception:
+                logger.exception("Failed to analyse reference audio: %s", key)
+                strengths = None
+            self._ref_cache[key] = strengths
+        return self._ref_cache[key]
+
+    def _pass_bars(self, exp: List[str], ref: Optional[np.ndarray]) -> Dict[int, float]:
+        bars = {_pc(n): self.P_HI for n in exp}
+        if ref is not None:
+            for p in bars:
+                bars[p] = float(min(self.P_HI, max(self.REF_FLOOR, self.REF_FRAC * ref[p])))
+        return bars
 
     # ------------------------------------------------------------------ public API
-    def evaluate(self, audio_path: str, expected_notes: List[str]) -> EvaluationResult:
+    def evaluate(self, audio_path: str, expected_notes: List[str],
+                 reference_path: Optional[str] = None) -> EvaluationResult:
+        """Grade a take. ``reference_path`` (the chord's reference recording) calibrates
+        how loud each chord tone can be expected to be."""
         path = Path(audio_path)
         exp = list(expected_notes)
         if not path.is_file():
@@ -101,14 +132,15 @@ class ChordEvaluator:
         except Exception:
             logger.exception("Failed to process audio: %s", audio_path)
             return EvaluationResult(0.0, [], exp, exp, issue="processing_error")
-        res = self._decide(strengths, info, exp)
+        bars = self._pass_bars(exp, self._reference_strengths(reference_path))
+        res = self._decide(strengths, info, exp, bars)
         t = float(info.get("tuning", 0.0))
         if strengths is not None and res.issue is not None and abs(t) > self.TUNE_WRAP_CENTS:
             # The tuning estimate is only known modulo a semitone: a guitar 60 c sharp reads as
             # 40 c flat of the chord a semitone up. If the target passes one semitone over, the
             # learner played the right shape on an out-of-tune guitar.
             k = -1 if t < 0 else 1
-            alt = self._decide(np.roll(strengths, k), info, exp)
+            alt = self._decide(np.roll(strengths, k), info, exp, bars)
             if alt.issue is None:
                 # report what the learner actually fingered (the target), not the
                 # semitone-shifted misreading
@@ -347,7 +379,7 @@ class ChordEvaluator:
         return self._decide(strengths, {}, list(expected))
 
     def _decide(self, strengths: Optional[np.ndarray], info: Dict[str, Any],
-                exp: List[str]) -> EvaluationResult:
+                exp: List[str], bars: Optional[Dict[int, float]] = None) -> EvaluationResult:
         """Three-way verdict: pass, unclear ("strum again"), or fail with an issue.
 
         Chord tone strength t and strongest non-chord strength x (relative to the
@@ -363,8 +395,9 @@ class ChordEvaluator:
         non_target = [p for p in range(12) if p not in target]
         tmin = float(min(strengths[p] for p in target)) if target else 0.0
         xmax = float(max((strengths[p] for p in non_target), default=0.0))
+        bar = {p: (bars or {}).get(p, self.P_HI) for p in target}
 
-        present = {p for p in target if strengths[p] >= self.P_HI}
+        present = {p for p in target if strengths[p] >= bar[p]}
         extra = {p for p in non_target if strengths[p] >= self.X_HI}
         missing = target - present
         raw = len(present) / len(target) if target else 0.0
@@ -388,12 +421,12 @@ class ChordEvaluator:
             tgt_energy = strengths[list(target)].sum() / (strengths.sum() + 1e-9) if target else 0.0
             if issue != "wrong_chord" and tgt_energy < 0.4 and len(missing) >= len(target) / 2:
                 issue = "wrong_chord"
-        elif tmin >= self.P_HI and xmax < self.X_LO and not short:
+        elif all(strengths[p] >= bar[p] for p in target) and xmax < self.X_LO and not short:
             issue, score = None, 1.0
         else:
             issue = "unclear"
             score = min(score, 0.99)  # never reads as a pass
-            unclear_pcs = {p for p in target if self.P_LO <= strengths[p] < self.P_HI}
+            unclear_pcs = {p for p in target if self.P_LO <= strengths[p] < bar[p]}
             unclear_pcs |= {p for p in non_target if self.X_LO <= strengths[p] < self.X_HI}
 
         return EvaluationResult(

@@ -49,10 +49,10 @@ export function IntegratedLessonView({
 
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#22c55e"
+      ? "#86b092"
       : lesson.overall_difficulty === "intermediate"
-      ? "#eab308"
-      : "#ef4444";
+      ? "#e8a54b"
+      : "#e8604f";
 
   // Get context for selected chord
   const selectedContext: SongCouncilContext | null = selectedChordKey
@@ -238,8 +238,8 @@ export function IntegratedLessonView({
             <div
               className="p-4 rounded-xl text-center text-sm font-medium"
               style={{
-                background: "rgba(34,197,94,0.1)",
-                border: "1px solid rgba(34,197,94,0.3)",
+                background: "rgba(134,176,146,0.1)",
+                border: "1px solid rgba(134,176,146,0.3)",
                 color: "#86efac",
               }}
             >

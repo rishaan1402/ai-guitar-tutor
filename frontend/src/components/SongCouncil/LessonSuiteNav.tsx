@@ -44,8 +44,8 @@ export default function LessonSuiteNav({
           textColor = "#f4d69f";
           boxShadow = "0 0 12px rgba(var(--accent-rgb),0.4)";
         } else if (isDone) {
-          borderColor = "rgba(34,197,94,0.5)";
-          bg = "rgba(34,197,94,0.08)";
+          borderColor = "rgba(134,176,146,0.5)";
+          bg = "rgba(134,176,146,0.08)";
           textColor = "#86efac";
         }
 

@@ -12,9 +12,9 @@ interface Props {
 }
 
 function colorForScore(score: number): string {
-  if (score >= 0.8) return "#22c55e";
-  if (score >= 0.5) return "#eab308";
-  return "#ef4444";
+  if (score >= 0.8) return "#86b092";
+  if (score >= 0.5) return "#e8a54b";
+  return "#e8604f";
 }
 
 export default function ScoreRing({

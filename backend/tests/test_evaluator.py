@@ -133,3 +133,35 @@ class TestScoringFormula:
     def test_extra_notes_issue(self):
         r = evaluator._compare_notes(["G", "B", "D", "F#"], ["G", "B", "D"])
         assert r.issue == "extra_notes"
+
+
+class TestReferenceCalibration:
+    """Every chord's own reference recording passes; wrong chords still fail."""
+
+    import json as _json
+    from pathlib import Path as _Path
+
+    _ROOT = _Path(__file__).resolve().parents[2] / "data"
+    _CHORDS = {c["chord"]: c for c in _json.loads((_ROOT / "chords" / "fingerings.json").read_text())}
+
+    def _ref(self, key):
+        return str(self._ROOT / "lessons" / key / "reference.wav")
+
+    def test_all_references_pass(self):
+        ev = ChordEvaluator()
+        failing = [k for k, c in self._CHORDS.items()
+                   if ev.evaluate(self._ref(k), c["notes"], self._ref(k)).issue is not None]
+        assert failing == []
+
+    def test_quiet_third_of_em_passes_only_with_calibration(self):
+        ev = ChordEvaluator()
+        em = self._CHORDS["E_minor"]["notes"]
+        assert ev.evaluate(self._ref("E_minor"), em).issue == "unclear"
+        assert ev.evaluate(self._ref("E_minor"), em, self._ref("E_minor")).issue is None
+
+    def test_wrong_chords_still_fail(self):
+        ev = ChordEvaluator()
+        for take, target in [("E_power", "E_minor"), ("E_minor", "E_major"),
+                             ("E_major", "E_minor"), ("A_minor", "A_major")]:
+            r = ev.evaluate(self._ref(take), self._CHORDS[target]["notes"], self._ref(target))
+            assert r.issue not in (None, "unclear"), (take, target, r.issue)

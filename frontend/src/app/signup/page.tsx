@@ -9,16 +9,17 @@ import Logo from "@/components/brand/Logo";
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<Form next="/dashboard" />}>
+    <Suspense fallback={<Form next="/start" />}>
       <WithNext />
     </Suspense>
   );
 }
 
-/** Same-site `?next=` only ("/practice?chord=C_major"); anything else → /dashboard. */
+/** Same-site `?next=` only ("/practice?chord=C_major"); anything else → setup (/start). */
 function WithNext() {
   const params = useSearchParams();
-  return <Form next={safeNext(params.get("next"))} />;
+  // A brand-new account goes through the 30-second setup unless it came here for a page
+  return <Form next={safeNext(params.get("next"), "/start")} />;
 }
 
 function Form({ next }: { next: string }) {

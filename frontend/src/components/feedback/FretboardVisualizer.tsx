@@ -149,11 +149,11 @@ export function FretboardVisualizer({
           let strokeColor = "rgba(239,194,122,0.5)";
 
           if (isDetected && !isMissing) {
-            fillColor = "#22c55e"; // green - correct
-            strokeColor = "rgba(34,197,94,0.7)";
+            fillColor = "#86b092"; // green - correct
+            strokeColor = "rgba(134,176,146,0.7)";
           } else if (isMissing) {
-            fillColor = "rgba(239,68,68,0.2)"; // red with transparency
-            strokeColor = "#ef4444";
+            fillColor = "rgba(232,96,79,0.2)"; // red with transparency
+            strokeColor = "#e8604f";
           }
 
           return (
@@ -215,7 +215,7 @@ export function FretboardVisualizer({
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize="14"
-              fill="rgba(239,68,68,0.6)"
+              fill="rgba(232,96,79,0.6)"
               fontWeight="bold"
             >
               ✕
@@ -227,11 +227,11 @@ export function FretboardVisualizer({
       {/* Legend */}
       <div className="grid grid-cols-2 gap-3 text-xs w-full">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full" style={{ background: "#22c55e" }} />
+          <div className="w-3 h-3 rounded-full" style={{ background: "#86b092" }} />
           <span className="text-gray-300">Detected</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#ef4444" }} />
+          <div className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#e8604f" }} />
           <span className="text-gray-300">Missing</span>
         </div>
       </div>

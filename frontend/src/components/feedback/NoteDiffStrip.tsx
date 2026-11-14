@@ -63,8 +63,8 @@ export function NoteDiffStrip({
                   key={`detected-${note}`}
                   className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
                   style={{
-                    background: "rgba(34,197,94,0.15)",
-                    border: "1px solid rgba(34,197,94,0.4)",
+                    background: "rgba(134,176,146,0.15)",
+                    border: "1px solid rgba(134,176,146,0.4)",
                     color: "#86efac",
                   }}
                   onMouseEnter={() => onNoteHover?.(note)}
@@ -89,8 +89,8 @@ export function NoteDiffStrip({
                   key={`missing-${note}`}
                   className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold animate-pulse"
                   style={{
-                    background: "rgba(239,68,68,0.15)",
-                    border: "1px solid rgba(239,68,68,0.4)",
+                    background: "rgba(232,96,79,0.15)",
+                    border: "1px solid rgba(232,96,79,0.4)",
                     color: "#fca5a5",
                   }}
                   onMouseEnter={() => onNoteHover?.(note)}

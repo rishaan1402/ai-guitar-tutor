@@ -312,6 +312,18 @@ function PracticeInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepChord]);
 
+  // Keep ?chord= in step with the chord on screen ("Next: Am" from Em's review, New Chord),
+  // so refresh, back and shared links reopen the same lesson.
+  useEffect(() => {
+    if (mode !== "chords" || !chordName) return;
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("chord") === chordName) return;
+    q.set("chord", chordName);
+    q.delete("mode");
+    lastDeepRef.current = chordName; // not a new deep link: don't reload the lesson
+    window.history.replaceState(null, "", `/practice?${q}`);
+  }, [chordName, mode]);
+
   // Work out the "next" suggestion once per chord, so Review can name it.
   useEffect(() => {
     if (!chordName) {
@@ -501,7 +513,7 @@ function PracticeInner() {
     setShowRecap(false);
     setPendingChord(null);
     lastDeepRef.current = null;
-    if (params.get("chord")) router.replace("/practice", { scroll: false });
+    if (new URLSearchParams(window.location.search).get("chord")) router.replace("/practice", { scroll: false });
     setSessionState("IDLE");
     setChordName("");
     setVideoPath(null);

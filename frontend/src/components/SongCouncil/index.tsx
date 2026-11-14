@@ -116,7 +116,7 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
       {error && (
         <div
           className="mt-6 max-w-2xl mx-auto glass-card p-4 text-sm text-center"
-          style={{ color: "#f87171", border: "1px solid rgba(239,68,68,0.3)" }}
+          style={{ color: "#ee8a7c", border: "1px solid rgba(232,96,79,0.3)" }}
         >
           ⚠️ {error}
         </div>
