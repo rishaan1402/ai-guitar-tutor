@@ -16,13 +16,13 @@ import StepIndicator from "@/components/StepIndicator";
 import ModeToggle, { AppMode } from "@/components/ModeToggle";
 
 function parseMode(v: string | null): AppMode {
-  return v === "song" || v === "transitions" ? v : "chords";
+  return v === "song" ? v : "chords";
 }
 import SongCouncil from "@/components/SongCouncil";
 import type { SongCouncilContext } from "@/components/SongCouncil";
 import MetronomeWidget from "@/components/MetronomeWidget";
-import TransitionTrainer, { pairFromParams } from "@/components/TransitionTrainer";
 import NavBar from "@/components/NavBar";
+import { changeGrooveHref } from "@/lib/groove/link";
 import {
   getLesson,
   submitAudio,
@@ -161,11 +161,6 @@ const HERO: Record<AppMode, { kicker: string; title: string; body: string }> = {
     title: "Learn any song",
     body: "Name a song. You get its chord chart, tabs, a lesson for each section and a play-along.",
   },
-  transitions: {
-    kicker: "The metronome",
-    title: "Chord changes",
-    body: "One-minute changes: switch between two chords until it's automatic, and beat your last count.",
-  },
 };
 
 function IdleHero({ mode }: { mode: AppMode }) {
@@ -220,6 +215,11 @@ export default function PracticePage() {
 function PracticeInner() {
   const params = useSearchParams();
   const router = useRouter();
+  // the old changes trainer is gone: its links open a Groove on the same change
+  useEffect(() => {
+    if (params.get("mode") !== "transitions") return;
+    router.replace(changeGrooveHref(params.get("sa"), params.get("sb")));
+  }, [params, router]);
   const deepChord = params.get("chord");
   const modeParam = params.get("mode");
   const [mode, setMode] = useState<AppMode>(() => parseMode(modeParam));
@@ -533,8 +533,8 @@ function PracticeInner() {
   }
 
   function handleModeChange(newMode: AppMode) {
-    // When switching to chords or transitions mode, clear song context
-    if (newMode === "chords" || newMode === "transitions") {
+    // When switching to chords mode, clear song context
+    if (newMode === "chords") {
       setSongContext(null);
       setFromSong(false);
     }
@@ -854,10 +854,6 @@ function PracticeInner() {
           <SongCouncil onPracticeChord={handlePracticeChordFromSong} />
         </div>
 
-        {/* ── TRANSITIONS MODE ────────────────────────────────────── */}
-        <div style={{ display: mode === "transitions" && !showRecap ? "block" : "none" }}>
-          <TransitionTrainer initialPair={pairFromParams((k) => params.get(k))} />
-        </div>
         {/* Below everything, so it never shifts the lesson when it appears after mount */}
         {showSetupHint && !showRecap && (!isSessionActive || currentStep === REVIEW) && (
           <p className="text-sm text-gray-300 text-center" data-testid="setup-hint">

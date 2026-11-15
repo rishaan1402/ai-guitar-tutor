@@ -21,6 +21,8 @@ export interface Groove {
   tip?: string;
   /** Times through the loop. */
   loops: number;
+  /** Beats in a bar: 4 (default) or 3 for waltz time. */
+  beatsPerBar?: number;
 }
 
 export interface Segment {
@@ -41,12 +43,17 @@ export interface Change {
 
 export const BEATS_PER_BAR = 4;
 
+/** Beats per bar for this Groove (3/4 or 4/4). */
+export function barBeats(g: Pick<Groove, "beatsPerBar">): number {
+  return g.beatsPerBar === 3 ? 3 : 4;
+}
+
 export function timeline(g: Groove): { segments: Segment[]; changes: Change[]; totalBeats: number } {
   const segments: Segment[] = [];
   let beat = 0;
   for (let loop = 0; loop < g.loops; loop++) {
     for (const bar of g.bars) {
-      const each = BEATS_PER_BAR / bar.length;
+      const each = barBeats(g) / bar.length;
       for (const chord of bar) {
         const last = segments[segments.length - 1];
         // a held chord is one box; in lead "-" holds and repeated notes are separate plucks
@@ -71,10 +78,10 @@ export function timeline(g: Groove): { segments: Segment[]; changes: Change[]; t
   return { segments, changes, totalBeats: beat };
 }
 
-/** Eighth-note strum slots for one bar, e.g. "D.DU.UDU" -> ["D",".","D","U",".","U","D","U"]. */
-export function strumSlots(pattern: string): string[] {
-  const s = pattern.replace(/\s+/g, "").toUpperCase().slice(0, 8).split("");
-  while (s.length < 8) s.push(".");
+/** Eighth-note strum slots for one bar, e.g. "D.DU.UDU" -> ["D",".","D","U",".","U","D","U"] (6 slots in 3/4). */
+export function strumSlots(pattern: string, slots = 8): string[] {
+  const s = pattern.replace(/\s+/g, "").toUpperCase().slice(0, slots).split("");
+  while (s.length < slots) s.push(".");
   return s;
 }
 

@@ -121,3 +121,12 @@ describe("transport", () => {
     expect(s[1]).toMatchObject({ from: "C", to: "G", late: 1 });
   });
 });
+
+describe("3/4 time", () => {
+  it("a waltz bar is three beats", async () => {
+    const { timeline } = await import("./groove");
+    const t = timeline({ id: "w", title: "w", style: "ballad", bpm: 90, bars: [["G"], ["C"]], strum: "D.D.D.", loops: 1, beatsPerBar: 3 });
+    expect(t.totalBeats).toBe(6);
+    expect(t.changes[0].beat).toBe(3);
+  });
+});

@@ -10,7 +10,7 @@
  */
 import { Band } from "./band";
 import { matchesExpected } from "./detect";
-import { strumSlots, timeline, type Change, type Groove, type Segment } from "./groove";
+import { barBeats, strumSlots, timeline, type Change, type Groove, type Segment } from "./groove";
 import { parseNote } from "./lead";
 
 export type Mode = "wait" | "play" | "follow" | "listen";
@@ -53,6 +53,7 @@ export class Transport {
   private opts: TransportOptions;
   private eighthDur: number;
   private slots: string[];
+  private barEighths: number;
   private steps: Step[] = [];
   private next = { time: 0, eighth: -8 };
   private holdSlot = 0;
@@ -76,7 +77,8 @@ export class Transport {
     this.changes = t.changes;
     this.totalBeats = t.totalBeats;
     this.eighthDur = 60 / opts.bpm / 2;
-    this.slots = strumSlots(groove.strum);
+    this.barEighths = barBeats(groove) * 2;
+    this.slots = strumSlots(groove.strum, this.barEighths);
     band.style = groove.style;
     const ctx = band.ctx as AudioContext & { outputLatency?: number };
     this.outLatency = (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
@@ -89,7 +91,7 @@ export class Transport {
   start() {
     const ctx = this.band.ctx;
     void ctx.resume();
-    this.next = { time: ctx.currentTime + 0.2, eighth: -8 };
+    this.next = { time: ctx.currentTime + 0.2, eighth: -this.barEighths };
     this.timer = setInterval(() => this.tick(), 25);
     this.tick();
   }
@@ -126,7 +128,7 @@ export class Transport {
     const { time, eighth: e } = this.next;
     const dur = this.eighthDur;
     if (e < 0) {
-      if (e % 2 === 0) this.band.click(time, e === -8);
+      if (e % 2 === 0) this.band.click(time, e === -this.barEighths);
       this.steps.push({ time, eighth: e, hold: false });
       this.next = { time: time + dur, eighth: e + 1 };
       return;
@@ -142,7 +144,7 @@ export class Transport {
     if (c) this.creditEarly(c);
     if ((this.opts.mode === "wait" || this.opts.mode === "follow") && c && !this.resolved.has(c.i)) {
       // hold here (drums only, so nothing but you sounds like a chord) until you change
-      this.band.playEighth(time, this.holdSlot++, null, dur, { hold: true });
+      this.band.playEighth(time, this.holdSlot++ % this.barEighths, null, dur, { hold: true, waltz: this.barEighths === 6 });
       this.steps.push({ time, eighth: e, hold: true });
       this.next = { time: time + dur, eighth: e };
       return;
@@ -150,15 +152,16 @@ export class Transport {
     this.holdSlot = 0;
     const beat = e / 2;
     const seg = this.segmentAt(beat);
-    const slot = e % 8;
+    const slot = e % this.barEighths;
     const full = this.opts.full || this.opts.mode === "listen";
     if (this.groove.kind === "lead") {
       // drums keep time; the guide guitar plays the melody when it's allowed to sound
-      this.band.playEighth(time, slot, null, dur, {});
+      this.band.playEighth(time, slot, null, dur, { waltz: this.barEighths === 6 });
       const n = parseNote(seg.chord);
       if (full && n && seg.start * 2 === e) this.band.note(time, n.midi);
     } else {
       this.band.playEighth(time, slot, seg.chord, dur, {
+        waltz: this.barEighths === 6,
         strum: this.slots[slot],
         full,
         padSeconds: seg.start * 2 === e ? seg.beats * 2 * dur : undefined,

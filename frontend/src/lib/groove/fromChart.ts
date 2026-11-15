@@ -95,7 +95,9 @@ export interface SongGroove extends Groove {
 
 export function songGrooves(sheet: Sheet, opts: { known?: Set<string>; easy?: boolean } = {}): { label: string; groove: SongGroove; changed: string[] }[] {
   const bpm = Math.max(50, Math.min(140, sheet.meta.tempo ?? 80));
-  const strum = strumFrom(sheet.meta.strumming);
+  const waltz = /^3\s*\/\s*4$/.test(sheet.meta.time ?? "") || /^6\s*\/\s*8$/.test(sheet.meta.time ?? "");
+  const beatsPerBar = waltz ? 3 : 4;
+  const strum = waltz ? strumFrom(sheet.meta.strumming).slice(0, 6) : strumFrom(sheet.meta.strumming);
   const style: GrooveStyle = bpm >= 110 ? "rock" : bpm <= 72 ? "ballad" : "pop";
   const out: { label: string; groove: SongGroove; changed: string[] }[] = [];
   const all: string[][] = [];
@@ -125,7 +127,7 @@ export function songGrooves(sheet: Sheet, opts: { known?: Set<string>; easy?: bo
         id: `song-${i}`,
         title: `${sheet.meta.title || "Song"}: ${label}`.slice(0, 60),
         style, bpm, bars: bars.slice(0, 32), strum, loops: bars.length <= 4 ? 4 : bars.length <= 8 ? 2 : 1,
-        source: "song", mode: "follow",
+        source: "song", mode: "follow", beatsPerBar,
       },
     });
   });
@@ -133,7 +135,7 @@ export function songGrooves(sheet: Sheet, opts: { known?: Set<string>; easy?: bo
     out.unshift({
       label: "Whole song",
       changed: Array.from(new Set(out.flatMap((o) => o.changed))),
-      groove: { id: "song-all", title: (sheet.meta.title || "Song").slice(0, 60), style, bpm, bars: all.slice(0, 64), strum, loops: 1, source: "song", mode: "follow" },
+      groove: { id: "song-all", title: (sheet.meta.title || "Song").slice(0, 60), style, bpm, bars: all.slice(0, 64), strum, loops: 1, source: "song", mode: "follow", beatsPerBar },
     });
   }
   // a song needs at least one chord change to play along to

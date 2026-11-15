@@ -1,5 +1,8 @@
 "use client";
 
+import RichText from "@/components/ui/RichText";
+import { useRouter } from "next/navigation";
+
 import React, { useState, useRef, useEffect } from "react";
 import { LessonDocument } from "@/lib/api";
 import { SongTimeline } from "./SongTimeline";
@@ -34,6 +37,7 @@ export function IntegratedLessonView({
   onPracticeChord,
   onRevise,
 }: IntegratedLessonViewProps) {
+  const router = useRouter();
   const [showChordDrawer, setShowChordDrawer] = useState(false);
   const [selectedChordKey, setSelectedChordKey] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
@@ -169,10 +173,9 @@ export function IntegratedLessonView({
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
             color: "rgba(255,255,255,0.8)",
-            whiteSpace: "pre-wrap",
-          }}
+                      }}
         >
-          {lesson.chairman_summary}
+          <RichText text={lesson.chairman_summary} />
         </div>
 
         {/* Song structure timeline */}
@@ -183,7 +186,7 @@ export function IntegratedLessonView({
               <button
                 type="button"
                 onClick={() => {
-                  if (storeDraft(lessonToChordPro(lesson))) window.location.assign("/songs/view?draft=1");
+                  if (storeDraft(lessonToChordPro(lesson))) router.push("/songs/view?draft=1");
                 }}
                 className="text-xs text-purple-300 hover:text-purple-200"
               >

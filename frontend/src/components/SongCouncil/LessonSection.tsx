@@ -1,5 +1,6 @@
 "use client";
 
+import RichText from "@/components/ui/RichText";
 import React, { useState } from "react";
 
 interface LessonSectionProps {
@@ -40,9 +41,9 @@ export function LessonSection({ title, icon, content, defaultOpen = false }: Les
       {open && (
         <div
           className="px-4 pb-4 text-sm leading-relaxed animate-in fade-in-50 duration-200"
-          style={{ color: "rgba(255,255,255,0.75)", whiteSpace: "pre-wrap" }}
+          style={{ color: "rgba(255,255,255,0.75)" }}
         >
-          {content}
+          <RichText text={content} />
         </div>
       )}
     </div>

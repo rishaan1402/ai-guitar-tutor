@@ -1,5 +1,6 @@
 "use client";
 
+import RichText from "@/components/ui/RichText";
 import React, { useState } from "react";
 import { LessonDocument, PracticeChord, TipResponse } from "@/lib/api";
 import PracticeChordCard from "./PracticeChordCard";
@@ -48,9 +49,9 @@ function Section({ title, icon, content, defaultOpen = false }: SectionProps) {
       {open && (
         <div
           className="px-4 pb-4 text-sm leading-relaxed fade-in-up"
-          style={{ color: "rgba(255,255,255,0.7)", whiteSpace: "pre-wrap" }}
+          style={{ color: "rgba(255,255,255,0.7)" }}
         >
-          {content}
+          <RichText text={content} />
         </div>
       )}
     </div>
@@ -121,10 +122,9 @@ export default function LessonDisplay({
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
             color: "rgba(255,255,255,0.8)",
-            whiteSpace: "pre-wrap",
-          }}
+                      }}
         >
-          {lesson.chairman_summary}
+          <RichText text={lesson.chairman_summary} />
         </div>
 
         {/* Song structure map */}

@@ -68,9 +68,9 @@ export const ROOM_OBJECTS: RoomObject[] = [
   {
     id: "metronome",
     thing: "Metronome",
-    label: "Chord changes",
-    blurb: "One-minute changes: switch between two chords against the clock.",
-    href: "/practice?mode=transitions",
+    label: "Grooves",
+    blurb: "Play along with a band: chord changes in time, built for you.",
+    href: "/groove",
     x: 1410, y: 400, w: 90, h: 200, tag: [1455, 382], hz: 329.63,
   },
   {

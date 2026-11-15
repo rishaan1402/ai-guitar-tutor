@@ -276,6 +276,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
             isHolding={isHolding}
             judged={judged}
             lead={isLead}
+            beatsPerBar={groove.beatsPerBar === 3 ? 3 : 4}
           />
         </div>
         {phase === "playing" && (

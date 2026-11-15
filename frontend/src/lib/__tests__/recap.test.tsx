@@ -145,12 +145,12 @@ describe("recap from the server (signed in)", () => {
     expect(v.streak).toBe(4);
   });
 
-  it("a transition next links to the trainer", () => {
+  it("a transition next links to a Groove on that change", () => {
     const v = buildRecap(session(), {
       ...SERVER,
       next: { type: "transition", chord_a_symbol: "Em", chord_b_symbol: "C", description: "" },
     });
-    expect(v.next?.href).toBe("/practice?mode=transitions");
+    expect(v.next?.href).toBe("/groove?ai=1&focus=Em,C");
   });
 });
 
