@@ -148,7 +148,7 @@ export default function Studio() {
   function hrefFor(id: RoomObjectId): string {
     switch (id) {
       case "guitar":
-        return next ? planHref(next) : "/start";
+        return "/path";
       case "amp":
         return "/practice";
       case "pedal":
@@ -286,15 +286,15 @@ export default function Studio() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="label-mono text-amber-400">{station.thing}</p>
-                <h2 className="mt-1 font-display text-2xl uppercase text-cream">{station.id === "guitar" ? (next ? "Today's lesson" : "Start here") : station.id === "metronome" ? "Grooves" : station.label}</h2>
+                <h2 className="mt-1 font-display text-2xl uppercase text-cream">{station.id === "guitar" ? "Lessons" : station.id === "metronome" ? "Grooves" : station.label}</h2>
               </div>
               <button onClick={() => select(null)} aria-label="Back to the room" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 text-cream/70">
                 ✕
               </button>
             </div>
             <p className="mt-2 text-[15px] leading-snug text-cream/70">
-              {station.id === "guitar" && next
-                ? `Up next: ${planTitle(next)}.`
+              {station.id === "guitar"
+                ? "Short lessons: learn a chord, play it for the app, practise it with a band, then play a song with it."
                 : station.id === "metronome"
                   ? "Jam along with a backing band on the highway. The music waits for your chord changes."
                   : station.blurb}
