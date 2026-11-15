@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth.account import delete_user_and_data
 from auth.dependencies import require_role
 from db.engine import get_db
-from db.models import ChordAttempt, TransitionDrill, User
+from db.models import ChordAttempt, ContentReport, TransitionDrill, User
 
 router = APIRouter(
     prefix="/api/admin",
@@ -110,3 +110,30 @@ async def system_stats(db: AsyncSession = Depends(get_db)):
         "total_chord_attempts": total_attempts.scalar(),
         "total_transition_drills": total_drills.scalar(),
     }
+
+
+@router.get("/reports")
+async def list_reports(
+    include_resolved: bool = False,
+    limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+):
+    """Reports on AI-written content, newest first."""
+    q = select(ContentReport).order_by(ContentReport.created_at.desc()).limit(limit)
+    if not include_resolved:
+        q = q.where(ContentReport.resolved.is_(False))
+    rows = (await db.execute(q)).scalars().all()
+    return [
+        {"id": str(r.id), "kind": r.kind, "reason": r.reason, "content": r.content, "context": r.context,
+         "note": r.note, "resolved": r.resolved, "created_at": r.created_at.isoformat() if r.created_at else None}
+        for r in rows
+    ]
+
+
+@router.post("/reports/{report_id}/resolve", status_code=204)
+async def resolve_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    r = await db.get(ContentReport, report_id)
+    if r is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    r.resolved = True
+    await db.commit()

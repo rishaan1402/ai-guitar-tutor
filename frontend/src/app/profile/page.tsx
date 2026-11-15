@@ -53,12 +53,15 @@ export default function ProfilePage() {
     }
   };
 
+  // Google/Facebook accounts have no password to confirm with
+  const noPassword = user?.has_password === false;
+
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
     setDeleting(true);
     setDeleteError(null);
     try {
-      await deleteAccount(deletePassword);
+      await deleteAccount(deletePassword, noPassword ? "confirm" : "password");
       // Drop local copies too, so nothing re-uploads into a future account
       for (const key of ["guitar-tutor-progress", "guitar-tutor-transitions", "guitar_tutor_migrated"]) {
         localStorage.removeItem(key);
@@ -202,11 +205,14 @@ export default function ProfilePage() {
           {confirmingDelete ? (
             <form onSubmit={handleDelete} className="space-y-3">
               <div>
-                <label htmlFor="delete-password" className="field-label">Enter your password to confirm</label>
+                <label htmlFor="delete-password" className="field-label">
+                  {noPassword ? "Type DELETE to confirm" : "Enter your password to confirm"}
+                </label>
                 <input
                   id="delete-password"
-                  type="password"
-                  autoComplete="current-password"
+                  type={noPassword ? "text" : "password"}
+                  autoComplete={noPassword ? "off" : "current-password"}
+                  pattern={noPassword ? "[Dd][Ee][Ll][Ee][Tt][Ee]" : undefined}
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   required

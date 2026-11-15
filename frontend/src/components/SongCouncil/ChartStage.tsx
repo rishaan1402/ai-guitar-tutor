@@ -1,5 +1,6 @@
 "use client";
 
+import ReportContent from "@/components/report/ReportContent";
 import { useState } from "react";
 import Link from "next/link";
 import SongSheetPlayer from "@/components/SongSheet/SongSheetPlayer";
@@ -171,6 +172,7 @@ export default function ChartStage({ lesson, onPracticeChord, onComplete }: Prop
       {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
 
       <SongSheetPlayer content={lesson.chart} />
+      <ReportContent kind="song_chart" content={lesson.chart} context={`${lesson.song_title ?? ""} — ${lesson.artist ?? ""}`} />
 
       {sections.length > 0 && (
         <section aria-labelledby="section-lessons-heading" className="space-y-4">

@@ -1,5 +1,6 @@
 "use client";
 
+import ReportContent from "@/components/report/ReportContent";
 import { useEffect, useRef, useState } from "react";
 import ScoreRing from "./ScoreRing";
 import Confetti from "./Confetti";
@@ -239,6 +240,9 @@ export default function FeedbackDisplay({
                 {speaking ? "⏹" : "🔊"}
               </button>
             </div>
+          )}
+          {feedback && (
+            <ReportContent kind="feedback" content={feedback} context={chordName ?? undefined} className="mt-1 block" />
           )}
           {delta && (
             <span
