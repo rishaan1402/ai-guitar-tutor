@@ -758,7 +758,7 @@ export function getSystemStats(): Promise<SystemStats> {
 // ---------------------------------------------------------------------------
 
 export interface PlanItem {
-  type: "warmup" | "focus" | "new" | "transition" | "review" | "assignment";
+  type: "warmup" | "focus" | "new" | "transition" | "review" | "assignment" | "groove";
   chord_key?: string;
   chord_symbol?: string;
   chord_a?: string;
@@ -969,4 +969,113 @@ export function saveSong(
 
 export function deleteSong(id: string): Promise<void> {
   return request(`/api/songs/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+/* ------------------------------------------------------------------ Grooves, path, coach, game */
+
+/** A Groove as the server makes it (same shape as lib/groove Groove, plus where it came from). */
+export interface GrooveSpecApi {
+  id: string;
+  title: string;
+  style: "pop" | "ballad" | "rock" | "folk";
+  bpm: number;
+  bars: string[][];
+  strum: string;
+  focus?: [string, string] | null;
+  tip?: string | null;
+  loops: number;
+  key?: string | null;
+  source: string;
+}
+
+export function generateGroove(opts: { focus?: [string, string]; style?: string; request?: string; daily?: boolean; faster?: boolean } = {}): Promise<GrooveSpecApi> {
+  return requestOptional("/api/grooves/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(opts),
+  });
+}
+
+export interface GrooveRunIn {
+  title: string;
+  source: string;
+  mode: "wait" | "play" | "follow";
+  bpm: number;
+  stars: number;
+  groove: Record<string, unknown>;
+  changes: { from: string; to: string; status: string; offset: number }[];
+}
+
+export function saveGrooveRun(run: GrooveRunIn): Promise<unknown> {
+  return request("/api/grooves/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(run) });
+}
+
+export function getPathProgress(): Promise<{ sessions: Record<string, number> }> {
+  return request("/api/path/progress");
+}
+
+export function savePathProgress(session_id: string, stars: number): Promise<unknown> {
+  return request("/api/path/progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id, stars }) });
+}
+
+export interface CoachAction {
+  type: "groove" | "practice" | "tuner" | "path" | "song";
+  label: string;
+  focus?: [string, string] | null;
+  chord?: string | null;
+  style?: string | null;
+}
+
+export function coachChat(messages: { role: "user" | "assistant"; content: string }[]): Promise<{ reply: string; actions: CoachAction[] }> {
+  return requestOptional("/api/coach/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages }) });
+}
+
+export interface GoalPlan {
+  title: string;
+  chords: string[];
+  target_date: string;
+  plan: {
+    new_chords: string[];
+    changes: [string, string][];
+    days: { date: string; tasks: { type: "learn" | "groove" | "song"; label: string; chord?: string; focus?: [string, string] }[] }[];
+  };
+}
+
+export function getGoal(): Promise<GoalPlan | null> {
+  return request("/api/coach/goal");
+}
+
+export function setGoal(title: string, chords: string[], days: number): Promise<GoalPlan> {
+  return request("/api/coach/goal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title, chords, days }) });
+}
+
+export function clearGoal(): Promise<unknown> {
+  return request("/api/coach/goal", { method: "DELETE" });
+}
+
+export interface WeeklyReport {
+  stats: {
+    week_start: string; active_days: number; takes: number; clean_takes: number; grooves: number; groove_stars: number;
+    on_time_rate: number | null; drills: number; path_sessions: number; new_mastered: string[]; trouble_chord: string | null;
+  };
+  summary: string;
+}
+
+export function getWeeklyReport(): Promise<WeeklyReport> {
+  return request("/api/coach/weekly");
+}
+
+export interface GameState {
+  xp: number;
+  level: number;
+  title: string;
+  level_xp: number;
+  next_level_xp: number | null;
+  daily: { date: string; tasks: { id: string; label: string; done: boolean }[]; done: number; total: number };
+  upgrades: { id: string; label: string; level: number; unlocked: boolean }[];
+}
+
+export function getGame(): Promise<GameState> {
+  const tz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "";
+  return request(`/api/game${tz ? `?tz=${encodeURIComponent(tz)}` : ""}`);
 }

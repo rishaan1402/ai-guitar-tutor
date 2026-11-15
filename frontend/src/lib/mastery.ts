@@ -88,5 +88,7 @@ export function planTitle(item: PlanItem): string {
       return `From your teacher: ${sym}`;
     case "transition":
       return `Changes: ${item.chord_a_symbol ?? ""} → ${item.chord_b_symbol ?? ""}`;
+    case "groove":
+      return "Today's Groove";
   }
 }

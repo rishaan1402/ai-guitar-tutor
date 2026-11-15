@@ -16,6 +16,7 @@ const ITEM_COLORS: Record<string, string> = {
   assignment: "border-cream/25 bg-cream/[0.04]",
   new:        "border-white/10 bg-white/[0.02]",
   transition: "border-emerald-300/20 bg-emerald-300/[0.03]",
+  groove: "border-amber-400/40 bg-amber-400/[0.06]",
 };
 
 const ITEM_EYEBROW: Record<string, string> = {
@@ -25,6 +26,7 @@ const ITEM_EYEBROW: Record<string, string> = {
   assignment: "Assigned",
   new: "New chord",
   transition: "Changes",
+  groove: "Play along",
 };
 
 export function TodaysPlan() {
@@ -75,6 +77,7 @@ interface PlanItemCardProps {
 
 /** Deep link for a plan item: chords open that chord's lesson, changes open the trainer. */
 export function planHref(item: PlanItem): string {
+  if (item.type === "groove") return "/groove?daily=1";
   if (item.type === "transition") {
     if (!item.chord_a || !item.chord_b) return "/practice?mode=transitions";
     const q = new URLSearchParams({ mode: "transitions", a: item.chord_a, b: item.chord_b });
@@ -87,7 +90,7 @@ export function planHref(item: PlanItem): string {
 
 function PlanItemCard({ item, index }: PlanItemCardProps) {
   const colors = ITEM_COLORS[item.type] || "border-white/10 bg-white/[0.02]";
-  const actionLabel = item.type === "transition" ? "Drill" : item.type === "review" ? "Re-check" : "Practice";
+  const actionLabel = item.type === "transition" ? "Drill" : item.type === "review" ? "Re-check" : item.type === "groove" ? "Play" : "Practice";
   const detail =
     item.type === "transition"
       ? item.reason || item.description

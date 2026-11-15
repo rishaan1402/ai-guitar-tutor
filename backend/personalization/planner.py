@@ -72,6 +72,7 @@ ITEM_TYPES = {
     "transition": "One-minute changes (the pair furthest from its next target)",
     "assignment": "Assigned by your teacher",
     "review":     "Re-check: keep it solid",
+    "groove":     "Today's Groove (play along with a band)",
 }
 
 
@@ -202,7 +203,16 @@ async def build_daily_plan(db: AsyncSession, user: User, tz: str | None = None) 
                           else f"New pair: aim for {p.target} clean changes in a minute",
             })
 
-    return plan[:max_items]
+    plan = plan[:max_items]
+    # ── Today's Groove: a play-along loop built from your weakest change (always one) ──
+    plan.append({
+        "type": "groove",
+        "chord_key": None,
+        "chord_symbol": None,
+        "description": ITEM_TYPES["groove"],
+        "reason": "A short loop with a backing band, built around the change you most need",
+    })
+    return plan
 
 
 def _zone_of(tz: str | None) -> ZoneInfo:

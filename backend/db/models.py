@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
 from sqlalchemy import (
     text,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -98,6 +99,77 @@ class User(Base):
     def has_password(self) -> bool:
         """False for accounts made with Google/Facebook that never set a password."""
         return bool(self.password_hash) and not self.password_hash.startswith("!")
+
+
+class GrooveRun(Base):
+    """One play-through of a Groove (a chord loop on the highway) and how each change went."""
+
+    __tablename__ = "groove_runs"
+    __table_args__ = (Index("idx_groove_runs_user_time", "user_id", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(80), nullable=False)
+    # where it came from: "preset", "ai", "daily", "path", "song", "fix", "lead"
+    source: Mapped[str] = mapped_column(String(20), nullable=False, default="preset")
+    mode: Mapped[str] = mapped_column(String(10), nullable=False)
+    bpm: Mapped[int] = mapped_column(Integer, nullable=False)
+    stars: Mapped[int] = mapped_column(Integer, nullable=False)
+    groove: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    # [{"from": "G", "to": "C", "status": "on_time", "offset": 0.12}, ...]
+    changes: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class PathProgress(Base):
+    """Best result for one session of the learning path."""
+
+    __tablename__ = "path_progress"
+    __table_args__ = (UniqueConstraint("user_id", "session_id", name="uq_path_user_session"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    session_id: Mapped[str] = mapped_column(String(40), nullable=False)
+    stars: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class UserGoal(Base):
+    """A goal the learner set with the coach ("play Wonderwall in 3 weeks")."""
+
+    __tablename__ = "user_goals"
+    __table_args__ = (Index("idx_user_goals_user", "user_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    chords: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    target_date: Mapped[date] = mapped_column(Date, nullable=False)
+    plan: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class CoachReport(Base):
+    """The coach's weekly report, generated once per user per week."""
+
+    __tablename__ = "coach_reports"
+    __table_args__ = (UniqueConstraint("user_id", "week_start", name="uq_report_user_week"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    week_start: Mapped[date] = mapped_column(Date, nullable=False)
+    stats: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
 class ContentReport(Base):

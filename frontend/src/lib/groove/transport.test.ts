@@ -94,6 +94,20 @@ describe("transport", () => {
     t.stop();
   });
 
+  it("follow mode jumps ahead when you change early", () => {
+    const { band, ctx, played } = fakeBand();
+    const results: ChangeResult[] = [];
+    const t = new Transport(band, { ...G, bars: [["G"], ["G"], ["C"]] }, { mode: "follow", bpm: 120, full: false, onResult: (r) => results.push(r) });
+    t.start();
+    run(ctx, 3); // a bar into G (two bars of G before C)
+    t.heard("C", ctx.currentTime);
+    run(ctx, 3.6);
+    // C plays a whole bar sooner than written
+    expect(played.some((p) => p.chord === "C" && p.t < 4.5)).toBe(true);
+    expect(results[0]).toMatchObject({ status: "on_time" });
+    t.stop();
+  });
+
   it("stars and per-change summary", () => {
     const ch = (i: number, from: string, to: string) => ({ i, beat: 0, from, to, focus: from === "G" });
     const rs: ChangeResult[] = [

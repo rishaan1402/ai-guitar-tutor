@@ -5,13 +5,14 @@
  * Modes
  * - wait:   at each change the music holds (drums only) until you play the new chord.
  * - play:   the music keeps time; each change is scored on time / late / missed.
+ * - follow: the music follows you: it waits when you're slow and jumps ahead when you change early.
  * - listen: hear it played (full band + guide guitar); no judging.
  */
 import { Band } from "./band";
 import { matchesExpected } from "./detect";
 import { strumSlots, timeline, type Change, type Groove, type Segment } from "./groove";
 
-export type Mode = "wait" | "play" | "listen";
+export type Mode = "wait" | "play" | "follow" | "listen";
 export type ChangeStatus = "on_time" | "late" | "slow" | "missed";
 
 export interface ChangeResult {
@@ -136,7 +137,7 @@ export class Transport {
     const c = this.changeAtEighth(e);
     if (c && !this.reachedAt.has(c.i)) this.reachedAt.set(c.i, time);
     if (c) this.creditEarly(c);
-    if (this.opts.mode === "wait" && c && !this.resolved.has(c.i)) {
+    if ((this.opts.mode === "wait" || this.opts.mode === "follow") && c && !this.resolved.has(c.i)) {
       // hold here (drums only, so nothing but you sounds like a chord) until you change
       this.band.playEighth(time, this.holdSlot++, null, dur, { hold: true });
       this.steps.push({ time, eighth: e, hold: true });
@@ -205,6 +206,20 @@ export class Transport {
     if (this.opts.mode === "listen" || this.ended) return;
     const played = time - DETECT_LATENCY;
     this.lastHeard = { symbol, played };
+    if (this.opts.mode === "follow") {
+      const c = this.expected();
+      if (!c || !matchesExpected(symbol, c.to)) return;
+      const reached = this.reachedAt.get(c.i);
+      if (reached === undefined) {
+        // you changed early: jump the music to the change point to meet you
+        if (this.next.eighth < c.beat * 2) this.next = { time: this.next.time, eighth: c.beat * 2 };
+        this.resolve(c, "on_time", 0);
+        return;
+      }
+      const waited = played - (reached + this.outLatency);
+      this.resolve(c, waited <= ON_TIME ? "on_time" : waited <= WAIT_SLOW ? "late" : "slow", waited);
+      return;
+    }
     if (this.opts.mode === "wait") {
       const c = this.expected();
       if (!c || !matchesExpected(symbol, c.to)) return;

@@ -129,8 +129,9 @@ def _reset_rate_limits():
                                 _user_generate_limiter, _user_llm_limiter)
     from main import _anon_submit_limiter, _user_submit_limiter
     from meta.router import report_limiter
+    from practice.router import ai_limiter
     for limiter in (login_limiter, reset_limiter, signup_limiter,
                     _anon_generate_limiter, _user_generate_limiter, _anon_llm_limiter,
-                    _user_llm_limiter, _anon_submit_limiter, _user_submit_limiter, report_limiter):
+                    _user_llm_limiter, _anon_submit_limiter, _user_submit_limiter, report_limiter, ai_limiter):
         limiter.clear()
     yield

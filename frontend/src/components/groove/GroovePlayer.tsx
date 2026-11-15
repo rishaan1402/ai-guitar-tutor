@@ -12,25 +12,41 @@ import { loadFingering } from "@/components/SongSheet/ChordPanel";
 import { toAppChordKey } from "@/lib/chordpro";
 import { prettySymbol } from "@/lib/chordShape";
 import { openMic, micErrorMessage, MIC_CONSTRAINTS } from "@/lib/mic";
-import type { ChordFingering } from "@/lib/api";
+import { generateGroove, saveGrooveRun, type ChordFingering } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { grooveHref, type GrooveWithSource } from "@/lib/groove/link";
 import { Band } from "@/lib/groove/band";
 import { ChordTracker } from "@/lib/groove/detect";
-import { chordsIn, timeline, type Groove } from "@/lib/groove/groove";
+import { chordsIn, timeline } from "@/lib/groove/groove";
 import { Transport, starsFor, summarise, type ChangeResult, type Mode } from "@/lib/groove/transport";
 
 type Phase = "ready" | "playing" | "done";
 
-const MODE_COPY: Record<Exclude<Mode, "listen">, { label: string; hint: string }> = {
-  wait: { label: "Wait for me", hint: "The music waits at each change until it hears your new chord." },
-  play: { label: "Keep time", hint: "The band keeps going. Each change is scored on time, late or missed." },
+type PlayMode = Exclude<Mode, "listen">;
+const MODE_COPY: Record<PlayMode, { label: string; hint: string }> = {
+  wait: { label: "Wait for me", hint: "Waits at each change until it hears your new chord." },
+  follow: { label: "Follow me", hint: "Waits when you're slow, jumps ahead when you change early." },
+  play: { label: "Keep time", hint: "The band keeps going; each change is scored." },
 };
+
+interface Props {
+  groove: GrooveWithSource;
+  /** Inside a lesson: called with the run's stars; shows "Continue" instead of the next-Groove actions. */
+  onFinished?: (stars: number, results: ChangeResult[]) => void;
+  finishLabel?: string;
+  defaultMode?: PlayMode;
+  /** Back button target when not playing (defaults to history back). */
+  onBack?: () => void;
+}
 
 const FFT = 4096;
 
-export default function GroovePlayer({ groove }: { groove: Groove }) {
+export default function GroovePlayer({ groove, onFinished, finishLabel = "Continue", defaultMode = "wait", onBack }: Props) {
   const router = useRouter();
+  const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("ready");
-  const [mode, setMode] = useState<Exclude<Mode, "listen">>("wait");
+  const [mode, setMode] = useState<PlayMode>(defaultMode);
+  const [busy, setBusy] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [headphones, setHeadphones] = useState(false);
@@ -101,8 +117,21 @@ export default function GroovePlayer({ groove }: { groove: Groove }) {
         setListening(false);
         if (listen) setPhase("ready");
         else {
-          setResults(finished.slice().sort((a, b) => a.change.i - b.change.i));
+          const sorted = finished.slice().sort((a, b) => a.change.i - b.change.i);
+          setResults(sorted);
           setPhase("done");
+          const runStars = starsFor(sorted);
+          if (user) {
+            saveGrooveRun({
+              title: groove.title,
+              source: groove.source ?? "preset",
+              mode: t.mode === "listen" ? "wait" : t.mode,
+              bpm,
+              stars: runStars,
+              groove: { bars: groove.bars, focus: groove.focus ?? null, style: groove.style, strum: groove.strum },
+              changes: sorted.map((r) => ({ from: r.change.from, to: r.change.to, status: r.status, offset: Math.round(r.offset * 100) / 100 })),
+            }).catch(() => {});
+          }
           import("@capacitor/haptics").then(({ Haptics, NotificationType }) => Haptics.notification({ type: NotificationType.Success })).catch(() => {});
         }
       },
@@ -162,16 +191,41 @@ export default function GroovePlayer({ groove }: { groove: Groove }) {
     return () => clearInterval(id);
   }, [phase]);
 
+  async function nextGroove(focus: [string, string] | undefined, faster: boolean, kind: "next" | "fix") {
+    setBusy(kind);
+    try {
+      const g = await generateGroove({ focus, faster, style: kind === "next" ? groove.style : undefined });
+      router.push(grooveHref({ ...g, focus: g.focus ?? undefined, tip: g.tip ?? undefined, source: kind === "fix" ? "fix" : g.source, style: g.style }));
+    } catch {
+      setError("Couldn't build a new Groove. Check your connection.");
+      setPhase("ready");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function askCoach() {
+    const w = worst;
+    const q = w
+      ? `I just played "${groove.title}". My ${w.from} to ${w.to} change was ${w.onTime}/${w.total} on time${w.avgLate > 0.05 ? `, about ${w.avgLate.toFixed(1)}s late` : ""}. How do I make it faster?`
+      : `I just played "${groove.title}" and got ${stars} star${stars === 1 ? "" : "s"}. What should I work on next?`;
+    router.push(`/coach?q=${encodeURIComponent(q)}`);
+  }
+
   const getPosition = useCallback(() => transportRef.current?.position() ?? -4, []);
   const isHolding = useCallback(() => transportRef.current?.isHolding() ?? false, []);
   const stars = starsFor(results);
   const pairs = summarise(results);
+  // the change that went worst (for "Fix it" and the coach)
+  const worst = pairs.length
+    ? pairs.slice().sort((a, b) => a.onTime / a.total - b.onTime / b.total || b.avgLate - a.avgLate)[0]
+    : null;
 
   return (
     <div className="fixed inset-0 flex flex-col bg-ink-950 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
       {/* top bar */}
       <div className="flex items-center gap-3 pb-3">
-        <button onClick={() => (phase === "playing" ? stopNow() : router.back())} aria-label={phase === "playing" ? "Stop" : "Back"} className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/15 text-cream/80">
+        <button onClick={() => (phase === "playing" ? stopNow() : onBack ? onBack() : router.back())} aria-label={phase === "playing" ? "Stop" : "Back"} className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/15 text-cream/80">
           {phase === "playing" ? "■" : "←"}
         </button>
         <div className="min-w-0 flex-1">
@@ -222,7 +276,7 @@ export default function GroovePlayer({ groove }: { groove: Groove }) {
           <div className="absolute inset-x-0 bottom-0 rounded-[26px] border border-cream/10 bg-ink-950/95 p-5 shadow-2xl backdrop-blur">
             <p className="label-mono text-amber-400">{groove.focus ? `Focus: ${prettySymbol(groove.focus[0])} → ${prettySymbol(groove.focus[1])}` : "Groove"}</p>
             <p className="mt-1 text-[15px] text-cream/75">{groove.tip ?? "Play along with the band."}</p>
-            <div className="mt-4 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Mode">
+            <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Mode">
               {(Object.keys(MODE_COPY) as (keyof typeof MODE_COPY)[]).map((m) => (
                 <button
                   key={m}
@@ -276,11 +330,34 @@ export default function GroovePlayer({ groove }: { groove: Groove }) {
                 </li>
               ))}
             </ul>
-            <div className="mt-4 flex gap-2">
-              <button onClick={() => start(false)} className="h-12 flex-1 rounded-full bg-amber-400 font-semibold text-ink-950">Go again</button>
-              <button onClick={() => { setSpeed((s) => Math.min(1.2, +(s + 0.05).toFixed(2))); setPhase("ready"); }} className="h-12 rounded-full border border-cream/20 px-4 text-cream">Faster</button>
-              <button onClick={() => setPhase("ready")} className="h-12 rounded-full border border-cream/20 px-4 text-cream">Settings</button>
-            </div>
+            {onFinished ? (
+              <div className="mt-4 flex gap-2">
+                <button onClick={() => start(false)} className="h-12 rounded-full border border-cream/20 px-5 text-cream">Go again</button>
+                <button onClick={() => onFinished(stars, results)} className="h-12 flex-1 rounded-full bg-amber-400 font-semibold text-ink-950">{finishLabel} →</button>
+              </div>
+            ) : (
+              <>
+                <div className="mt-4 flex gap-2">
+                  <button onClick={() => start(false)} className="h-12 flex-1 rounded-full bg-amber-400 font-semibold text-ink-950">Go again</button>
+                  <button
+                    disabled={!!busy}
+                    onClick={() => nextGroove(groove.focus ?? undefined, stars === 3, "next")}
+                    className="h-12 flex-1 rounded-full border border-amber-400/50 px-3 text-amber-100 disabled:opacity-50"
+                  >
+                    {busy === "next" ? "Building…" : stars === 3 ? "Next, a bit faster" : "New Groove"}
+                  </button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                  {worst && (
+                    <button disabled={!!busy} onClick={() => nextGroove([worst.from, worst.to], false, "fix")} className="h-10 rounded-full border border-cream/15 px-4 text-cream/85 disabled:opacity-50">
+                      {busy === "fix" ? "Building…" : `Fix it: ${prettySymbol(worst.from)} → ${prettySymbol(worst.to)}`}
+                    </button>
+                  )}
+                  <button onClick={() => askCoach()} className="h-10 rounded-full border border-cream/15 px-4 text-cream/85">Ask the coach</button>
+                  <button onClick={() => setPhase("ready")} className="h-10 rounded-full border border-cream/15 px-4 text-cream/60">Settings</button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
