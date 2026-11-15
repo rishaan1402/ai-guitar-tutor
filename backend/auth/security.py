@@ -43,7 +43,13 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
+# Stored as password_hash for accounts created with Google/Facebook: matches no password.
+NO_PASSWORD = "!social"
+
+
 def verify_password(plain: str, hashed: str) -> bool:
+    if not hashed or hashed.startswith("!"):
+        return False
     return pwd_context.verify(plain, hashed)
 
 

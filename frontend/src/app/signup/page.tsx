@@ -6,6 +6,7 @@ import { safeNext } from "@/lib/auth";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import Logo from "@/components/brand/Logo";
+import SocialSignIn from "@/components/auth/SocialSignIn";
 
 export default function SignupPage() {
   return (
@@ -62,6 +63,9 @@ function Form({ next }: { next: string }) {
             Save your progress and get AI feedback tailored to your skill level
           </p>
 
+          <div className="mb-6">
+            <SocialSignIn mode="signup" onDone={() => router.push(next)} />
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="signup-display-name" className="field-label">Display name</label>
@@ -113,6 +117,11 @@ type="password"
               {loading ? "Creating account…" : "Create Account"}
             </button>
           </form>
+          <p className="mt-4 text-center text-xs text-cream/45">
+            By continuing you agree to the{" "}
+            <Link href="/terms" className="underline underline-offset-2 hover:text-cream">Terms</Link> and{" "}
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-cream">Privacy policy</Link>.
+          </p>
         </div>
 
         <p className="text-center text-gray-500 text-sm mt-6">

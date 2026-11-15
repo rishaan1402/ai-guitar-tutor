@@ -22,6 +22,7 @@ from auth.schemas import (
     PasswordResetRequest,
     RefreshRequest,
     SignupRequest,
+    SocialLoginRequest,
     TokenResponse,
     UpdateProfileRequest,
     UserResponse,
@@ -31,11 +32,13 @@ from auth.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    NO_PASSWORD,
     hash_password,
     verify_password,
 )
+from auth.social import SocialAuthError, SocialIdentity, enabled_providers, verify_facebook, verify_google
 from db.engine import get_db
-from db.models import PasswordResetToken, RefreshToken, User
+from db.models import PasswordResetToken, RefreshToken, User, UserIdentity
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -136,13 +139,81 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
     # email is registered.
     password_ok = await run_in_threadpool(
         verify_password,
-        body.password, user.password_hash if user is not None else _DUMMY_HASH
+        body.password, user.password_hash if user is not None and user.has_password else _DUMMY_HASH
     )
-    if user is None or not password_ok:
+    if user is None or not user.has_password or not password_ok:
         login_limiter.hit(limit_key)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     login_limiter.reset(limit_key)
 
+    access = create_access_token(str(user.id), user.role, user.token_version or 0)
+    refresh = create_refresh_token(str(user.id))
+    await _store_refresh_token(db, user.id, refresh)
+    return TokenResponse(access_token=access, refresh_token=refresh)
+
+
+# ---------------------------------------------------------------------------
+# Google / Facebook
+# ---------------------------------------------------------------------------
+
+
+@router.get("/providers")
+async def social_providers():
+    """Which social sign-in buttons to show, with their public client IDs."""
+    return enabled_providers()
+
+
+_VERIFIERS = {"google": verify_google, "facebook": verify_facebook}
+
+
+async def _user_for_identity(db: AsyncSession, ident: SocialIdentity) -> User:
+    """The user this provider account belongs to: linked before, same verified email, or new."""
+    linked = (await db.execute(
+        select(UserIdentity).where(UserIdentity.provider == ident.provider, UserIdentity.subject == ident.subject)
+    )).scalar_one_or_none()
+    if linked is not None:
+        user = await db.get(User, linked.user_id)
+        if user is not None:
+            return user
+    if not ident.email or not ident.email_verified:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Your {ident.provider.capitalize()} account didn't share a verified email. "
+                   "Sign up with email instead, or allow email access and try again.",
+        )
+    user = await _find_user_by_email(db, ident.email)
+    if user is None:
+        name = (ident.name or ident.email.split("@")[0]).strip()[:100] or "Player"
+        user = User(
+            email=ident.email.strip().lower(),
+            password_hash=NO_PASSWORD,
+            display_name=name,
+            role="student",
+            skill_level="beginner",
+        )
+        db.add(user)
+        await db.flush()
+    # same verified email: link this provider to the existing account
+    db.add(UserIdentity(user_id=user.id, provider=ident.provider, subject=ident.subject, email=ident.email))
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.post("/oauth/{provider}", response_model=TokenResponse)
+async def social_login(provider: str, body: SocialLoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    """Sign in (or sign up) with a Google ID token or a Facebook access token."""
+    verify = _VERIFIERS.get(provider)
+    if verify is None:
+        raise HTTPException(status_code=404, detail="Unknown sign-in provider")
+    limit_key = f"{client_ip(request)}:oauth"
+    login_limiter.check(limit_key)
+    try:
+        ident = await verify(body.token)
+    except SocialAuthError as e:
+        login_limiter.hit(limit_key)
+        raise HTTPException(status_code=401, detail=str(e))
+    user = await _user_for_identity(db, ident)
     access = create_access_token(str(user.id), user.role, user.token_version or 0)
     refresh = create_refresh_token(str(user.id))
     await _store_refresh_token(db, user.id, refresh)
@@ -253,8 +324,11 @@ async def delete_me(
     db: AsyncSession = Depends(get_db),
 ):
     """Permanently delete the signed-in account and all of its practice data."""
-    if not await run_in_threadpool(verify_password, body.password, user.password_hash):
-        raise HTTPException(status_code=403, detail="Password is incorrect")
+    if user.has_password:
+        if not body.password or not await run_in_threadpool(verify_password, body.password, user.password_hash):
+            raise HTTPException(status_code=403, detail="Password is incorrect")
+    elif (body.confirm or "").strip().upper() != "DELETE":
+        raise HTTPException(status_code=403, detail='Type DELETE to confirm')
     await delete_user_and_data(db, user)
 
 

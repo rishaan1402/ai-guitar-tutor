@@ -236,6 +236,63 @@ export interface UserResponse {
   role: string;
   skill_level: string;
   created_at: string;
+  /** False for Google/Facebook accounts that never set a password. */
+  has_password?: boolean;
+}
+
+export type SocialProvider = "google" | "facebook";
+
+/** Which sign-in buttons the server has enabled, with their public IDs. */
+export interface SocialProviders {
+  google?: { client_id: string };
+  facebook?: { app_id: string };
+}
+
+export type ReportKind = "feedback" | "song_chart" | "song_lesson" | "tip" | "other";
+export type ReportReason = "wrong" | "offensive" | "unsafe" | "copyright" | "other";
+
+/** Flag AI-written text. Works signed in or not. */
+export function reportContent(r: {
+  kind: ReportKind;
+  reason: ReportReason;
+  content: string;
+  context?: string;
+  note?: string;
+}): Promise<{ status: string }> {
+  return requestOptional("/api/reports", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...r, content: r.content.slice(0, 8000), context: r.context?.slice(0, 200) }),
+  });
+}
+
+export async function getSocialProviders(): Promise<SocialProviders> {
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/providers`);
+    return res.ok ? await res.json() : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Sign in (or up) with a Google ID token / Facebook access token from the provider's SDK. */
+export async function socialLogin(
+  provider: SocialProvider,
+  token: string,
+): Promise<{ tokens: TokenResponse; user: UserResponse }> {
+  const res = await fetch(`${API_BASE}/api/auth/oauth/${provider}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(errorMessage(body, `Sign-in failed: ${res.status}`));
+  }
+  const tokens: TokenResponse = await res.json();
+  setTokens(tokens.access_token, tokens.refresh_token);
+  const user = await getMe();
+  return { tokens, user };
 }
 
 export interface TokenResponse {
@@ -315,11 +372,12 @@ export async function logout(): Promise<void> {
   clearTokens();
 }
 
-export async function deleteAccount(password: string): Promise<void> {
+/** Password for email accounts; Google/Facebook-only accounts confirm by typing DELETE. */
+export async function deleteAccount(secret: string, kind: "password" | "confirm" = "password"): Promise<void> {
   await request("/api/auth/me", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify(kind === "password" ? { password: secret } : { confirm: secret }),
   });
   clearTokens();
 }

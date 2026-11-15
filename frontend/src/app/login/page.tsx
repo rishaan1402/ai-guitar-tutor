@@ -6,6 +6,7 @@ import { safeNext } from "@/lib/auth";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import Logo from "@/components/brand/Logo";
+import SocialSignIn from "@/components/auth/SocialSignIn";
 
 export default function LoginPage() {
   return (
@@ -56,6 +57,9 @@ function Form({ next }: { next: string }) {
             Log in to sync your progress and get personalized feedback
           </p>
 
+          <div className="mb-6">
+            <SocialSignIn mode="login" onDone={() => router.push(next)} />
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="login-email" className="field-label">Email</label>

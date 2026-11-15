@@ -14,6 +14,8 @@ export function Footer() {
             <Link href="/songs" className="hover:text-cream">Songs</Link>
             <Link href="/login" className="hover:text-cream">Log in</Link>
             <Link href="/signup" className="hover:text-cream">Sign up</Link>
+            <Link href="/privacy" className="hover:text-cream">Privacy</Link>
+            <Link href="/terms" className="hover:text-cream">Terms</Link>
           </div>
         </div>
         <p className="label-mono mt-8 text-cream/30">E · A · D · G · B · e — start anywhere.</p>

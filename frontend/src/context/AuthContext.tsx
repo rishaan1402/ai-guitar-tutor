@@ -12,6 +12,8 @@ import {
   login as apiLogin,
   logout as apiLogout,
   signup as apiSignup,
+  socialLogin as apiSocialLogin,
+  type SocialProvider,
   type UserResponse,
 } from "@/lib/api";
 import { getAccessToken, clearTokens } from "@/lib/auth";
@@ -22,6 +24,8 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, displayName: string) => Promise<void>;
+  /** Google / Facebook: `token` is what the provider's SDK returned. */
+  socialSignIn: (provider: SocialProvider, token: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   isTeacher: boolean;
@@ -33,6 +37,7 @@ const AuthContext = createContext<AuthContextValue>({
   loading: true,
   login: async () => {},
   signup: async () => {},
+  socialSignIn: async () => {},
   logout: async () => {},
   refresh: async () => {},
   isTeacher: false,
@@ -83,6 +88,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const socialSignIn = useCallback(async (provider: SocialProvider, token: string) => {
+    const { user: me } = await apiSocialLogin(provider, token);
+    setUser(me);
+    await runMigration();
+  }, []);
+
   const logout = useCallback(async () => {
     await apiLogout();
     setUser(null);
@@ -93,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, signup, logout, refresh, isTeacher, isAdmin }}
+      value={{ user, loading, login, signup, socialSignIn, logout, refresh, isTeacher, isAdmin }}
     >
       {children}
     </AuthContext.Provider>

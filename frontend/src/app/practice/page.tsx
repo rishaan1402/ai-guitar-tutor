@@ -78,21 +78,18 @@ function setFlag(key: string): void {
   }
 }
 
+/** Lesson steps: the video carries the chord's sound, so watching and listening are one step. */
+const WATCH = 0;
+const PLAY = 1;
+const REVIEW = 2;
+
 const STEPS = [
   {
-    label: "Watch",
+    label: "Watch & listen",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Listen",
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
       </svg>
     ),
   },
@@ -391,14 +388,14 @@ function PracticeInner() {
     setError("");
     setSessionState("WAITING_FOR_PLAY");
     clearAttemptState();
-    setCompletedSteps(new Set([0, 1]));
-    setCurrentStep(2);
+    setCompletedSteps(new Set([WATCH]));
+    setCurrentStep(PLAY);
   }
 
   function handleRetry() {
     setError("");
     setLiveNotes([]);
-    setCurrentStep(2);
+    setCurrentStep(PLAY);
   }
 
   function handleNextChord() {
@@ -494,8 +491,8 @@ function PracticeInner() {
 
       // Reset live notes and auto-advance to review step
       setLiveNotes([]);
-      setCompletedSteps(new Set([0, 1, 2]));
-      setCurrentStep(3);
+      setCompletedSteps(new Set([WATCH, PLAY]));
+      setCurrentStep(REVIEW);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit audio");
     } finally {
@@ -620,7 +617,7 @@ function PracticeInner() {
           )}
 
           {/* Error (outside the Play step; there it sits next to Record) */}
-          {error && !(isSessionActive && currentStep === 2) && (
+          {error && !(isSessionActive && currentStep === PLAY) && (
             <div className="glass rounded-xl p-4 border border-red-500/30 text-red-300 mt-4" role="alert">
               {error}
             </div>
@@ -681,42 +678,25 @@ function PracticeInner() {
                 completedSteps={completedSteps}
               />
 
-              {/* Metronome Widget — on Listen it sits above; on Play it moves below Record */}
-              {currentStep === 1 && (
-                <div className="flex justify-end">
-                  <MetronomeWidget />
-                </div>
-              )}
-
               {/* Step content */}
               <div ref={stepContentRef} key={currentStep} className={lessonReady ? "animate-enter-fast" : undefined}>
 
-                {/* Step 0: Watch */}
-                {currentStep === 0 && (
-                  <LessonVideoPlayer
-                    pending={!lessonReady}
-                    videoPath={videoPath}
-                    audioUrl={null}
-                    chordName={chordName}
-                    onVideoEnd={() => markStepDone(0)}
-                  />
-                )}
-
-                {/* Step 1: Listen */}
-                {currentStep === 1 && (
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                {/* Step 1: Watch & listen — the video plays the chord; the diagram and the
+                    reference recording sit beside it to replay as often as needed */}
+                {currentStep === WATCH && (
+                  <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-4 items-start">
                     <LessonVideoPlayer
-                      videoPath={null}
+                      pending={!lessonReady}
+                      videoPath={videoPath}
                       audioUrl={audioUrl}
                       chordName={chordName}
-                      onAudioEnd={() => markStepDone(1)}
                     />
-                    <ChordDiagram fingering={fingering} />
+                    {fingering && <ChordDiagram fingering={fingering} className="mx-auto" />}
                   </div>
                 )}
 
                 {/* Step 2: Play — diagram, live listening stage and Record share the viewport */}
-                {currentStep === 2 && (
+                {currentStep === PLAY && (
                   <div className="space-y-3 sm:space-y-4">
                     <div
                       className={`grid grid-cols-1 gap-3 md:gap-4 items-center ${
@@ -791,7 +771,7 @@ function PracticeInner() {
                 )}
 
                 {/* Step 3: Review */}
-                {currentStep === 3 && !evaluation && !feedback && (
+                {currentStep === REVIEW && !evaluation && !feedback && (
                   <div className="glass-card text-center space-y-3">
                     <p className="text-gray-300">No take yet — record one to get feedback.</p>
                     <button onClick={handleRetry} className="btn-gradient px-5 py-2.5 rounded-xl text-sm font-semibold">
@@ -799,7 +779,7 @@ function PracticeInner() {
                     </button>
                   </div>
                 )}
-                {currentStep === 3 && (
+                {currentStep === REVIEW && (
                   <FeedbackDisplay
                     feedback={feedback}
                     evaluation={evaluation}
@@ -821,7 +801,7 @@ function PracticeInner() {
                     busy={loading}
                   />
                 )}
-                {currentStep === 3 && offerFinish && (evaluation || feedback) && (
+                {currentStep === REVIEW && offerFinish && (evaluation || feedback) && (
                   <div className="flex justify-center pt-4">
                     <button
                       type="button"
@@ -840,13 +820,13 @@ function PracticeInner() {
               <div className="flex justify-between items-center pt-2">
                 <button
                   onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
-                  disabled={currentStep === 0}
+                  disabled={currentStep === WATCH}
                   className="glass px-4 py-2 rounded-xl text-sm font-medium text-gray-300 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   ← Back
                 </button>
 
-                {currentStep < 2 && (
+                {currentStep === WATCH && (
                   <button
                     onClick={() => markStepDone(currentStep)}
                     disabled={loading}
@@ -855,9 +835,9 @@ function PracticeInner() {
                     Next →
                   </button>
                 )}
-                {currentStep === 2 && (
+                {currentStep === PLAY && (
                   <button
-                    onClick={() => markStepDone(2)}
+                    onClick={() => markStepDone(PLAY)}
                     disabled={loading}
                     className="text-sm text-gray-400 hover:text-gray-200 underline-offset-4 hover:underline disabled:opacity-40 transition-colors"
                   >
@@ -879,7 +859,7 @@ function PracticeInner() {
           <TransitionTrainer initialPair={pairFromParams((k) => params.get(k))} />
         </div>
         {/* Below everything, so it never shifts the lesson when it appears after mount */}
-        {showSetupHint && !showRecap && (!isSessionActive || currentStep === 3) && (
+        {showSetupHint && !showRecap && (!isSessionActive || currentStep === REVIEW) && (
           <p className="text-sm text-gray-300 text-center" data-testid="setup-hint">
             New here?{" "}
             <Link href="/start" className="text-amber-200 underline underline-offset-4">

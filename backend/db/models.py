@@ -90,6 +90,61 @@ class User(Base):
     password_reset_tokens: Mapped[list[PasswordResetToken]] = relationship(
         "PasswordResetToken", back_populates="user", cascade="all, delete-orphan"
     )
+    identities: Mapped[list[UserIdentity]] = relationship(
+        "UserIdentity", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    @property
+    def has_password(self) -> bool:
+        """False for accounts made with Google/Facebook that never set a password."""
+        return bool(self.password_hash) and not self.password_hash.startswith("!")
+
+
+class ContentReport(Base):
+    """A learner flagging AI-written text (feedback, a song chart or lesson) as wrong or inappropriate."""
+
+    __tablename__ = "content_reports"
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('feedback','song_chart','song_lesson','tip','other')", name="ck_report_kind"
+        ),
+        Index("idx_reports_created", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    # kept when the reporter deletes their account: the report is about our content, not them
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    kind: Mapped[str] = mapped_column(String(20), nullable=False)
+    reason: Mapped[str] = mapped_column(String(40), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    context: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    resolved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class UserIdentity(Base):
+    """A Google / Facebook account linked to a user (sign in with either)."""
+
+    __tablename__ = "user_identities"
+    __table_args__ = (
+        UniqueConstraint("provider", "subject", name="uq_identity_provider_subject"),
+        CheckConstraint("provider IN ('google','facebook')", name="ck_identity_provider"),
+        Index("idx_identities_user", "user_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(20), nullable=False)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    user: Mapped[User] = relationship("User", back_populates="identities")
 
 
 # ---------------------------------------------------------------------------

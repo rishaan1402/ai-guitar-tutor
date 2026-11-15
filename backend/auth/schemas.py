@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from typing import Annotated
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -79,6 +79,8 @@ class UserResponse(BaseModel):
     role: str
     skill_level: str
     created_at: datetime
+    # False for Google/Facebook accounts with no password (account deletion asks for a typed confirmation instead)
+    has_password: bool = True
 
     model_config = {"from_attributes": True}
 
@@ -101,7 +103,14 @@ class UpdateProfileRequest(BaseModel):
 
 
 class DeleteAccountRequest(BaseModel):
-    password: Password
+    # Accounts with a password confirm with it; Google/Facebook-only accounts type DELETE
+    password: Optional[Password] = None
+    confirm: Optional[str] = Field(default=None, max_length=16)
+
+
+class SocialLoginRequest(BaseModel):
+    """A Google ID token or a Facebook access token, straight from the provider's SDK."""
+    token: str = Field(min_length=10, max_length=8192)
 
 
 class PasswordResetRequest(BaseModel):
