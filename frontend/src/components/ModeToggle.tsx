@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export type AppMode = "chords" | "song" | "transitions";
+export type AppMode = "chords" | "song";
 
 interface ModeToggleProps {
   mode: AppMode;
@@ -12,13 +12,12 @@ interface ModeToggleProps {
 const MODES: { key: AppMode; label: string; thing: string }[] = [
   { key: "chords", label: "Practice a chord", thing: "Amp" },
   { key: "song", label: "Learn any song", thing: "Record player" },
-  { key: "transitions", label: "Chord changes", thing: "Metronome" },
 ];
 
-/** The three ways to practise, as tabs named after their object in the room. */
+/** The two ways to practise, as tabs named after their object in the room. */
 export default function ModeToggle({ mode, onChange }: ModeToggleProps) {
   return (
-    <div role="tablist" aria-label="Practice mode" className="grid grid-cols-3 gap-2 rounded-[20px] border border-cream/10 p-1.5">
+    <div role="tablist" aria-label="Practice mode" className="grid grid-cols-2 gap-2 rounded-[20px] border border-cream/10 p-1.5">
       {MODES.map((m) => {
         const active = mode === m.key;
         return (

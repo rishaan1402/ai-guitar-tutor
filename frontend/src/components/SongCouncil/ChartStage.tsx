@@ -1,5 +1,7 @@
 "use client";
 
+import { changeGrooveHref } from "@/lib/groove/link";
+import SongLessonButton from "./SongLessonButton";
 import ReportContent from "@/components/report/ReportContent";
 import { useState } from "react";
 import Link from "next/link";
@@ -14,11 +16,10 @@ interface Props {
   onComplete: () => void;
 }
 
-/** Link to the changes trainer for one chord change, or null if either chord has no lesson. */
+/** A Groove on one chord change of the song, or null if either chord has no lesson. */
 export function changesHref(c: { from_key: string | null; to_key: string | null; from_symbol: string; to_symbol: string }): string | null {
   if (!c.from_key || !c.to_key) return null;
-  const q = new URLSearchParams({ mode: "transitions", a: c.from_key, b: c.to_key, sa: c.from_symbol, sb: c.to_symbol });
-  return `/practice?${q}`;
+  return changeGrooveHref(c.from_symbol, c.to_symbol);
 }
 
 function SectionLessonCard({
@@ -171,6 +172,7 @@ export default function ChartStage({ lesson, onPracticeChord, onComplete }: Prop
       </div>
       {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
 
+      <SongLessonButton lesson={lesson} chart={lesson.chart} />
       <SongSheetPlayer content={lesson.chart} />
       <ReportContent kind="song_chart" content={lesson.chart} context={`${lesson.song_title ?? ""} — ${lesson.artist ?? ""}`} />
 

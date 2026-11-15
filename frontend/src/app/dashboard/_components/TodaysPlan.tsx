@@ -1,5 +1,6 @@
 "use client";
 
+import { changeGrooveHref } from "@/lib/groove/link";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getPlan, type PlanItem } from "@/lib/api";
@@ -78,19 +79,13 @@ interface PlanItemCardProps {
 /** Deep link for a plan item: chords open that chord's lesson, changes open the trainer. */
 export function planHref(item: PlanItem): string {
   if (item.type === "groove") return "/groove?daily=1";
-  if (item.type === "transition") {
-    if (!item.chord_a || !item.chord_b) return "/practice?mode=transitions";
-    const q = new URLSearchParams({ mode: "transitions", a: item.chord_a, b: item.chord_b });
-    if (item.chord_a_symbol) q.set("sa", item.chord_a_symbol);
-    if (item.chord_b_symbol) q.set("sb", item.chord_b_symbol);
-    return `/practice?${q}`;
-  }
+  if (item.type === "transition") return changeGrooveHref(item.chord_a_symbol, item.chord_b_symbol);
   return item.chord_key ? `/practice?chord=${encodeURIComponent(item.chord_key)}` : "/practice";
 }
 
 function PlanItemCard({ item, index }: PlanItemCardProps) {
   const colors = ITEM_COLORS[item.type] || "border-white/10 bg-white/[0.02]";
-  const actionLabel = item.type === "transition" ? "Drill" : item.type === "review" ? "Re-check" : item.type === "groove" ? "Play" : "Practice";
+  const actionLabel = item.type === "transition" ? "Groove" : item.type === "review" ? "Re-check" : item.type === "groove" ? "Play" : "Practice";
   const detail =
     item.type === "transition"
       ? item.reason || item.description

@@ -253,13 +253,13 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
   return (
     <div className="fixed inset-0 flex flex-col bg-ink-950 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
       {/* top bar */}
-      <div className="flex items-center gap-3 pb-3">
+      <div className="flex items-center gap-3 pb-3 landscape:pb-2">
         <button onClick={() => (phase === "playing" ? stopNow() : onBack ? onBack() : router.back())} aria-label={phase === "playing" ? "Stop" : "Back"} className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/15 text-cream/80">
           {phase === "playing" ? "■" : "←"}
         </button>
         <div className="min-w-0 flex-1">
           <p className="label-mono text-amber-400">Groove · {groove.style}</p>
-          <h1 className="truncate font-display text-xl uppercase text-cream">{groove.title}</h1>
+          <h1 className="truncate font-display text-xl uppercase text-cream landscape:text-lg">{groove.title}</h1>
         </div>
         <span className="rounded-full border border-cream/10 px-3 py-1 label-mono text-cream/70">{bpm} bpm</span>
       </div>
@@ -276,11 +276,12 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
             isHolding={isHolding}
             judged={judged}
             lead={isLead}
+            beatsPerBar={groove.beatsPerBar === 3 ? 3 : 4}
           />
         </div>
         {phase === "playing" && (
-          <div className="flex w-[30%] max-w-[150px] flex-col gap-3">
-            <div className="rounded-2xl border border-cream/10 p-2">
+          <div className="flex w-[30%] max-w-[150px] flex-col gap-3 landscape:w-[42%] landscape:max-w-[360px] landscape:flex-row landscape:items-start landscape:gap-2">
+            <div className="rounded-2xl border border-cream/10 p-2 landscape:min-w-0 landscape:flex-[3]">
               <p className="label-mono text-center text-[10px] text-cream/50">Next</p>
               {isLead && nextChord && parseNote(nextChord) ? (
                 <div className="py-3 text-center">
@@ -295,7 +296,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
               )}
             </div>
             {!listening && (
-              <div className="rounded-2xl border border-cream/10 p-3 text-center">
+              <div className="rounded-2xl border border-cream/10 p-3 text-center landscape:min-w-0 landscape:flex-[2]">
                 <p className="label-mono text-[10px] text-cream/50">Heard</p>
                 <p className="mt-1 font-display text-2xl text-cream">{heard ? prettySymbol(heard) : "…"}</p>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cream/10" aria-label="Mic level">
@@ -309,17 +310,17 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
 
         {/* ready card */}
         {phase === "ready" && (
-          <div className="absolute inset-x-0 bottom-0 rounded-[26px] border border-cream/10 bg-ink-950/95 p-5 shadow-2xl backdrop-blur">
+          <div className="absolute inset-x-0 bottom-0 rounded-[26px] border border-cream/10 bg-ink-950/95 p-5 shadow-2xl backdrop-blur landscape:static landscape:max-h-full landscape:w-[52%] landscape:max-w-[560px] landscape:shrink-0 landscape:overflow-y-auto landscape:p-4">
             <p className="label-mono text-amber-400">{groove.focus ? `Focus: ${prettySymbol(groove.focus[0])} → ${prettySymbol(groove.focus[1])}` : "Groove"}</p>
             <p className="mt-1 text-[15px] text-cream/75">{groove.tip ?? "Play along with the band."}</p>
-            <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Mode">
+            <div className="mt-4 grid grid-cols-3 gap-2 landscape:mt-3" role="radiogroup" aria-label="Mode">
               {(Object.keys(MODE_COPY) as (keyof typeof MODE_COPY)[]).map((m) => (
                 <button
                   key={m}
                   role="radio"
                   aria-checked={mode === m}
                   onClick={() => setMode(m)}
-                  className={`rounded-2xl border p-3 text-left ${mode === m ? "border-amber-400 bg-amber-400/10" : "border-cream/10"}`}
+                  className={`rounded-2xl border p-3 text-left landscape:p-2.5 ${mode === m ? "border-amber-400 bg-amber-400/10" : "border-cream/10"}`}
                 >
                   <span className="block font-semibold text-cream">{MODE_COPY[m].label}</span>
                   <span className="mt-0.5 block text-xs text-cream/55">{MODE_COPY[m].hint}</span>
@@ -345,7 +346,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
 
         {/* results */}
         {phase === "done" && (
-          <div className="absolute inset-x-0 bottom-0 max-h-full overflow-y-auto rounded-[26px] border border-cream/10 bg-ink-950/95 p-5 shadow-2xl backdrop-blur">
+          <div className="absolute inset-x-0 bottom-0 max-h-full overflow-y-auto rounded-[26px] border border-cream/10 bg-ink-950/95 p-5 shadow-2xl backdrop-blur landscape:static landscape:w-[52%] landscape:max-w-[560px] landscape:shrink-0 landscape:p-4">
             <p className="label-mono text-amber-400">Run complete</p>
             <div className="mt-1 flex items-center gap-1 text-3xl" aria-label={`${stars} of 3 stars`}>
               {[0, 1, 2].map((i) => (

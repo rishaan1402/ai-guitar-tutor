@@ -35,6 +35,10 @@ const DRUMS: Record<GrooveStyle, DrumHit[]> = {
   ],
 };
 
+/** 3/4: the six eighth notes of a waltz bar (boom-chick-chick). */
+const WALTZ_DRUMS: DrumHit[] = [{ kick: 0.85, hat: 0.35 }, {}, { snare: 0.4, hat: 0.3 }, {}, { snare: 0.4, hat: 0.3 }, { hat: 0.15 }];
+const WALTZ_BASS: (string | null)[] = ["R", null, null, null, "5", null];
+
 /** Bass notes per slot: "R" root, "5" fifth, "8" octave. */
 const BASS: Record<GrooveStyle, (string | null)[]> = {
   pop: ["R", null, null, "R", "R", null, "5", null],
@@ -52,6 +56,8 @@ export interface EighthOptions {
   full?: boolean;
   /** First eighth of a new chord: the pad starts here, lasting `padSeconds`. */
   padSeconds?: number;
+  /** 3/4 time (six eighth notes per bar). */
+  waltz?: boolean;
 }
 
 export class Band {
@@ -301,7 +307,7 @@ export class Band {
   /* ---------------------------------------------------------------- one eighth note */
 
   playEighth(t: number, slot: number, chordSymbol: string | null, eighth: number, o: EighthOptions = {}) {
-    const hit = DRUMS[this.style][slot % 8];
+    const hit = o.waltz ? WALTZ_DRUMS[slot % 6] : DRUMS[this.style][slot % 8];
     const soft = o.hold ? 0.55 : 1;
     if (hit.kick && (!o.hold || slot % 8 === 0)) this.kick(t, hit.kick * soft);
     if (hit.snare && !o.hold) this.snare(t, hit.snare);
@@ -309,7 +315,7 @@ export class Band {
     if (o.hold || !chordSymbol) return;
     const chord = chordNotes(chordSymbol);
     if (!chord) return;
-    const b = BASS[this.style][slot % 8];
+    const b = o.waltz ? WALTZ_BASS[slot % 6] : BASS[this.style][slot % 8];
     if (b) {
       const root = midiInOctave(chord.root, 40);
       const midi = b === "5" ? root + 7 : b === "8" ? root + 12 : root;

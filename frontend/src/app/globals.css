@@ -639,3 +639,11 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 .os-intro-strum { animation: os-intro-strum 0.45s ease-out 2; }
 /* Headings focused by script (tabIndex -1, for screen readers) show no ring */
 [tabindex="-1"]:focus { outline: none; box-shadow: none; }
+
+/* app screens are landscape: upright phones get the turn-sideways screen */
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 900px) {
+  .os-rotate { display: flex; }
+}
+@keyframes os-rotate-phone { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+.os-rotate-phone { animation: os-rotate-phone 2.4s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .os-rotate-phone { animation: none; } }

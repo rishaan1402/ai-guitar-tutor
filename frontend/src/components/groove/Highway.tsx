@@ -25,20 +25,22 @@ interface Props {
   lookahead?: number;
   /** Lead: notes in six string lanes with fret numbers (no strum lane). */
   lead?: boolean;
+  /** Beats per bar (bar lines and strum pattern). */
+  beatsPerBar?: number;
 }
 
 const NOW = 0.8; // now line at 80% of the height
 
 const LANE_COLORS: Record<number, string> = { 6: "#e8604f", 5: "#e8a54b", 4: "#e9d9b8", 3: "#86b092", 2: "#7da2c9", 1: "#c49be0" };
 
-export default function Highway({ segments, changes, totalBeats, strum, getPosition, isHolding, judged, lookahead = 6, lead = false }: Props) {
+export default function Highway({ segments, changes, totalBeats, strum, getPosition, isHolding, judged, lookahead = 6, lead = false, beatsPerBar = 4 }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const column = useRef<HTMLDivElement>(null);
   const [h, setH] = useState(600);
   const [active, setActive] = useState(-1);
   const [holding, setHolding] = useState(false);
   const ppb = (h * NOW) / lookahead; // pixels per beat
-  const slots = useMemo(() => strumSlots(strum), [strum]);
+  const slots = useMemo(() => strumSlots(strum, beatsPerBar * 2), [strum, beatsPerBar]);
 
   useEffect(() => {
     const el = wrap.current;
@@ -92,8 +94,8 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
 
       <div ref={column} className="absolute inset-x-0 top-0 will-change-transform">
         {/* bar lines */}
-        {Array.from({ length: Math.ceil(totalBeats / 4) + 1 }, (_, bar) => (
-          <div key={`bar${bar}`} className="absolute left-[8%] right-[4%] h-px bg-cream/10" style={{ top: y(bar * 4) }}>
+        {Array.from({ length: Math.ceil(totalBeats / beatsPerBar) + 1 }, (_, bar) => (
+          <div key={`bar${bar}`} className="absolute left-[8%] right-[4%] h-px bg-cream/10" style={{ top: y(bar * beatsPerBar) }}>
             <span className="label-mono absolute -top-2 left-0 -translate-x-full pr-1 text-[10px] text-cream/30">{bar + 1}</span>
           </div>
         ))}
@@ -161,7 +163,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
         })}
         {/* strum arrows, one per eighth note */}
         {!lead && Array.from({ length: totalBeats * 2 }, (_, e) => {
-          const s = slots[e % 8];
+          const s = slots[e % (beatsPerBar * 2)];
           if (s === ".") return null;
           return (
             <span

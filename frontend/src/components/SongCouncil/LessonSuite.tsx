@@ -1,5 +1,6 @@
 "use client";
 
+import RichText from "@/components/ui/RichText";
 import React, { useState, useEffect } from "react";
 import { LessonDocument } from "@/lib/api";
 import LessonSuiteNav, { Stage } from "./LessonSuiteNav";
@@ -58,9 +59,9 @@ function Section({
       {open && (
         <div
           className="px-4 pb-4 text-sm leading-relaxed fade-in-up"
-          style={{ color: "rgba(255,255,255,0.7)", whiteSpace: "pre-wrap" }}
+          style={{ color: "rgba(255,255,255,0.7)" }}
         >
-          {content}
+          <RichText text={content} />
         </div>
       )}
     </div>
@@ -153,10 +154,9 @@ function StudyStage({
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
             color: "rgba(255,255,255,0.8)",
-            whiteSpace: "pre-wrap",
-          }}
+                      }}
         >
-          {lesson.chairman_summary}
+          <RichText text={lesson.chairman_summary} />
         </div>
 
         {/* Song structure map */}

@@ -1,10 +1,12 @@
 "use client";
 
 /**
- * The app's home: the 2.5D practice room, full screen.
- * Drag to look around the room (its layers shift with depth as you pan);
- * tap an object and the view glides and zooms to it, with a card that opens
- * its feature. Swipe while zoomed to move to the next object; back returns.
+ * The app's home: the 2.5D practice room, full screen (landscape).
+ * A guitar pick is your cursor: drag it around the room and whatever it
+ * points at lights up and says what it is; let go (or tap) and the view
+ * glides in to that object with a card that opens its feature. Near the
+ * edges the room pans with the pick. Swipe while zoomed to step to the next
+ * object; back returns.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -49,10 +51,17 @@ export default function Studio() {
   const due = plan?.items?.filter((i) => i.type === "review").length ?? 0;
 
   const vp = useViewport();
-  // the room takes ~2/3 of a tall screen (wider than it, so you pan through it);
-  // on wide screens it fits the width
-  const s = vp.h ? Math.max((vp.h * 0.66) / SCENE_H, Math.min(vp.w / SCENE_W, (vp.h * 0.9) / SCENE_H)) : 1;
+  const wide = vp.w > vp.h;
+  // landscape: the room covers the screen with a little to spare, so the pick can pan it;
+  // portrait (web only): it takes ~2/3 of the height and you pan through it
+  const s = !vp.h
+    ? 1
+    : wide
+      ? Math.max(vp.w / SCENE_W, vp.h / SCENE_H) * 1.22
+      : Math.max((vp.h * 0.66) / SCENE_H, Math.min(vp.w / SCENE_W, (vp.h * 0.9) / SCENE_H));
   const SW = SCENE_W * s, SH = SCENE_H * s;
+  /** Landscape card width: a side panel on the right. */
+  const cardW = wide ? Math.min(380, vp.w * 0.42) : 0;
 
   const [focus, setFocus] = useState<RoomObjectId | null>(null);
   const [view, setView] = useState<View>({ tx: 0, ty: 0, z: 1 });
@@ -71,18 +80,25 @@ export default function Studio() {
     [vp.w, vp.h, SW, SH],
   );
   /** The room view sits a little above centre, between the HUD and the bottom button. */
-  const roomTy = (vp.h - SH) * 0.42;
+  const roomTy = (vp.h - SH) * (wide ? 0.5 : 0.42);
 
   /** Zoom so the object fills the space above the card, centred there. */
   const viewFor = useCallback(
     (o: RoomObject): View => {
-      const z = Math.max(1, Math.min(3.2, (vp.w * 0.78) / (o.w * s), (vp.h * 0.46) / (o.h * s)));
       const cx = (o.x + o.w / 2) * s, cy = (o.y + o.h / 2) * s;
+      if (wide) {
+        // the object fills the space left of the side card
+        const room = vp.w - cardW - 24;
+        const z = Math.max(1, Math.min(3.2, (room * 0.8) / (o.w * s), (vp.h * 0.62) / (o.h * s)));
+        return clamp({ z, tx: room / 2 - cx * z, ty: vp.h * 0.54 - cy * z });
+      }
+      const z = Math.max(1, Math.min(3.2, (vp.w * 0.78) / (o.w * s), (vp.h * 0.46) / (o.h * s)));
       return clamp({ z, tx: vp.w / 2 - cx * z, ty: vp.h * 0.33 - cy * z });
     },
-    [vp.w, vp.h, s, clamp],
+    [vp.w, vp.h, s, clamp, wide, cardW],
   );
 
+  const overviewTy = useRef<number | null>(null);
   // start centred on the guitar, like walking into the room
   useEffect(() => {
     if (!vp.w) return;
@@ -90,7 +106,11 @@ export default function Studio() {
       const g = ROOM_OBJECTS.find((o) => o.id === "guitar")!;
       overviewTx.current = vp.w / 2 - (g.x + g.w / 2) * s;
     }
-    setView(focus ? viewFor(ROOM_OBJECTS.find((o) => o.id === focus)!) : clamp({ tx: overviewTx.current, ty: roomTy, z: 1 }));
+    setView(
+      focus
+        ? viewFor(ROOM_OBJECTS.find((o) => o.id === focus)!)
+        : clamp({ tx: overviewTx.current, ty: overviewTy.current ?? roomTy, z: 1 }),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vp.w, vp.h, focus]);
 
@@ -113,38 +133,122 @@ export default function Studio() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  // drag to pan (room view); swipe to step (zoomed view)
-  const drag = useRef<{ x: number; y: number; tx: number; moved: boolean; t: number } | null>(null);
-  // the click after a drag must not open the object under the finger
-  const lastWasDrag = useRef(false);
+  // ── the pick ────────────────────────────────────────────────
+  // Its tip (screen px) is the cursor. Touch: it rides a little above the finger so
+  // you can see what it points at. The room pans when it nears an edge.
+  const [pick, setPick] = useState<{ x: number; y: number } | null>(null);
+  const [hover, setHover] = useState<RoomObjectId | null>(null);
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const drag = useRef<{ x: number; y: number; moved: boolean; t: number; lift: number } | null>(null);
+  const tipRef = useRef<{ x: number; y: number } | null>(null);
+
+  /** The object under a screen point in the room view. */
+  const objectAt = useCallback(
+    (x: number, y: number): RoomObjectId | null => {
+      const v = viewRef.current;
+      const sx = (x - v.tx) / (v.z * s), sy = (y - v.ty) / (v.z * s);
+      // smallest object first, so the pedal wins over the wall behind it
+      const hits = OBJECTS.filter((o) => sx >= o.x && sx <= o.x + o.w && sy >= o.y && sy <= o.y + o.h);
+      hits.sort((a, b) => a.w * a.h - b.w * b.h);
+      return hits[0]?.id ?? null;
+    },
+    [s],
+  );
+
+  const aim = useCallback(
+    (x: number, y: number) => {
+      tipRef.current = { x, y };
+      setPick({ x, y });
+      const id = objectAt(x, y);
+      setHover((cur) => {
+        if (id && id !== cur) {
+          pluck(ROOM_OBJECTS.find((o) => o.id === id)!.hz, 0.1);
+          import("@capacitor/haptics").then(({ Haptics }) => Haptics.selectionChanged()).catch(() => {});
+        }
+        return id;
+      });
+    },
+    [objectAt],
+  );
+
+  // edge auto-pan while the pick is held
+  useEffect(() => {
+    if (focus || !dragging) return;
+    let raf = 0;
+    const loop = () => {
+      const t = tipRef.current;
+      if (t && vp.w) {
+        const edge = Math.min(90, vp.w * 0.12), edgeY = Math.min(70, vp.h * 0.15);
+        const push = (p: number, size: number, e: number) => (p < e ? (e - p) / e : p > size - e ? -(p - (size - e)) / e : 0);
+        const dx = push(t.x, vp.w, edge) * 9, dy = push(t.y, vp.h, edgeY) * 6;
+        if (dx || dy) {
+          const cur = viewRef.current;
+          const v = clamp({ tx: cur.tx + dx, ty: cur.ty + dy, z: 1 });
+          if (v.tx !== cur.tx || v.ty !== cur.ty) {
+            overviewTx.current = v.tx;
+            overviewTy.current = v.ty;
+            viewRef.current = v;
+            setView(v);
+            aim(t.x, t.y);
+          }
+        }
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [focus, dragging, vp.w, vp.h, clamp, aim]);
+
   const onPointerDown = (e: React.PointerEvent) => {
-    lastWasDrag.current = false;
-    drag.current = { x: e.clientX, y: e.clientY, tx: view.tx, moved: false, t: performance.now() };
+    const lift = e.pointerType === "mouse" ? 0 : 44;
+    drag.current = { x: e.clientX, y: e.clientY, moved: false, t: performance.now(), lift };
+    if (!focus) {
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      setDragging(true);
+      aim(e.clientX, e.clientY - lift);
+    }
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
-    if (!d) return;
-    const dx = e.clientX - d.x;
-    if (Math.abs(dx) > 6) d.moved = true;
-    if (!focus && d.moved) {
-      setDragging(true);
-      const v = clamp({ tx: d.tx + dx, ty: roomTy, z: 1 });
-      overviewTx.current = v.tx;
-      setView(v);
+    if (!d) {
+      // a mouse just hovering moves the pick too
+      if (!focus && e.pointerType === "mouse") aim(e.clientX, e.clientY);
+      return;
     }
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8) d.moved = true;
+    if (!focus) aim(e.clientX, e.clientY - d.lift);
   };
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current;
     drag.current = null;
     setDragging(false);
-    lastWasDrag.current = !!d?.moved;
-    if (!d || !focus) return;
+    if (!d) return;
+    if (!focus) {
+      // a tap picks what's under the finger; a drag picks what the pick points at
+      const id = d.moved ? hover : objectAt(e.clientX, e.clientY) ?? hover;
+      if (id) {
+        setHover(null);
+        select(id);
+      }
+      return;
+    }
     const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!d.moved) {
+      // zoomed in: tap the object to go in, or a neighbour to move to it
+      const id = objectAt(e.clientX, e.clientY);
+      if (id === focus) router.push(hrefFor(focus));
+      else if (id) select(id);
+      return;
+    }
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.3 || performance.now() - d.t > 700) return;
     const i = ORDER.indexOf(focus);
     select(ORDER[(i + (dx < 0 ? 1 : -1) + ORDER.length) % ORDER.length]);
   };
-  const wasDrag = () => lastWasDrag.current;
+  // start with the pick resting by the guitar
+  useEffect(() => {
+    if (vp.w && !pick) setPick({ x: vp.w * 0.5, y: vp.h * 0.62 });
+  }, [vp.w, vp.h, pick]);
 
   function hrefFor(id: RoomObjectId): string {
     switch (id) {
@@ -184,6 +288,7 @@ export default function Studio() {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={() => ((drag.current = null), setDragging(false))}
+      onPointerLeave={(e) => e.pointerType === "mouse" && !drag.current && setHover(null)}
       data-testid="studio"
     >
       {vp.w > 0 && (
@@ -207,26 +312,26 @@ export default function Studio() {
             style={{ background: "linear-gradient(to top, #0c0a09, transparent)" }}
           />
           <RoomScene
-            active={focus}
+            active={focus ?? hover}
             state={{ mastered, streak, sheet, recheckDue: due > 0, upgrades: game?.upgrades.filter((u) => u.unlocked).map((u) => u.id) }}
           />
-          {/* tap targets over each object */}
+          {/* keyboard / screen-reader targets over each object (the pick handles pointers) */}
           {OBJECTS.map((o) => (
             <button
               key={o.id}
               type="button"
               aria-label={`${o.thing}: ${o.label}`}
-              onClick={() => {
-                if (wasDrag()) return;
+              onClick={(e) => {
+                // pointer taps are handled by the pick; this is for Enter / Space
+                if (e.detail !== 0) return;
                 if (focus === o.id) router.push(hrefFor(o.id));
                 else select(o.id);
               }}
-              className="absolute rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80"
+              className={`absolute rounded-2xl outline-none transition-[box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-amber-300/80 ${
+                hover === o.id && !focus ? "shadow-[0_0_0_2px_rgba(232,165,75,0.55),0_0_40px_rgba(232,165,75,0.25)]" : ""
+              }`}
               style={{ left: o.x * s, top: o.y * s, width: o.w * s, height: o.h * s }}
             >
-              {!focus && (
-                <span className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300 os-hotspot" />
-              )}
               {!focus && (o.id === "wall" ? due > 0 : o.id === "guitar" && !!next) && (
                 <span className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-amp-500 px-2 py-0.5 text-[11px] font-semibold text-cream">
                   {o.id === "wall" ? `${due} re-check${due > 1 ? "s" : ""}` : "Lesson ready"}
@@ -239,6 +344,36 @@ export default function Studio() {
 
       {/* soft vignette, darker at the bottom for the card */}
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(130% 80% at 50% 40%, transparent 55%, rgba(0,0,0,0.6) 100%), linear-gradient(to bottom, rgba(12,10,9,0.55), transparent 18%, transparent 62%, rgba(12,10,9,0.85))" }} />
+
+      {/* what the pick points at */}
+      {!focus && hover && (() => {
+        const o = ROOM_OBJECTS.find((x) => x.id === hover)!;
+        const left = view.tx + (o.x + o.w / 2) * s * view.z;
+        const top = Math.max(64, view.ty + o.y * s * view.z - 12);
+        return (
+          <div className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full" style={{ left: Math.min(vp.w - 110, Math.max(110, left)), top }}>
+            <div className="animate-enter-fast whitespace-nowrap rounded-2xl border border-amber-400/50 bg-ink-950/90 px-4 py-2 text-center shadow-xl backdrop-blur">
+              <p className="label-mono text-[10px] text-amber-400">{o.thing}</p>
+              <p className="font-display text-base uppercase leading-tight text-cream">{labelFor(o)}</p>
+            </div>
+          </div>
+        );
+      })()}
+      {!focus && pick && (
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute z-30 drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]"
+          style={{ left: pick.x - 17, top: pick.y - 44, transition: dragging ? "none" : "left 200ms, top 200ms" }}
+          width="34"
+          height="46"
+          viewBox="0 0 34 46"
+        >
+          {/* a pick, point down: its tip is the cursor */}
+          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill={hover ? "#e8a54b" : "#d8c9a8"} stroke="#0c0a09" strokeWidth="2" />
+          <path d="M8 10 C 11 6, 23 6, 26 10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="17" cy="45" r="2" fill="#0c0a09" opacity="0.6" />
+        </svg>
+      )}
 
       {/* HUD */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
@@ -296,22 +431,27 @@ export default function Studio() {
               <span className="truncate">{planTitle(next)}</span> →
             </button>
           )}
-          <p className="label-mono text-cream/50">Drag to look around · tap a light</p>
+          <p className="label-mono text-cream/50">Drag the pick around the room · let go to go in</p>
         </div>
       )}
 
       {/* zoomed in: the object's card */}
       {station && (
         <div
-          className="absolute inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          className={
+            wide
+              ? "absolute bottom-0 right-0 top-0 flex items-end p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pr-[max(0.75rem,env(safe-area-inset-right))]"
+              : "absolute inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          }
+          style={wide ? { width: cardW + 24 } : undefined}
           onPointerDown={(e) => e.stopPropagation()}
           onPointerUp={(e) => e.stopPropagation()}
         >
-          <div key={station.id} className="animate-enter-fast rounded-[26px] border border-cream/10 bg-ink-950/90 p-5 shadow-2xl backdrop-blur-md">
+          <div key={station.id} className={`animate-enter-fast w-full rounded-[26px] border border-cream/10 bg-ink-950/90 shadow-2xl backdrop-blur-md ${wide ? "p-4" : "p-5"}`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="label-mono text-amber-400">{station.thing}</p>
-                <h2 className="mt-1 font-display text-2xl uppercase text-cream">{station.id === "guitar" ? "Lessons" : station.id === "metronome" ? "Grooves" : station.label}</h2>
+                <h2 className="mt-1 font-display text-2xl uppercase text-cream">{labelFor(station)}</h2>
               </div>
               <button onClick={() => select(null)} aria-label="Back to the room" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 text-cream/70">
                 ✕
@@ -382,6 +522,10 @@ function DailyRing({ done, total, tasks }: { done: number; total: number; tasks:
       )}
     </div>
   );
+}
+
+function labelFor(o: RoomObject): string {
+  return o.id === "guitar" ? "Lessons" : o.id === "metronome" ? "Grooves" : o.label;
 }
 
 function Chip({ label, value }: { label: string; value: string }) {

@@ -23,9 +23,15 @@ export interface GrooveWithSource extends Groove {
   mode?: "wait" | "play" | "follow";
 }
 
+/** A Groove built around one chord change (replaces the old one-minute changes trainer). */
+export function changeGrooveHref(a?: string | null, b?: string | null): string {
+  if (!a || !b || a === b) return "/groove";
+  return `/groove?ai=1&focus=${encodeURIComponent(a)},${encodeURIComponent(b)}`;
+}
+
 export function encodeGroove(g: GrooveWithSource): string {
-  const { id, title, style, bpm, bars, strum, focus, tip, loops, source, mode } = g;
-  return b64url(JSON.stringify({ id, title, style, bpm, bars, strum, focus, tip, loops, source, mode }));
+  const { id, title, style, bpm, bars, strum, focus, tip, loops, source, mode, beatsPerBar } = g;
+  return b64url(JSON.stringify({ id, title, style, bpm, bars, strum, focus, tip, loops, source, mode, beatsPerBar }));
 }
 
 export function grooveHref(g: GrooveWithSource): string {
@@ -46,6 +52,7 @@ export function decodeGroove(s: string | null | undefined): GrooveWithSource | n
     const bpm = Math.round(Number(raw.bpm));
     if (!(bpm >= 40 && bpm <= 200)) return null;
     const strum = String(raw.strum ?? "").toUpperCase();
+    const beatsPerBar = raw.beatsPerBar === 3 ? 3 : 4;
     const focus = Array.isArray(raw.focus) && raw.focus.length === 2 ? ([String(raw.focus[0]), String(raw.focus[1])] as [string, string]) : undefined;
     return {
       id: String(raw.id ?? "custom").slice(0, 40),
@@ -53,7 +60,8 @@ export function decodeGroove(s: string | null | undefined): GrooveWithSource | n
       style: STYLES.includes(raw.style) ? raw.style : "pop",
       bpm,
       bars,
-      strum: /^[DU.]{8}$/.test(strum) ? strum : "D.D.D.D.",
+      strum: /^[DU.]{6,8}$/.test(strum) ? strum : beatsPerBar === 3 ? "D.D.D." : "D.D.D.D.",
+      beatsPerBar,
       focus,
       tip: raw.tip ? String(raw.tip).slice(0, 200) : undefined,
       loops: Math.max(1, Math.min(8, Math.round(Number(raw.loops) || 2))),

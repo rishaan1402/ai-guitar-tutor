@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { chordTab, stringFrets } from "../chordTab";
 import { chordsInSheet, displayChord, mapChords, parseChordPro } from "../chordpro";
 import { changesHref } from "@/components/SongCouncil/ChartStage";
-import { pairFromParams } from "@/components/TransitionTrainer";
 
 const G = [
   { string: 6, fret: 3 }, { string: 5, fret: 2 }, { string: 4, fret: 0 },
@@ -84,19 +83,7 @@ describe("AI chart in the sheet player", () => {
 describe("section lesson links", () => {
   it("links a change to the trainer only when both chords have lessons", () => {
     expect(changesHref({ from_key: "G_major", to_key: "E_minor", from_symbol: "G", to_symbol: "Em" }))
-      .toBe("/practice?mode=transitions&a=G_major&b=E_minor&sa=G&sb=Em");
+      .toBe("/groove?ai=1&focus=G,Em");
     expect(changesHref({ from_key: "G_major", to_key: null, from_symbol: "G", to_symbol: "Gsus4" })).toBeNull();
-  });
-
-  it("trainer reads the pair back and rejects junk", () => {
-    const q = (s: string) => new URLSearchParams(s);
-    const ok = q("a=G_major&b=E_minor&sa=G&sb=Em");
-    expect(pairFromParams((k) => ok.get(k))).toEqual({ keyA: "G_major", keyB: "E_minor", symbolA: "G", symbolB: "Em" });
-    const bad = q("a=<script>&b=E_minor");
-    expect(pairFromParams((k) => bad.get(k))).toBeNull();
-    const same = q("a=G_major&b=G_major");
-    expect(pairFromParams((k) => same.get(k))).toBeNull();
-    const badSym = q("a=G_major&b=E_minor&sa=<b>");
-    expect(pairFromParams((k) => badSym.get(k))?.symbolA).toBe("G");
   });
 });

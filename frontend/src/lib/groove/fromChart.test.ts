@@ -40,3 +40,12 @@ describe("chart to grooves", () => {
     expect(strumFrom("")).toBe("D.DU.UDU");
   });
 });
+
+describe("3/4 songs", () => {
+  it("play in three", () => {
+    const sheet = parseChordPro("{title: Waltz}\n{time: 3/4}\n{start_of_grid: Verse}\n| G . . | C . . | G . . | D . . |\n{end_of_grid}");
+    const g = songGrooves(sheet)[0].groove;
+    expect(g.beatsPerBar).toBe(3);
+    expect(g.strum).toHaveLength(6);
+  });
+});

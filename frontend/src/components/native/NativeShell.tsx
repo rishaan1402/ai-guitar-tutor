@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { App } from "@capacitor/app";
 import { StatusBar, Style } from "@capacitor/status-bar";
@@ -87,9 +87,15 @@ export default function NativeShell() {
 
   // keep the WebView scrolled to the top on page changes, like a native screen;
   // in the app the studio replaces the website's home and dashboard
+  const firstPath = useRef(true);
   useEffect(() => {
     if (!isNativeApp()) return;
     window.scrollTo(0, 0);
+    // the first run is the boot (handled above: it restores the page a reload was on)
+    if (firstPath.current) {
+      firstPath.current = false;
+      return;
+    }
     if (pathname === "/dashboard" || pathname === "/") router.replace("/studio");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);

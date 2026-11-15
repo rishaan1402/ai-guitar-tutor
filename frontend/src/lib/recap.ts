@@ -2,6 +2,7 @@
  * The session recap's view model, from the server recap (signed in) and/or
  * the local session log (always). Pure: rendered by SessionRecap.
  */
+import { changeGrooveHref } from "@/lib/groove/link";
 import type { MasteryStage, PlanItem, SessionRecapResponse } from "./api";
 import { formatChord } from "./chordName";
 import { stageLabel, type StageLike } from "./mastery";
@@ -92,7 +93,7 @@ function dotsFor(takes: LoggedTake[]): RecapDot[] {
 function nextFromPlan(item: PlanItem | null | undefined): RecapNext | null {
   if (!item) return null;
   if (item.type === "transition" && item.chord_a_symbol && item.chord_b_symbol) {
-    return { label: `${item.chord_a_symbol} → ${item.chord_b_symbol} changes`, href: "/practice?mode=transitions" };
+    return { label: `${item.chord_a_symbol} → ${item.chord_b_symbol} changes`, href: changeGrooveHref(item.chord_a_symbol, item.chord_b_symbol) };
   }
   if (item.chord_key) {
     return {

@@ -96,9 +96,10 @@ function play(freq: number, when = 0, gain = 0.22, brightness = 0.35): void {
 }
 
 /** One string pluck (if sound is on). */
-export function pluck(freq = 196): void {
+export function pluck(freq = 196, gain?: number): void {
   if (!isSoundOn()) return;
-  play(freq);
+  if (gain === undefined) play(freq);
+  else play(freq, 0, gain);
 }
 
 // Open strings of a guitar, low E to high e
