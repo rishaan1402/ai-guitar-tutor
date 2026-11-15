@@ -3,6 +3,7 @@ import { Archivo_Black, IBM_Plex_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import NativeShell, { NATIVE_BOOT_SCRIPT } from "@/components/native/NativeShell";
+import RotateHint from "@/components/native/RotateHint";
 
 // Display: heavy grotesk for big statements. Mono: labels, readouts, tabs.
 // Body: open, airy sans.
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans">
         <AuthProvider>
           <NativeShell />
+          <RotateHint />
           {children}
         </AuthProvider>
       </body>
