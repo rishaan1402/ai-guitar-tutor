@@ -312,7 +312,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
         {phase === "ready" && (
           <div className="absolute inset-x-0 bottom-0 rounded-[26px] border border-cream/10 bg-ink-950/95 p-5 shadow-2xl backdrop-blur landscape:static landscape:max-h-full landscape:w-[52%] landscape:max-w-[560px] landscape:shrink-0 landscape:overflow-y-auto landscape:p-4">
             <p className="label-mono text-amber-400">{groove.focus ? `Focus: ${prettySymbol(groove.focus[0])} → ${prettySymbol(groove.focus[1])}` : "Groove"}</p>
-            <p className="mt-1 text-[15px] text-cream/75">{groove.tip ?? "Play along with the band."}</p>
+            <p className="mt-1 text-[15px] text-cream/75 short:line-clamp-2 short:text-sm">{groove.tip ?? "Play along with the band."}</p>
             <div className="mt-4 grid grid-cols-3 gap-2 landscape:mt-3" role="radiogroup" aria-label="Mode">
               {(Object.keys(MODE_COPY) as (keyof typeof MODE_COPY)[]).map((m) => (
                 <button
@@ -320,26 +320,28 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
                   role="radio"
                   aria-checked={mode === m}
                   onClick={() => setMode(m)}
-                  className={`rounded-2xl border p-3 text-left landscape:p-2.5 ${mode === m ? "border-amber-400 bg-amber-400/10" : "border-cream/10"}`}
+                  className={`rounded-2xl border p-3 text-left landscape:p-2.5 short:py-2 ${mode === m ? "border-amber-400 bg-amber-400/10" : "border-cream/10"}`}
                 >
                   <span className="block font-semibold text-cream">{MODE_COPY[m].label}</span>
-                  <span className="mt-0.5 block text-xs text-cream/55">{MODE_COPY[m].hint}</span>
+                  <span className="mt-0.5 block text-xs text-cream/55 short:hidden">{MODE_COPY[m].hint}</span>
                 </button>
               ))}
             </div>
-            <div className="mt-4 flex items-center gap-3">
+            {/* short screens: the selected mode's hint, once */}
+            <p className="mt-1.5 hidden text-xs text-cream/55 short:block">{MODE_COPY[mode].hint}</p>
+            <div className="mt-4 flex items-center gap-3 short:mt-2">
               <label className="label-mono shrink-0 text-cream/60" htmlFor="speed">Speed</label>
               <input id="speed" type="range" min={0.6} max={1.2} step={0.05} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="flex-1 accent-amber-400" />
               <span className="w-12 text-right text-sm text-cream">{Math.round(speed * 100)}%</span>
             </div>
-            <label className="mt-3 flex items-center gap-3 text-sm text-cream/75">
+            <label className="mt-3 flex items-center gap-3 text-sm text-cream/75 short:mt-2">
               <input type="checkbox" checked={headphones} onChange={(e) => setHeadphones(e.target.checked)} className="h-5 w-5 accent-amber-400" />
               {isLead ? "I'm wearing headphones (hear the melody while I play)" : "I'm wearing headphones (full band with chords)"}
             </label>
             {error && <p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
-            <div className="mt-4 flex gap-3">
-              <button onClick={() => start(true)} className="h-12 rounded-full border border-cream/20 px-5 text-cream">▶ Listen first</button>
-              <button onClick={() => start(false)} className="h-12 flex-1 rounded-full bg-amber-400 font-semibold text-ink-950">Start</button>
+            <div className="mt-4 flex gap-3 short:mt-2">
+              <button onClick={() => start(true)} className="h-12 short:h-11 rounded-full border border-cream/20 px-5 text-cream">▶ Listen first</button>
+              <button onClick={() => start(false)} className="h-12 flex-1 rounded-full bg-amber-400 font-semibold text-ink-950 short:h-11">Start</button>
             </div>
           </div>
         )}

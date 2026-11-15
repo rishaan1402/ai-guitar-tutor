@@ -157,10 +157,14 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       // ── Typography scale ──────────────────────────────────────────────
+      // short: landscape phones (the app is landscape, so height is the tight side)
+      screens: {
+        short: { raw: "(max-height: 500px)" },
+      },
       fontSize: {
-        display: ["clamp(2.75rem, 7vw, 6rem)", { lineHeight: "0.92", fontWeight: "700", letterSpacing: "-0.015em" }],
-        h1:      ["clamp(2.25rem, 4.5vw, 3.75rem)", { lineHeight: "0.95", fontWeight: "700", letterSpacing: "-0.01em" }],
-        h2:      ["clamp(1.75rem, 3vw, 2.5rem)", { lineHeight: "1", fontWeight: "700", letterSpacing: "-0.005em" }],
+        display: ["clamp(2rem, 8vmin, 6rem)", { lineHeight: "0.92", fontWeight: "700", letterSpacing: "-0.015em" }],
+        h1:      ["clamp(1.75rem, 6vmin, 3.75rem)", { lineHeight: "0.95", fontWeight: "700", letterSpacing: "-0.01em" }],
+        h2:      ["clamp(1.4rem, 4.2vmin, 2.5rem)", { lineHeight: "1", fontWeight: "700", letterSpacing: "-0.005em" }],
         h3:      ["1.25rem", { lineHeight: "1.2", fontWeight: "600" }],
         body:    ["1rem", { lineHeight: "1.55" }],
         meta:    ["0.75rem", { lineHeight: "1.3", letterSpacing: "0.16em", fontWeight: "600" }],

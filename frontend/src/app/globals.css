@@ -647,3 +647,11 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 @keyframes os-rotate-phone { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
 .os-rotate-phone { animation: os-rotate-phone 2.4s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .os-rotate-phone { animation: none; } }
+
+/* Landscape phones are short: scale rem-based type and spacing down a touch */
+@media (orientation: landscape) and (max-height: 480px) {
+  html { font-size: 15px; }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  html { font-size: 14px; }
+}

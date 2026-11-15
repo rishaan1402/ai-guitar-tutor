@@ -106,7 +106,7 @@ export default function OnboardingFlow({ tuneOnly = false }: Props) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12 space-y-8">
+    <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12 space-y-8 short:py-3 short:space-y-3">
       <nav aria-label="Setup steps">
         <ol className="flex items-center justify-center gap-2 sm:gap-3">
           {shownSteps.map((s, i) => (
@@ -139,7 +139,7 @@ export default function OnboardingFlow({ tuneOnly = false }: Props) {
         </h1>
       </header>
 
-      <div className="glass-card min-h-[320px]">
+      <div className="glass-card min-h-[320px] short:min-h-0">
         {step === "permission" && (
           <MicPermission onGranted={onGranted} onWithoutMic={() => finishTo(practiceHref)} />
         )}

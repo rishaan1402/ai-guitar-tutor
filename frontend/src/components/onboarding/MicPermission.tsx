@@ -34,7 +34,7 @@ export default function MicPermission({ onGranted, onWithoutMic }: Props) {
   const help = micHelp(ua);
 
   return (
-    <div className="flex flex-col items-center text-center gap-6" data-testid="step-permission">
+    <div className="flex flex-col items-center text-center gap-6 short:gap-3" data-testid="step-permission">
       <p className="text-body text-gray-300 max-w-md">
         I listen through your mic; nothing is recorded until you strum.
       </p>
