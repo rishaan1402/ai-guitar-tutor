@@ -167,11 +167,11 @@ function Learn({ chord, points, onNext }: { chord: string; points: string[]; onN
   return (
     <div className="space-y-4">
       <p className="label-mono text-amber-400">New chord · {prettySymbol(chord)}</p>
-      <div className="grid gap-4 landscape:grid-cols-[1.3fr_1fr] landscape:items-start">
+      <div className="grid gap-4 landscape:grid-cols-[1.3fr_1fr] landscape:items-start short:grid-cols-[1fr_1fr] short:gap-3">
         {key && videoPath && <LessonVideoPlayer videoPath={videoPath} audioUrl={getAudioUrl(key)} chordName={key} />}
-        <div className="flex gap-4">
-          {shape && <div className="w-32 shrink-0"><ChordDiagram fingering={shape} caption={chord} fluid /></div>}
-          <ul className="flex-1 space-y-2 text-[15px] text-cream/80">
+        <div className="flex gap-4 short:gap-3">
+          {shape && <div className="w-32 shrink-0 short:w-24"><ChordDiagram fingering={shape} caption={chord} fluid /></div>}
+          <ul className="flex-1 space-y-2 text-[15px] text-cream/80 short:space-y-1 short:text-sm">
             {points.map((p) => (
               <li key={p} className="flex gap-2">
                 <span className="text-amber-400">•</span>
@@ -181,7 +181,7 @@ function Learn({ chord, points, onNext }: { chord: string; points: string[]; onN
           </ul>
         </div>
       </div>
-      <button onClick={onNext} className="h-12 w-full rounded-full bg-amber-400 font-semibold text-ink-950">I&apos;ve got the shape →</button>
+      <button onClick={onNext} className="sticky bottom-3 z-10 h-12 w-full rounded-full bg-amber-400 font-semibold text-ink-950 shadow-lg shadow-black/40">I&apos;ve got the shape →</button>
     </div>
   );
 }

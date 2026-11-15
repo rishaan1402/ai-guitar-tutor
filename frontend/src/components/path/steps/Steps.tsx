@@ -56,7 +56,7 @@ export function ReadStep({ step, onDone }: { step: Extract<Step, { kind: "read" 
           {sounds.map((f, k) => <FigureView key={k} figure={f} />)}
         </div>
       )}
-      <button onClick={() => onDone(null)} className={`${primary} w-full`}>Got it →</button>
+      <button onClick={() => onDone(null)} className={`${primary} sticky bottom-3 z-10 w-full shadow-lg shadow-black/40`}>Got it →</button>
     </div>
   );
 }

@@ -57,7 +57,8 @@ export default function Studio() {
   const s = !vp.h
     ? 1
     : wide
-      ? Math.max(vp.w / SCENE_W, vp.h / SCENE_H) * 1.22
+      ? // phones (wide screens) get room to pan; tablets (closer to 4:3) see most of the room
+        Math.max(vp.w / SCENE_W, vp.h / SCENE_H) * (vp.w / vp.h > 1.7 ? 1.22 : 1.04)
       : Math.max((vp.h * 0.66) / SCENE_H, Math.min(vp.w / SCENE_W, (vp.h * 0.9) / SCENE_H));
   const SW = SCENE_W * s, SH = SCENE_H * s;
   /** Landscape card width: a side panel on the right. */
