@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { App } from "@capacitor/app";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { INTENDED_PATH_KEY, isNativeApp } from "@/lib/native";
-import { getAccessToken } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -44,8 +43,9 @@ export default function NativeShell() {
     } catch {
       /* storage blocked */
     }
-    if (intended) router.replace(intended);
-    else if (window.location.pathname === "/" && getAccessToken()) router.replace("/dashboard");
+    // The app opens into the 3D studio (its home), signed in or not
+    if (intended) router.replace(intended === "/dashboard" ? "/studio" : intended);
+    else if (window.location.pathname === "/") router.replace("/studio");
 
     StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
     StatusBar.setBackgroundColor({ color: "#0c0a09" }).catch(() => {});
@@ -85,9 +85,13 @@ export default function NativeShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // keep the WebView scrolled to the top on page changes, like a native screen
+  // keep the WebView scrolled to the top on page changes, like a native screen;
+  // in the app the studio replaces the website's home and dashboard
   useEffect(() => {
-    if (isNativeApp()) window.scrollTo(0, 0);
+    if (!isNativeApp()) return;
+    window.scrollTo(0, 0);
+    if (pathname === "/dashboard" || pathname === "/") router.replace("/studio");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   if (!update) return null;
