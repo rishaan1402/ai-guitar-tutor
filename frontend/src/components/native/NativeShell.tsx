@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { INTENDED_PATH_KEY, isNativeApp } from "@/lib/native";
@@ -24,7 +25,7 @@ interface AppConfig {
   message: string | null;
 }
 
-/** Android-only behaviour: back button, deep links, status bar, forced updates. Renders nothing on the web. */
+/** App-only behaviour (Android and iOS): deep links, status bar, back button and forced updates on Android. Renders nothing on the web. */
 export default function NativeShell() {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,7 +33,8 @@ export default function NativeShell() {
 
   useEffect(() => {
     if (!isNativeApp()) return;
-    document.documentElement.dataset.native = "android";
+    const platform = Capacitor.getPlatform();
+    document.documentElement.dataset.native = platform;
 
     // A full load landed on the home page: go where it was meant to go,
     // or straight to the room for a signed-in player opening the app.
@@ -68,7 +70,8 @@ export default function NativeShell() {
     ];
 
     // Force an update when this build is too old to talk to the server safely
-    (async () => {
+    // (Android only: the server's minimum is an Android build number)
+    if (platform === "android") (async () => {
       try {
         const [info, res] = await Promise.all([App.getInfo(), fetch(`${API_BASE}/api/app/config`)]);
         if (!res.ok) return;

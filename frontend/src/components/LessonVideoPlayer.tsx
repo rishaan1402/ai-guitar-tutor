@@ -38,6 +38,7 @@ export default function LessonVideoPlayer({ videoPath, audioUrl, chordName, onVi
           <video
             src={videoPath}
             controls
+            playsInline
             className="w-full h-full"
             onEnded={onVideoEnd}
             onError={() => onVideoEnd?.()}
