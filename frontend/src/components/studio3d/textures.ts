@@ -236,7 +236,7 @@ export function textTexture(key: string, lines: { text: string; font: string; co
 /** Neon tube text: a bright core over a wide glow (the glow lives in the texture). */
 export function neonTexture(text: string, color: string, family: string) {
   return make(`neon-${text}`, 1024, 384, (c, w, h) => {
-    c.font = `900 150px ${family}`;
+    c.font = `900 112px ${family}`;
     c.textAlign = "center";
     c.textBaseline = "middle";
     for (const [blur, alpha] of [[60, 0.55], [30, 0.7], [12, 0.9]] as const) {
