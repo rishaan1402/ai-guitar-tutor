@@ -1,6 +1,7 @@
 "use client";
 
 import { changeGrooveHref } from "@/lib/groove/link";
+import SongLessonButton from "./SongLessonButton";
 import ReportContent from "@/components/report/ReportContent";
 import { useState } from "react";
 import Link from "next/link";
@@ -171,6 +172,7 @@ export default function ChartStage({ lesson, onPracticeChord, onComplete }: Prop
       </div>
       {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
 
+      <SongLessonButton lesson={lesson} chart={lesson.chart} />
       <SongSheetPlayer content={lesson.chart} />
       <ReportContent kind="song_chart" content={lesson.chart} context={`${lesson.song_title ?? ""} — ${lesson.artist ?? ""}`} />
 

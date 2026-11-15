@@ -1,5 +1,6 @@
 "use client";
 
+import SongLessonButton from "./SongLessonButton";
 import RichText from "@/components/ui/RichText";
 import { useRouter } from "next/navigation";
 
@@ -176,6 +177,11 @@ export function IntegratedLessonView({
                       }}
         >
           <RichText text={lesson.chairman_summary} />
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <SongLessonButton lesson={lesson} chart={lesson.chart || lessonToChordPro(lesson)} />
+          <p className="text-sm text-cream/55">New chords, the strum, the hardest change, each section, then the whole song with a band.</p>
         </div>
 
         {/* Song structure timeline */}

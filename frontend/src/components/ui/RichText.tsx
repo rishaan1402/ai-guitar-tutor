@@ -28,6 +28,27 @@ export default function RichText({ text, className = "" }: { text: string | null
   const blocks: ReactNode[] = [];
   let list: { ordered: boolean; items: string[] } | null = null;
   let para: string[] = [];
+  let table: string[][] | null = null;
+  const flushTable = () => {
+    if (!table) return;
+    const rows = table;
+    blocks.push(
+      <div key={`t${blocks.length}`} className="overflow-x-auto">
+        <table className="w-full border-collapse text-left text-[0.95em]">
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} className="border-b border-cream/10">
+                {r.map((c, j) => (
+                  <td key={j} className={`px-2 py-1.5 ${j === 0 ? "font-semibold text-cream/90" : ""}`}>{inline(c, `t${blocks.length}-${i}-${j}`)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>,
+    );
+    table = null;
+  };
   const flushPara = () => {
     if (para.length) blocks.push(<p key={`p${blocks.length}`}>{inline(para.join(" "), `p${blocks.length}`)}</p>);
     para = [];
@@ -46,6 +67,15 @@ export default function RichText({ text, className = "" }: { text: string | null
   };
   for (const raw of lines) {
     const line = raw.trim();
+    if (line.startsWith("|") && line.endsWith("|") && line.length > 2) {
+      flushPara();
+      flushList();
+      const cells = line.slice(1, -1).split("|").map((c) => c.trim());
+      if (cells.every((c) => /^:?-{2,}:?$/.test(c))) continue; // the |---| divider
+      (table ??= []).push(cells);
+      continue;
+    }
+    flushTable();
     const h = /^(#{1,4})\s+(.*)$/.exec(line);
     const bullet = /^[-*•]\s+(.*)$/.exec(line);
     const num = /^\d+[.)]\s+(.*)$/.exec(line);
@@ -73,5 +103,6 @@ export default function RichText({ text, className = "" }: { text: string | null
   }
   flushPara();
   flushList();
+  flushTable();
   return <div className={`space-y-2 ${className}`}>{blocks.map((b, i) => <Fragment key={i}>{b}</Fragment>)}</div>;
 }

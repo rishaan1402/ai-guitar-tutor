@@ -13,3 +13,11 @@ describe("RichText", () => {
     expect(container.querySelector("script")).toBeNull(); // never raw HTML
   });
 });
+
+describe("RichText tables", () => {
+  it("renders pipe tables without the divider row", () => {
+    const { container } = render(<RichText text={"| Fret | 1 | 3 |\n|---|---|---|\n| Chord | F | G |"} />);
+    expect(container.querySelectorAll("tr")).toHaveLength(2);
+    expect(container.textContent).not.toContain("---");
+  });
+});
