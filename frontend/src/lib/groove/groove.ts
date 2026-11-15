@@ -6,11 +6,13 @@
 export type GrooveStyle = "pop" | "ballad" | "rock" | "folk";
 
 export interface Groove {
+  /** "chords" (default) or "lead": single notes written string:fret, e.g. "2:3". */
+  kind?: "chords" | "lead";
   id: string;
   title: string;
   style: GrooveStyle;
   bpm: number;
-  /** One or two chords per 4/4 bar (two chords split the bar 2 + 2 beats). */
+  /** Chords: one or two per 4/4 bar (split 2 + 2 beats). Lead: up to four notes per bar; "-" holds the previous note. */
   bars: string[][];
   /** Eight eighth-note slots per bar: D (down), U (up), . (rest). */
   strum: string;
@@ -47,8 +49,9 @@ export function timeline(g: Groove): { segments: Segment[]; changes: Change[]; t
       const each = BEATS_PER_BAR / bar.length;
       for (const chord of bar) {
         const last = segments[segments.length - 1];
-        if (last && last.chord === chord) last.beats += each; // a held chord is one box
-        else segments.push({ chord, start: beat, beats: each });
+        // a held chord is one box; in lead "-" holds and repeated notes are separate plucks
+        if (last && (chord === "-" || (g.kind !== "lead" && last.chord === chord))) last.beats += each;
+        else if (chord !== "-") segments.push({ chord, start: beat, beats: each });
         beat += each;
       }
     }
@@ -56,6 +59,7 @@ export function timeline(g: Groove): { segments: Segment[]; changes: Change[]; t
   const changes: Change[] = [];
   for (let k = 1; k < segments.length; k++) {
     const from = segments[k - 1].chord, to = segments[k].chord;
+    if (from === to && g.kind !== "lead") continue;
     changes.push({
       i: changes.length,
       beat: segments[k].start,
@@ -75,7 +79,7 @@ export function strumSlots(pattern: string): string[] {
 }
 
 export function chordsIn(g: Groove): string[] {
-  return Array.from(new Set(g.bars.flat()));
+  return Array.from(new Set(g.bars.flat().filter((c) => c !== "-")));
 }
 
 export const PRESET_GROOVES: Groove[] = [
@@ -125,6 +129,6 @@ export const PRESET_GROOVES: Groove[] = [
   },
 ];
 
-export function presetById(id: string | null | undefined): Groove | undefined {
-  return PRESET_GROOVES.find((g) => g.id === id);
+export function presetById(id: string | null | undefined, extra: Groove[] = []): Groove | undefined {
+  return [...PRESET_GROOVES, ...extra].find((g) => g.id === id);
 }

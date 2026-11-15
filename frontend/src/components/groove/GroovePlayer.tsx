@@ -17,6 +17,8 @@ import { useAuth } from "@/context/AuthContext";
 import { grooveHref, type GrooveWithSource } from "@/lib/groove/link";
 import { Band } from "@/lib/groove/band";
 import { ChordTracker } from "@/lib/groove/detect";
+import { NoteTracker } from "@/lib/groove/pitch";
+import { noteName, parseNote, STRING_NAMES } from "@/lib/groove/lead";
 import { chordsIn, timeline } from "@/lib/groove/groove";
 import { Transport, starsFor, summarise, type ChangeResult, type Mode } from "@/lib/groove/transport";
 
@@ -62,11 +64,13 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
   const transportRef = useRef<Transport | null>(null);
   const micRef = useRef<{ stream: MediaStream; timer: ReturnType<typeof setInterval> } | null>(null);
   const tl = useMemo(() => timeline(groove), [groove]);
+  const isLead = groove.kind === "lead";
   const bpm = Math.round(groove.bpm * speed);
 
   // chord shapes for the "next chord" diagram
   useEffect(() => {
     let live = true;
+    if (groove.kind === "lead") return;
     Promise.all(chordsIn(groove).map(async (c) => [c, await loadFingering(toAppChordKey(c) ?? "").catch(() => null)] as const)).then(
       (pairs) => live && setShapes(Object.fromEntries(pairs)),
     );
@@ -144,19 +148,39 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
         an.fftSize = FFT;
         an.smoothingTimeConstant = 0;
         src.connect(an);
-        const tracker = new ChordTracker(chordsIn(groove));
-        const buf = new Float32Array(an.frequencyBinCount);
         let frames = 0;
-        const timer = setInterval(() => {
-          an.getFloatFrequencyData(buf);
-          const exp = t.expected();
-          const h = tracker.feed(buf, ctx.sampleRate, FFT, ctx.currentTime, exp?.to);
-          if (h) {
-            t.heard(h.symbol, h.time);
-            setHeard(h.symbol);
-          }
-          if (++frames % 3 === 0) setLevel(Math.max(0, Math.min(1, (tracker.level + 90) / 50)));
-        }, 30);
+        let timer: ReturnType<typeof setInterval>;
+        if (isLead) {
+          // single notes: pitch + pluck onsets on the raw waveform
+          an.fftSize = 2048;
+          const notes = new NoteTracker(an.fftSize);
+          const wave = new Float32Array(an.fftSize);
+          timer = setInterval(() => {
+            an.getFloatTimeDomainData(wave);
+            const n = notes.feed(wave, ctx.sampleRate, ctx.currentTime);
+            if (n) {
+              const exp = t.expected();
+              const want = exp ? parseNote(exp.to) : null;
+              // a note counts for the expected string:fret if the pitch matches (any string)
+              t.heard(want && want.midi === n.midi ? exp!.to : noteName(n.midi), n.time);
+              setHeard(noteName(n.midi));
+            }
+            if (++frames % 3 === 0) setLevel(Math.max(0, Math.min(1, notes.level * 8)));
+          }, 30);
+        } else {
+          const tracker = new ChordTracker(chordsIn(groove));
+          const buf = new Float32Array(an.frequencyBinCount);
+          timer = setInterval(() => {
+            an.getFloatFrequencyData(buf);
+            const exp = t.expected();
+            const h = tracker.feed(buf, ctx.sampleRate, FFT, ctx.currentTime, exp?.to);
+            if (h) {
+              t.heard(h.symbol, h.time);
+              setHeard(h.symbol);
+            }
+            if (++frames % 3 === 0) setLevel(Math.max(0, Math.min(1, (tracker.level + 90) / 50)));
+          }, 30);
+        }
         micRef.current = { stream, timer };
       } catch (e) {
         setError(micErrorMessage(e));
@@ -214,6 +238,11 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
 
   const getPosition = useCallback(() => transportRef.current?.position() ?? -4, []);
   const isHolding = useCallback(() => transportRef.current?.isHolding() ?? false, []);
+  // lead notes read as string + fret ("e1"), chords as symbols
+  const label = (x: string) => {
+    const n = isLead ? parseNote(x) : null;
+    return n ? `${STRING_NAMES[n.string]}${n.fret}` : prettySymbol(x);
+  };
   const stars = starsFor(results);
   const pairs = summarise(results);
   // the change that went worst (for "Fix it" and the coach)
@@ -246,13 +275,20 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
             getPosition={getPosition}
             isHolding={isHolding}
             judged={judged}
+            lead={isLead}
           />
         </div>
         {phase === "playing" && (
           <div className="flex w-[30%] max-w-[150px] flex-col gap-3">
             <div className="rounded-2xl border border-cream/10 p-2">
               <p className="label-mono text-center text-[10px] text-cream/50">Next</p>
-              {nextChord && shapes[nextChord] ? (
+              {isLead && nextChord && parseNote(nextChord) ? (
+                <div className="py-3 text-center">
+                  <p className="font-display text-4xl text-cream">{parseNote(nextChord)!.fret}</p>
+                  <p className="mt-1 text-xs text-cream/60">fret · {STRING_NAMES[parseNote(nextChord)!.string]} string</p>
+                  <p className="label-mono mt-1 text-[10px] text-amber-300">{noteName(parseNote(nextChord)!.midi)}</p>
+                </div>
+              ) : nextChord && shapes[nextChord] ? (
                 <ChordDiagram fingering={shapes[nextChord]} caption={nextChord} fluid className="!bg-transparent !p-0 !shadow-none" />
               ) : (
                 <p className="py-6 text-center font-display text-3xl text-cream">{nextChord ? prettySymbol(nextChord) : "–"}</p>
@@ -297,7 +333,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
             </div>
             <label className="mt-3 flex items-center gap-3 text-sm text-cream/75">
               <input type="checkbox" checked={headphones} onChange={(e) => setHeadphones(e.target.checked)} className="h-5 w-5 accent-amber-400" />
-              I&apos;m wearing headphones (full band with chords)
+              {isLead ? "I'm wearing headphones (hear the melody while I play)" : "I'm wearing headphones (full band with chords)"}
             </label>
             {error && <p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
             <div className="mt-4 flex gap-3">
@@ -320,7 +356,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
               {pairs.map((p) => (
                 <li key={`${p.from}${p.to}`} className="flex items-center justify-between rounded-xl border border-cream/10 px-3 py-2">
                   <span className="font-semibold text-cream">
-                    {prettySymbol(p.from)} → {prettySymbol(p.to)}
+                    {label(p.from)} → {label(p.to)}
                     {p.focus && <span className="label-mono ml-2 text-[10px] text-amber-300">focus</span>}
                   </span>
                   <span className="text-sm text-cream/70">
@@ -339,16 +375,16 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
               <>
                 <div className="mt-4 flex gap-2">
                   <button onClick={() => start(false)} className="h-12 flex-1 rounded-full bg-amber-400 font-semibold text-ink-950">Go again</button>
-                  <button
+                  {!isLead && <button
                     disabled={!!busy}
                     onClick={() => nextGroove(groove.focus ?? undefined, stars === 3, "next")}
                     className="h-12 flex-1 rounded-full border border-amber-400/50 px-3 text-amber-100 disabled:opacity-50"
                   >
                     {busy === "next" ? "Building…" : stars === 3 ? "Next, a bit faster" : "New Groove"}
-                  </button>
+                  </button>}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2 text-sm">
-                  {worst && (
+                  {worst && !isLead && (
                     <button disabled={!!busy} onClick={() => nextGroove([worst.from, worst.to], false, "fix")} className="h-10 rounded-full border border-cream/15 px-4 text-cream/85 disabled:opacity-50">
                       {busy === "fix" ? "Building…" : `Fix it: ${prettySymbol(worst.from)} → ${prettySymbol(worst.to)}`}
                     </button>

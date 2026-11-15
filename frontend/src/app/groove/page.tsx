@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import GroovePlayer from "@/components/groove/GroovePlayer";
 import { PRESET_GROOVES, presetById } from "@/lib/groove/groove";
 import { decodeGroove, encodeGroove, type GrooveWithSource } from "@/lib/groove/link";
+import { LEAD_RIFFS } from "@/lib/groove/lead";
 import { generateGroove } from "@/lib/api";
 import { prettySymbol } from "@/lib/chordShape";
 
@@ -27,7 +28,7 @@ export default function GroovePage() {
 function GrooveRoute() {
   const params = useSearchParams();
   const router = useRouter();
-  const preset = presetById(params.get("id"));
+  const preset = presetById(params.get("id"), LEAD_RIFFS);
   const linked = decodeGroove(params.get("g"));
   const daily = params.get("daily") === "1";
   const ai = params.get("ai") === "1";
@@ -56,7 +57,7 @@ function GrooveRoute() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daily, ai]);
 
-  if (preset) return <GroovePlayer key={preset.id} groove={{ ...preset, source: "preset" }} />;
+  if (preset) return <GroovePlayer key={preset.id} groove={{ ...preset, source: preset.kind === "lead" ? "lead" : "preset" }} />;
   if (linked) return <GroovePlayer key={params.get("g") ?? ""} groove={linked} defaultMode={linked.mode} />;
   if (daily || ai) {
     return (
@@ -128,7 +129,20 @@ function JamCorner() {
         </Link>
       </div>
 
-      <p className="label-mono mt-8 text-cream/50">Starters</p>
+      <p className="label-mono mt-8 text-cream/50">Riffs & melodies (single notes)</p>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+        {LEAD_RIFFS.map((g) => (
+          <li key={g.id}>
+            <Link href={`/groove?id=${g.id}`} className="block rounded-2xl border border-cream/10 p-4 hover:border-amber-400/50">
+              <span className="label-mono text-amber-400">lead · {g.bpm} bpm</span>
+              <span className="mt-1 block font-display text-xl uppercase text-cream">{g.title}</span>
+              <span className="mt-1 block text-sm text-cream/60">{g.tip}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <p className="label-mono mt-8 text-cream/50">Chord starters</p>
       <ul className="mt-3 grid gap-3 sm:grid-cols-2">
         {PRESET_GROOVES.map((g) => (
           <li key={g.id}>

@@ -6,6 +6,9 @@
  * Songs are traditional / public domain, arranged with only the chords learned so far.
  */
 import type { Groove } from "../groove/groove";
+import { LEAD_RIFFS } from "../groove/lead";
+
+const riff = (id: string) => LEAD_RIFFS.find((r) => r.id === id)!;
 
 export interface PathSession {
   id: string;
@@ -174,6 +177,39 @@ export const LEVELS: PathLevel[] = [
     ],
   },
 ];
+
+LEVELS.push({
+  id: "lead-1",
+  title: "Lead 1 · First riffs",
+  blurb: "Single notes: picking one string at a time, your first riff and two melodies.",
+  sessions: [
+    {
+      id: "l1-open",
+      title: "Picking single strings",
+      blurb: "Every open string, one at a time.",
+      newChords: [],
+      points: ["Hold the pick between thumb and the side of your index finger.", "Pick just one string and let it ring.", "Low E on the left of the highway, high e on the right."],
+      practice: riff("lead-open"),
+    },
+    {
+      id: "l1-riff",
+      title: "Your first riff",
+      blurb: "Night Drive: frets 0, 3, 5 on the low strings.",
+      newChords: [],
+      points: ["Numbers on the highway are frets; the lane is the string.", "Use finger 1 for fret 3 and finger 3 for fret 5."],
+      practice: riff("lead-night"),
+    },
+    {
+      id: "l1-melodies",
+      title: "Gig: two melodies",
+      blurb: "Ode to Joy and Twinkle Twinkle on the top strings.",
+      newChords: [],
+      points: ["Stay on the top two strings.", "Keep your hand over frets 1 to 5 and let your fingers do the walking."],
+      practice: riff("lead-ode"),
+      gig: riff("lead-twinkle"),
+    },
+  ],
+});
 
 export const ALL_SESSIONS: PathSession[] = LEVELS.flatMap((l) => l.sessions);
 

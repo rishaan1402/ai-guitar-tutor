@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { strumSlots, type Change, type Segment } from "@/lib/groove/groove";
 import { prettySymbol } from "@/lib/chordShape";
+import { parseNote, STRING_NAMES } from "@/lib/groove/lead";
 
 interface Props {
   segments: Segment[];
@@ -22,11 +23,15 @@ interface Props {
   judged: Record<number, string>;
   /** Beats visible above the now line. */
   lookahead?: number;
+  /** Lead: notes in six string lanes with fret numbers (no strum lane). */
+  lead?: boolean;
 }
 
 const NOW = 0.8; // now line at 80% of the height
 
-export default function Highway({ segments, changes, totalBeats, strum, getPosition, isHolding, judged, lookahead = 6 }: Props) {
+const LANE_COLORS: Record<number, string> = { 6: "#e8604f", 5: "#e8a54b", 4: "#e9d9b8", 3: "#86b092", 2: "#7da2c9", 1: "#c49be0" };
+
+export default function Highway({ segments, changes, totalBeats, strum, getPosition, isHolding, judged, lookahead = 6, lead = false }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const column = useRef<HTMLDivElement>(null);
   const [h, setH] = useState(600);
@@ -71,8 +76,19 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
   return (
     <div ref={wrap} className="relative h-full w-full overflow-hidden rounded-[22px] border border-cream/10 bg-[linear-gradient(to_bottom,#100d0b,#1a1410)]">
       {/* lanes */}
-      <div className="absolute inset-y-0 left-[16%] right-[30%] border-x border-cream/[0.06] bg-cream/[0.015]" />
-      <div className="absolute inset-y-0 right-[4%] w-[22%] border-x border-cream/[0.06]" />
+      {lead ? (
+        [6, 5, 4, 3, 2, 1].map((st, k) => (
+          <div key={st} className="absolute inset-y-0 border-l border-cream/[0.06]" style={{ left: `${10 + k * 14.5}%`, width: "14.5%" }}>
+            <div className="absolute inset-y-0 left-1/2 w-px" style={{ background: LANE_COLORS[st], opacity: 0.25 }} />
+            <span className="label-mono absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-cream/40">{STRING_NAMES[st]}</span>
+          </div>
+        ))
+      ) : (
+        <>
+          <div className="absolute inset-y-0 left-[16%] right-[30%] border-x border-cream/[0.06] bg-cream/[0.015]" />
+          <div className="absolute inset-y-0 right-[4%] w-[22%] border-x border-cream/[0.06]" />
+        </>
+      )}
 
       <div ref={column} className="absolute inset-x-0 top-0 will-change-transform">
         {/* bar lines */}
@@ -82,7 +98,35 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
           </div>
         ))}
         {/* chord boxes */}
-        {segments.map((s, k) => {
+        {lead && segments.map((s, k) => {
+          const n = parseNote(s.chord);
+          if (!n) return null;
+          const c = changeAt.get(s.start);
+          const status = c ? judged[c.i] : undefined;
+          const lane = 6 - n.string;
+          const isActive = k === active;
+          return (
+            <div
+              key={k}
+              className={`absolute flex items-center justify-center rounded-xl border-2 font-display transition-colors ${k < active ? "opacity-35" : ""}`}
+              style={{
+                left: `calc(${10 + lane * 14.5}% + 3px)`,
+                width: "calc(14.5% - 6px)",
+                top: y(s.start + Math.min(s.beats, 1)) + 2,
+                height: Math.max(26, Math.min(s.beats, 1) * ppb - 4),
+                borderColor: LANE_COLORS[n.string],
+                background: isActive ? LANE_COLORS[n.string] : `${LANE_COLORS[n.string]}33`,
+                color: isActive ? "#0c0a09" : "#f3ead8",
+                fontSize: Math.min(26, ppb * 0.5),
+              }}
+              aria-label={`String ${n.string}, fret ${n.fret}`}
+            >
+              {n.fret}
+              {status && <span className={`absolute -right-1 -top-1 h-3 w-3 rounded-full ${status === "on_time" ? "bg-sage-300" : status === "missed" ? "bg-amp-400" : "bg-amber-300"}`} />}
+            </div>
+          );
+        })}
+        {!lead && segments.map((s, k) => {
           const c = changeAt.get(s.start);
           const status = c ? judged[c.i] : undefined;
           const isActive = k === active;
@@ -116,7 +160,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
           );
         })}
         {/* strum arrows, one per eighth note */}
-        {Array.from({ length: totalBeats * 2 }, (_, e) => {
+        {!lead && Array.from({ length: totalBeats * 2 }, (_, e) => {
           const s = slots[e % 8];
           if (s === ".") return null;
           return (
@@ -138,7 +182,9 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
       </div>
       {holding && next && (
         <div className="pointer-events-none absolute inset-x-0 flex justify-center" style={{ top: yNow + 14 }}>
-          <span className="animate-pulse rounded-full bg-amber-400 px-4 py-1.5 font-semibold text-ink-950">Play {prettySymbol(next.chord)}</span>
+          <span className="animate-pulse rounded-full bg-amber-400 px-4 py-1.5 font-semibold text-ink-950">
+            {lead && parseNote(next.chord) ? `Play string ${parseNote(next.chord)!.string}, fret ${parseNote(next.chord)!.fret}` : `Play ${prettySymbol(next.chord)}`}
+          </span>
         </div>
       )}
       {/* fade at the top so chords appear softly */}

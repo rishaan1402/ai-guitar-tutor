@@ -246,14 +246,32 @@ export class Band {
     src.start(t);
   }
 
-  private renderStrum(chord: ChordNotes, dir: "D" | "U"): AudioBuffer {
+  /** One plucked note (the guide guitar playing a melody). */
+  note(t: number, midi: number) {
+    const key = `note:${midi}`;
+    let buf = this.strumCache.get(key);
+    if (!buf) {
+      buf = this.renderStrum({ symbol: key, root: midi % 12, pcs: [] }, "D", [midi]);
+      this.strumCache.set(key, buf);
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const g = this.ctx.createGain();
+    g.gain.value = 0.9;
+    src.connect(g);
+    g.connect(this.master);
+    g.connect(this.reverbSend);
+    src.start(t);
+  }
+
+  private renderStrum(chord: ChordNotes, dir: "D" | "U", only?: number[]): AudioBuffer {
     const sr = this.ctx.sampleRate, len = Math.floor(sr * 1.4);
     const out = this.ctx.createBuffer(1, len, sr);
     const d = out.getChannelData(0);
     // a guitar-like voicing: bass root, then chord tones climbing to ~E4
-    const notes = [midiInOctave(chord.root, 40)];
+    const notes = only ?? [midiInOctave(chord.root, 40)];
     let m = notes[0];
-    while (notes.length < 6) {
+    while (!only && notes.length < 6) {
       m += 1;
       if (chord.pcs.includes(m % 12) && m - notes[notes.length - 1] >= 3) notes.push(m);
       if (m > 72) break;

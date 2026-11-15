@@ -11,6 +11,7 @@
 import { Band } from "./band";
 import { matchesExpected } from "./detect";
 import { strumSlots, timeline, type Change, type Groove, type Segment } from "./groove";
+import { parseNote } from "./lead";
 
 export type Mode = "wait" | "play" | "follow" | "listen";
 export type ChangeStatus = "on_time" | "late" | "slow" | "missed";
@@ -63,6 +64,8 @@ export class Transport {
   private outLatency: number;
   /** Latest chord the detector confirmed (it reports each chord once, so an early change must be remembered). */
   private lastHeard: { symbol: string; played: number } | null = null;
+  /** When the previous change was settled: an "early" credit must come after it (a fresh pluck). */
+  private lastSettled = -Infinity;
 
   constructor(band: Band, groove: Groove, opts: TransportOptions) {
     this.band = band;
@@ -149,11 +152,18 @@ export class Transport {
     const seg = this.segmentAt(beat);
     const slot = e % 8;
     const full = this.opts.full || this.opts.mode === "listen";
-    this.band.playEighth(time, slot, seg.chord, dur, {
-      strum: this.slots[slot],
-      full,
-      padSeconds: seg.start * 2 === e ? seg.beats * 2 * dur : undefined,
-    });
+    if (this.groove.kind === "lead") {
+      // drums keep time; the guide guitar plays the melody when it's allowed to sound
+      this.band.playEighth(time, slot, null, dur, {});
+      const n = parseNote(seg.chord);
+      if (full && n && seg.start * 2 === e) this.band.note(time, n.midi);
+    } else {
+      this.band.playEighth(time, slot, seg.chord, dur, {
+        strum: this.slots[slot],
+        full,
+        padSeconds: seg.start * 2 === e ? seg.beats * 2 * dur : undefined,
+      });
+    }
     this.steps.push({ time, eighth: e, hold: false });
     if (this.steps.length > 600) this.steps.splice(0, 300);
     this.next = { time: time + dur, eighth: e + 1 };
@@ -163,6 +173,7 @@ export class Transport {
   private creditEarly(c: Change) {
     if (this.resolved.has(c.i) || this.opts.mode === "listen" || !this.lastHeard) return;
     if (this.expected()?.i !== c.i || !matchesExpected(this.lastHeard.symbol, c.to)) return;
+    if (this.lastHeard.played <= this.lastSettled) return;
     const at = (this.reachedAt.get(c.i) ?? 0) + this.outLatency;
     const off = this.lastHeard.played - at;
     // only a change made after the previous chord was settled counts (not a leftover)
@@ -248,6 +259,7 @@ export class Transport {
     if (this.resolved.has(c.i)) return;
     const r = { change: c, status, offset };
     this.resolved.set(c.i, r);
+    this.lastSettled = this.lastHeard?.played ?? this.band.ctx.currentTime;
     this.opts.onResult?.(r);
   }
 

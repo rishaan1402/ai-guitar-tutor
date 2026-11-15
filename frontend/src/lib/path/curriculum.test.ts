@@ -9,6 +9,7 @@ describe("curriculum", () => {
     for (const s of ALL_SESSIONS) {
       const known = new Set(chordsUpTo(s.id));
       for (const g of [s.practice, s.gig].filter(Boolean)) {
+        if (g!.kind === "lead") continue; // notes, checked in pitch.test
         for (const c of g!.bars.flat()) {
           expect(known.has(c), `${s.id}: ${c} not taught yet`).toBe(true);
           expect(chordNotes(c), c).toBeTruthy();
