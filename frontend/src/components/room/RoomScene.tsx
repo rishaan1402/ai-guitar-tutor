@@ -16,6 +16,8 @@ export interface RoomState {
   sheet?: [string, string];
   /** A re-check is due: the amp's LED pulses. */
   recheckDue?: boolean;
+  /** Cosmetic room upgrades earned by levelling up (game layer). */
+  upgrades?: string[];
 }
 
 interface Props {
@@ -243,6 +245,7 @@ function RecordWall({ mastered, streak }: { mastered: number; streak?: number })
 }
 
 export default function RoomScene({ active, state = {}, reflections = true }: Props) {
+  const has = (id: string) => !!state.upgrades?.includes(id);
   const sheet = state.sheet ?? ["| G . | D . |", "| Em . | C . |"];
   const objects = (
     <>
@@ -355,11 +358,50 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
           </g>
         ))}
         <ellipse cx="820" cy="470" rx="420" ry="300" fill="url(#os-halo)" />
+        {has("poster") && (
+          <g data-upgrade="poster" transform="rotate(-3 1035 170)">
+            <rect x="965" y="92" width="140" height="190" rx="4" fill="#e9d9b8" />
+            <rect x="975" y="102" width="120" height="96" fill="#c9452f" />
+            <circle cx="1035" cy="150" r="30" fill="#141110" />
+            <circle cx="1035" cy="150" r="8" fill="#e8a54b" />
+            <text x="1035" y="226" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#2b231e">LIVE</text>
+            <text x="1035" y="248" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#2b231e">TONIGHT</text>
+            <text x="1035" y="268" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="9" fill="#5b4a3a">OPEN MIC · 8PM</text>
+          </g>
+        )}
+        {has("guitar2") && (
+          <g data-upgrade="guitar2">
+            <rect x="660" y="150" width="34" height="8" rx="3" fill="#3a3029" />
+            <rect x="672" y="140" width="10" height="180" rx="3" fill="#7a5a3a" />
+            <rect x="666" y="128" width="22" height="30" rx="5" fill="#1b1512" />
+            <path d="M650 318 C640 300 655 280 677 284 C699 280 714 300 704 318 C716 334 712 372 677 376 C642 372 638 334 650 318 Z" fill="#2e5b8a" stroke="#1b3a5c" strokeWidth="3" />
+            <rect x="664" y="330" width="26" height="6" rx="2" fill="#d9d4ca" />
+          </g>
+        )}
+        {has("neon") && (
+          <rect x="1206" y="142" width="348" height="170" rx="26" fill="none" stroke="#ffcf8a" strokeWidth="2" opacity="0.7" filter="url(#os-neon)" />
+        )}
         <g data-obj="wall" className={active === "wall" ? "is-active" : undefined}>
           <RecordWall mastered={Math.min(3, state.mastered ?? 2)} streak={state.streak} />
         </g>
         {/* skirting */}
         <rect x="-60" y="636" width="1720" height="10" fill="#0f0c0a" />
+        {has("lights") && (
+          <g data-upgrade="lights" aria-hidden="true">
+            <path d="M-20 16 Q 200 70 420 18 Q 640 70 860 18 Q 1080 70 1300 18 Q 1460 60 1640 16" fill="none" stroke="#3a3029" strokeWidth="2" />
+            {Array.from({ length: 24 }, (_, i) => {
+              const x = -10 + i * 70;
+              const seg = ((x + 20) % 440) / 440;
+              const y = 18 + Math.sin(seg * Math.PI) * 36;
+              return (
+                <g key={i}>
+                  <circle cx={x} cy={y + 10} r="12" fill="#ffcf8a" opacity="0.18" />
+                  <circle cx={x} cy={y + 10} r="4.5" fill={i % 3 === 0 ? "#ffb36b" : "#ffe2a8"} />
+                </g>
+              );
+            })}
+          </g>
+        )}
       </g>
 
       {/* ── floor ───────────────────────────────────────────────── */}
@@ -371,6 +413,15 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
         })}
         <ellipse cx="820" cy="784" rx="560" ry="74" fill="#3a1511" opacity="0.65" />
         <ellipse cx="820" cy="784" rx="500" ry="58" fill="none" stroke="#7a2a22" strokeOpacity="0.5" strokeWidth="3" strokeDasharray="10 8" />
+        {has("rug") && <ellipse data-upgrade="rug" cx="820" cy="784" rx="548" ry="70" fill="none" stroke="#e3b55a" strokeOpacity="0.7" strokeWidth="4" />}
+        {has("plant") && (
+          <g data-upgrade="plant">
+            <path d="M70 700 L150 700 L140 780 L80 780 Z" fill="#b0603a" />
+            {[-40, -20, 0, 20, 40].map((a, i) => (
+              <ellipse key={i} cx={110 + a * 0.9} cy={650 - Math.abs(a) * 0.6} rx="16" ry="52" fill={i % 2 ? "#3f6b46" : "#56875a"} transform={`rotate(${a} 110 700)`} />
+            ))}
+          </g>
+        )}
       </g>
 
       {/* ── objects + reflections ───────────────────────────────── */}

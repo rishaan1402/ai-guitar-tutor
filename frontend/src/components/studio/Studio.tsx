@@ -12,7 +12,7 @@ import useSWR from "swr";
 import RoomScene from "@/components/room/RoomScene";
 import { ROOM_OBJECTS, SCENE_H, SCENE_W, type RoomObject, type RoomObjectId } from "@/components/room/roomObjects";
 import { useAuth } from "@/context/AuthContext";
-import { getPlan, getProgress, type PlanItem } from "@/lib/api";
+import { getGame, getPlan, getProgress, type PlanItem } from "@/lib/api";
 import { planTitle } from "@/lib/mastery";
 import { planHref } from "@/app/dashboard/_components/TodaysPlan";
 import { pluck } from "@/lib/sound";
@@ -44,6 +44,7 @@ export default function Studio() {
   const swrOpts = { revalidateOnFocus: false };
   const { data: progress } = useSWR(user ? "/api/progress" : null, getProgress, swrOpts);
   const { data: plan } = useSWR(user ? "/api/plan/next" : null, getPlan, swrOpts);
+  const { data: game } = useSWR(user ? "/api/game" : null, getGame, swrOpts);
   const next: PlanItem | undefined = plan?.items?.[0];
   const due = plan?.items?.filter((i) => i.type === "review").length ?? 0;
 
@@ -207,7 +208,7 @@ export default function Studio() {
           />
           <RoomScene
             active={focus}
-            state={{ mastered, streak, sheet, recheckDue: due > 0 }}
+            state={{ mastered, streak, sheet, recheckDue: due > 0, upgrades: game?.upgrades.filter((u) => u.unlocked).map((u) => u.id) }}
           />
           {/* tap targets over each object */}
           {OBJECTS.map((o) => (
@@ -253,9 +254,33 @@ export default function Studio() {
           <span className="text-sm text-cream">{user ? user.display_name : "Sign in"}</span>
         </button>
         <div className="flex gap-2">
+          {game && <DailyRing done={game.daily.done} total={game.daily.total} tasks={game.daily.tasks} />}
           <Chip label="Streak" value={`${streak}🔥`} />
-          <Chip label="Gold" value={`${mastered}`} />
         </div>
+      </div>
+      {/* level + XP, and the coach */}
+      <div className="pointer-events-none absolute inset-x-0 top-[calc(max(1rem,env(safe-area-inset-top))+3rem)] flex items-start justify-between gap-3 px-4">
+        {game ? (
+          <div className="pointer-events-auto w-44 rounded-2xl border border-cream/10 bg-ink-950/70 px-3 py-2 backdrop-blur" aria-label={`Level ${game.level}, ${game.title}, ${game.xp} XP`}>
+            <p className="label-mono text-[10px] text-amber-400">Level {game.level} · {game.title}</p>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-cream/10">
+              <div
+                className="h-full rounded-full bg-amber-400"
+                style={{ width: `${game.next_level_xp ? Math.min(100, ((game.xp - game.level_xp) / (game.next_level_xp - game.level_xp)) * 100) : 100}%` }}
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-cream/50">{game.xp} XP{game.next_level_xp ? ` · ${game.next_level_xp - game.xp} to go` : ""}</p>
+          </div>
+        ) : (
+          <span />
+        )}
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => router.push("/coach")}
+          className="pointer-events-auto flex h-11 items-center gap-2 rounded-full border border-amber-400/40 bg-ink-950/70 px-4 text-sm font-semibold text-amber-100 backdrop-blur"
+        >
+          <span aria-hidden="true">💬</span> Coach
+        </button>
       </div>
 
       {/* room view: next step + hint */}
@@ -317,6 +342,42 @@ export default function Studio() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Today's three small tasks as a ring; tap for the list. */
+function DailyRing({ done, total, tasks }: { done: number; total: number; tasks: { id: string; label: string; done: boolean }[] }) {
+  const [open, setOpen] = useState(false);
+  const r = 13, c = 2 * Math.PI * r;
+  return (
+    <div className="pointer-events-auto relative">
+      <button
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-label={`Today's goal: ${done} of ${total} done`}
+        className="flex h-[34px] items-center gap-1.5 rounded-full border border-cream/10 bg-ink-950/70 pl-1 pr-3 backdrop-blur"
+      >
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="16" cy="16" r={r} fill="none" stroke="rgba(243,234,216,0.12)" strokeWidth="4" />
+          <circle cx="16" cy="16" r={r} fill="none" stroke={done >= total ? "#a3c6ab" : "#e8a54b"} strokeWidth="4" strokeLinecap="round"
+            strokeDasharray={`${(done / total) * c} ${c}`} transform="rotate(-90 16 16)" />
+        </svg>
+        <span className="text-sm font-semibold text-cream">{done}/{total}</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-11 z-10 w-60 rounded-2xl border border-cream/10 bg-ink-950/95 p-3 text-left shadow-xl" onPointerDown={(e) => e.stopPropagation()}>
+          <p className="label-mono text-[10px] text-amber-400">Today&apos;s goal</p>
+          <ul className="mt-2 space-y-1.5">
+            {tasks.map((t) => (
+              <li key={t.id} className={`flex items-center gap-2 text-sm ${t.done ? "text-sage-200" : "text-cream/80"}`}>
+                <span aria-hidden="true">{t.done ? "✓" : "○"}</span> {t.label}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
