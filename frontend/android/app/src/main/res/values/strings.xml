@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Open Strings</string>
+    <string name="title_activity_main">Open Strings</string>
+    <string name="package_name">app.openstrings</string>
+    <string name="custom_url_scheme">app.openstrings</string>
+</resources>

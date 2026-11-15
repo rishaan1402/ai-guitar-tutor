@@ -3,6 +3,26 @@
 import { useEffect, useRef, useState } from "react";
 import { getSocialProviders, type SocialProvider, type SocialProviders } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { isNativeApp } from "@/lib/native";
+
+/** Android app: the provider's native sign-in (Google blocks its web sign-in inside app WebViews). */
+async function nativeToken(provider: SocialProvider, p: SocialProviders): Promise<string> {
+  const { SocialLogin } = await import("@capgo/capacitor-social-login");
+  await SocialLogin.initialize({
+    ...(p.google ? { google: { webClientId: p.google.client_id } } : {}),
+    ...(p.facebook ? { facebook: { appId: p.facebook.app_id, clientToken: p.facebook.client_token } } : {}),
+  });
+  if (provider === "google") {
+    const res = await SocialLogin.login({ provider: "google", options: { scopes: ["email", "profile"] } });
+    const token = "idToken" in res.result ? res.result.idToken : null;
+    if (!token) throw new Error("Google didn't return a sign-in token");
+    return token;
+  }
+  const res = await SocialLogin.login({ provider: "facebook", options: { permissions: ["email", "public_profile"] } });
+  const token = res.result.accessToken?.token;
+  if (!token) throw new Error("Facebook didn't return a sign-in token");
+  return token;
+}
 
 /* Minimal typings for the two provider SDKs loaded below. */
 interface GoogleId {
@@ -87,10 +107,22 @@ export default function SocialSignIn({ onDone, mode }: Props) {
     }
   }
 
-  // Google renders its own button (its brand rules); we just give it a slot.
+  const native = isNativeApp();
+  async function nativeSignIn(provider: SocialProvider) {
+    setError(null);
+    try {
+      const token = await nativeToken(provider, providers);
+      await finish(provider, token);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setError(/cancel/i.test(msg) ? `${provider === "google" ? "Google" : "Facebook"} sign-in was cancelled` : msg || "Sign-in failed");
+    }
+  }
+
+  // Google renders its own button on the web (its brand rules); we just give it a slot.
   const googleId = providers.google?.client_id;
   useEffect(() => {
-    if (!googleId || !googleEl.current) return;
+    if (!googleId || !googleEl.current || native) return;
     let live = true;
     loadScript("https://accounts.google.com/gsi/client")
       .then(() => {
@@ -121,6 +153,7 @@ export default function SocialSignIn({ onDone, mode }: Props) {
   const fbAppId = providers.facebook?.app_id;
   async function facebook() {
     if (!fbAppId) return;
+    if (native) return nativeSignIn("facebook");
     setError(null);
     try {
       let fb = window.FB;
@@ -146,7 +179,23 @@ export default function SocialSignIn({ onDone, mode }: Props) {
 
   return (
     <div className="space-y-3" aria-busy={busy !== null}>
-      {googleId && <div ref={googleEl} className="flex min-h-[44px] w-full justify-center" data-testid="google-signin" />}
+      {googleId && !native && <div ref={googleEl} className="flex min-h-[44px] w-full justify-center" data-testid="google-signin" />}
+      {googleId && native && (
+        <button
+          type="button"
+          onClick={() => nativeSignIn("google")}
+          disabled={busy !== null}
+          className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[#8e918f] bg-[#131314] px-4 text-sm font-medium text-[#e3e3e3] disabled:opacity-60"
+        >
+          <svg aria-hidden="true" viewBox="0 0 48 48" className="h-5 w-5">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+          </svg>
+          {busy === "google" ? "Signing in…" : "Continue with Google"}
+        </button>
+      )}
       {fbAppId && (
         <button
           type="button"

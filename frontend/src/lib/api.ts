@@ -1,3 +1,4 @@
+import { bundledLessonPath, isNativeApp } from "./native";
 import { getAccessToken, getRefreshToken, refreshAccessToken, setTokens, clearTokens, loginHref } from "./auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -194,10 +195,13 @@ export function submitErrorMessage(err: unknown): string {
 }
 
 export function getVideoUrl(chord: string): string {
+  // the app ships every lesson video in the APK
+  if (isNativeApp()) return bundledLessonPath(chord, "lesson.mp4");
   return `${API_BASE}/video/${encodeURIComponent(chord)}`;
 }
 
 export function getAudioUrl(chord: string): string {
+  if (isNativeApp()) return bundledLessonPath(chord, "reference.wav");
   return `${API_BASE}/audio/${encodeURIComponent(chord)}`;
 }
 
@@ -245,7 +249,7 @@ export type SocialProvider = "google" | "facebook";
 /** Which sign-in buttons the server has enabled, with their public IDs. */
 export interface SocialProviders {
   google?: { client_id: string };
-  facebook?: { app_id: string };
+  facebook?: { app_id: string; client_token?: string };
 }
 
 export type ReportKind = "feedback" | "song_chart" | "song_lesson" | "tip" | "other";

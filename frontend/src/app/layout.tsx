@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo_Black, IBM_Plex_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import NativeShell, { NATIVE_BOOT_SCRIPT } from "@/components/native/NativeShell";
 
 // Display: heavy grotesk for big statements. Mono: labels, readouts, tabs.
 // Body: open, airy sans.
@@ -38,8 +39,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${mono.variable} ${body.variable}`}>
+      <head>
+        {/* Android app only: carry a deep path across a full reload (no-op in browsers) */}
+        <script dangerouslySetInnerHTML={{ __html: NATIVE_BOOT_SCRIPT }} />
+      </head>
       <body className="font-sans">
         <AuthProvider>
+          <NativeShell />
           {children}
         </AuthProvider>
       </body>

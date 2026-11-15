@@ -182,6 +182,14 @@ async def _user_for_identity(db: AsyncSession, ident: SocialIdentity) -> User:
                    "Sign up with email instead, or allow email access and try again.",
         )
     user = await _find_user_by_email(db, ident.email)
+    if user is not None and ident.provider != "google":
+        # Only Google certifies email ownership (email_verified). Meta doesn't, so a Facebook
+        # login never attaches itself to an existing account by email alone.
+        raise HTTPException(
+            status_code=409,
+            detail="An account with this email already exists. Log in with your email and password "
+                   "(or Google) instead.",
+        )
     if user is None:
         name = (ident.name or ident.email.split("@")[0]).strip()[:100] or "Player"
         user = User(

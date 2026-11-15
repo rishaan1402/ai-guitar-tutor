@@ -63,6 +63,10 @@ def enabled_providers() -> Dict[str, Any]:
     fb = facebook_app()
     if fb:
         out["facebook"] = {"app_id": fb[0]}
+        # public, needed by the Android Facebook SDK (not the app secret)
+        token = os.environ.get("FACEBOOK_CLIENT_TOKEN", "").strip()
+        if token:
+            out["facebook"]["client_token"] = token
     return out
 
 
@@ -151,6 +155,7 @@ async def verify_facebook(access_token: str, client: Optional[httpx.AsyncClient]
             await client.aclose()
     if str(prof.get("id")) != str(data.get("user_id")):
         raise SocialAuthError("Facebook token doesn't match the profile")
-    # Facebook only returns an email the person has confirmed with Facebook
+    # Meta returns the account's primary email; it is not an OIDC-verified claim, so the
+    # router uses it for new accounts only and never to link into an existing one.
     email = prof.get("email") or None
     return SocialIdentity("facebook", str(prof["id"]), email, email is not None, prof.get("name"))

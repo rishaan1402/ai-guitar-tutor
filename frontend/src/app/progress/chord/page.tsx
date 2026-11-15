@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
@@ -240,10 +240,23 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
   );
 }
 
+/** /progress/chord?name=E_minor (a query, not a path segment, so the app can be exported as static files). */
 export default function ChordDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const chordName = params.name as string;
+  return (
+    <Suspense
+      fallback={
+        <AppShell>
+          <LoadingSkeleton />
+        </AppShell>
+      }
+    >
+      <ChordDetail />
+    </Suspense>
+  );
+}
+
+function ChordDetail() {
+  const chordName = useSearchParams().get("name") ?? "";
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -258,7 +271,17 @@ export default function ChordDetailPage() {
     );
   }
 
-  const decodedChordName = decodeURIComponent(chordName);
+  const decodedChordName = chordName;
+  if (!decodedChordName) {
+    return (
+      <AppShell>
+        <ErrorState message="No chord picked" />
+        <div className="text-center mt-4">
+          <Link href="/progress" className="text-amber-300 hover:text-amber-200">← Back to Progress</Link>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

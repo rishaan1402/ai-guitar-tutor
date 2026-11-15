@@ -67,10 +67,21 @@ class TestSocialLogin:
         email = f"{uuid.uuid4().hex[:8]}@example.com"
         r = client.post("/api/auth/signup", json={"email": email, "password": "guitar123", "display_name": "Pat"})
         user_id = _me(client, r.json())["id"]
-        me = _me(client, _oauth(client, "facebook", monkeypatch, _ident("facebook", email=email)).json())
+        me = _me(client, _oauth(client, "google", monkeypatch, _ident("google", email=email)).json())
         assert me["id"] == user_id and me["has_password"] is True
         # password still works after linking
         assert client.post("/api/auth/login", json={"email": email, "password": "guitar123"}).status_code == 200
+
+    def test_facebook_never_links_into_an_existing_account(self, client, monkeypatch):
+        email = f"{uuid.uuid4().hex[:8]}@example.com"
+        client.post("/api/auth/signup", json={"email": email, "password": "guitar123", "display_name": "Pat"})
+        r = _oauth(client, "facebook", monkeypatch, _ident("facebook", email=email))
+        assert r.status_code == 409 and "already exists" in r.json()["detail"]
+
+    def test_new_facebook_user_is_created(self, client, monkeypatch):
+        ident = _ident("facebook")
+        me = _me(client, _oauth(client, "facebook", monkeypatch, ident).json())
+        assert me["email"] == ident.email and me["has_password"] is False
 
     def test_unverified_email_is_refused(self, client, monkeypatch):
         r = _oauth(client, "google", monkeypatch, _ident(verified=False))

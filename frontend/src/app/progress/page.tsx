@@ -76,7 +76,7 @@ function ChordMasteryMatrix({ chords }: { chords: any[] }) {
         {chords.map((chord) => (
           <Link
             key={chord.chord_name}
-            href={`/progress/chord/${encodeURIComponent(chord.chord_name)}`}
+            href={`/progress/chord?name=${encodeURIComponent(chord.chord_name)}`}
           >
             <div
               className="glass-card p-3 rounded-lg hover:scale-105 transition-all cursor-pointer border"
