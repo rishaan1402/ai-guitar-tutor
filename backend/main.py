@@ -41,6 +41,7 @@ from songs.router import router as songs_router
 from admin.router import router as admin_router
 from personalization.router import router as plan_router
 from meta.router import router as meta_router
+from practice.router import router as practice_router
 from db.engine import get_db
 from middleware import BodySizeLimitMiddleware
 from auth.rate_limit import RateLimiter, client_ip
@@ -136,6 +137,7 @@ app.include_router(songs_router)
 app.include_router(admin_router)
 app.include_router(plan_router)
 app.include_router(meta_router)
+app.include_router(practice_router)
 
 
 # ---------------------------------------------------------------------------

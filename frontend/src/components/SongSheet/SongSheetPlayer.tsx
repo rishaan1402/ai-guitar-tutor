@@ -13,6 +13,7 @@ import SheetView from "./SheetView";
 import SheetToolbar from "./SheetToolbar";
 import ChordPanel from "./ChordPanel";
 import ChordTabs from "./ChordTabs";
+import PlayAlong from "./PlayAlong";
 
 interface Props {
   content: string;
@@ -159,6 +160,8 @@ export default function SongSheetPlayer({ content, compact = false, defaultShowT
           />
         </div>
       )}
+
+      {!compact && <PlayAlong sheet={shown} />}
 
       <div className={compact ? "" : "grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8"}>
         <div className="space-y-8 min-w-0">

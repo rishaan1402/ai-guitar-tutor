@@ -5,7 +5,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
-import { getProgress, getCalendar } from "@/lib/api";
+import { getProgress, getCalendar, getWeeklyReport } from "@/lib/api";
+import WeeklyCard from "@/components/coach/WeeklyCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -199,6 +200,10 @@ export default function ProgressPage() {
           </Suspense>
         </motion.div>
 
+        <motion.div variants={fadeInUp}>
+          <WeeklySection />
+        </motion.div>
+
         <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-3">
             <Suspense fallback={<LoadingSkeleton />}>
@@ -221,6 +226,20 @@ export default function ProgressPage() {
         </motion.div>
       </motion.div>
     </AppShell>
+  );
+}
+
+function WeeklySection() {
+  const { data } = useSWR("/api/coach/weekly", getWeeklyReport, { revalidateOnFocus: false });
+  if (!data) return null;
+  return (
+    <div className="glass-card p-6">
+      <SectionHeader kicker="The last seven days" title="Your week" />
+      <div className="mt-4">
+        <WeeklyCard report={data} />
+      </div>
+      <Link href="/coach?tab=week" className="mt-4 inline-block text-sm text-amber-300 hover:text-amber-200">Talk it through with your coach →</Link>
+    </div>
   );
 }
 
