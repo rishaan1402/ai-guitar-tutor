@@ -57,7 +57,7 @@ function GrooveRoute() {
   }, [daily, ai]);
 
   if (preset) return <GroovePlayer key={preset.id} groove={{ ...preset, source: "preset" }} />;
-  if (linked) return <GroovePlayer key={params.get("g") ?? ""} groove={linked} />;
+  if (linked) return <GroovePlayer key={params.get("g") ?? ""} groove={linked} defaultMode={linked.mode} />;
   if (daily || ai) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-ink-950 p-6 text-center">

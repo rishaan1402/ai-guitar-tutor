@@ -19,11 +19,13 @@ function unb64url(s: string): string {
 
 export interface GrooveWithSource extends Groove {
   source?: string;
+  /** Mode to start in (songs default to follow). */
+  mode?: "wait" | "play" | "follow";
 }
 
 export function encodeGroove(g: GrooveWithSource): string {
-  const { id, title, style, bpm, bars, strum, focus, tip, loops, source } = g;
-  return b64url(JSON.stringify({ id, title, style, bpm, bars, strum, focus, tip, loops, source }));
+  const { id, title, style, bpm, bars, strum, focus, tip, loops, source, mode } = g;
+  return b64url(JSON.stringify({ id, title, style, bpm, bars, strum, focus, tip, loops, source, mode }));
 }
 
 export function grooveHref(g: GrooveWithSource): string {
@@ -56,6 +58,7 @@ export function decodeGroove(s: string | null | undefined): GrooveWithSource | n
       tip: raw.tip ? String(raw.tip).slice(0, 200) : undefined,
       loops: Math.max(1, Math.min(8, Math.round(Number(raw.loops) || 2))),
       source: raw.source ? String(raw.source).slice(0, 12) : undefined,
+      mode: ["wait", "play", "follow"].includes(raw.mode) ? raw.mode : undefined,
     };
   } catch {
     return null;
