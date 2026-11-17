@@ -35,6 +35,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0c0a09",
+  // draw edge to edge (behind a phone's camera cutout); pages pad with the safe-area insets
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

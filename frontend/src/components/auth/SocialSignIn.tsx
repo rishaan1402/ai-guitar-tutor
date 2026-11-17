@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getSocialProviders, type SocialProvider, type SocialProviders } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { Capacitor } from "@capacitor/core";
 import { isNativeApp } from "@/lib/native";
 
 /** Android app: the provider's native sign-in (Google blocks its web sign-in inside app WebViews). */
@@ -82,13 +83,17 @@ export default function SocialSignIn({ onDone, mode }: Props) {
   const [busy, setBusy] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
   const googleEl = useRef<HTMLDivElement>(null);
+  const native = isNativeApp();
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
 
   useEffect(() => {
     providersOnce ??= getSocialProviders();
     let live = true;
-    providersOnce.then((p) => live && setProviders(p));
+    // iOS app: Google and Facebook need their own iOS app IDs (not set up yet), so only
+    // email sign-in is offered there for now
+    const ios = native && Capacitor.getPlatform() === "ios";
+    providersOnce.then((p) => live && setProviders(ios ? {} : p));
     return () => {
       live = false;
     };
@@ -107,7 +112,6 @@ export default function SocialSignIn({ onDone, mode }: Props) {
     }
   }
 
-  const native = isNativeApp();
   async function nativeSignIn(provider: SocialProvider) {
     setError(null);
     try {
