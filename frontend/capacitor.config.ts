@@ -16,8 +16,8 @@ const config: CapacitorConfig = {
   },
   ios: {
     // the app's origin is capacitor://localhost (the API must allow it in ALLOWED_ORIGINS);
-    // keep pages clear of the notch and home indicator
-    contentInset: "always",
+    // draw edge to edge; the web app pads itself with the safe-area insets
+    contentInset: "never",
     backgroundColor: "#0c0a09",
   },
   plugins: {
@@ -30,7 +30,11 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: "DARK",
       backgroundColor: "#0c0a09",
-      overlaysWebView: false,
+      overlaysWebView: true,
+    },
+    // full screen: MainActivity hides the bars; the page is viewport-fit=cover, so insets go to CSS
+    SystemBars: {
+      initialViewportFitValueHint: "cover",
     },
   },
 };

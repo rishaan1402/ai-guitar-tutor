@@ -251,7 +251,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
     : null;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-ink-950 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
+    <div className="fixed inset-0 flex flex-col bg-ink-950 pb-[max(0.75rem,var(--sa-b))] pl-[max(0.75rem,var(--sa-l))] pr-[max(0.75rem,var(--sa-r))] pt-[max(0.75rem,var(--sa-t))]">
       {/* top bar */}
       <div className="flex items-center gap-3 pb-3 landscape:pb-2">
         <button onClick={() => (phase === "playing" ? stopNow() : onBack ? onBack() : router.back())} aria-label={phase === "playing" ? "Stop" : "Back"} className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/15 text-cream/80">

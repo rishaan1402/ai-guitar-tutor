@@ -88,9 +88,18 @@
 html {
   background: var(--bg-primary);
   color-scheme: dark;
+  /* Safe areas (camera cutouts, rounded corners, home indicator). Capacitor's Android
+     app also reports them as --safe-area-inset-*; use whichever is larger. */
+  --sa-l: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --sa-r: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+  --sa-t: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sa-b: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
 }
 
 body {
+  /* scrolling pages stay clear of a side camera cutout (landscape) */
+  padding-left: var(--sa-l);
+  padding-right: var(--sa-r);
   font-family: var(--font-body), system-ui, sans-serif;
   background:
     radial-gradient(ellipse 1100px 650px at 12% -15%, rgba(var(--accent-rgb), 0.10), transparent 60%),

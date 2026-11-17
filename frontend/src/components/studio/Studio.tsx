@@ -57,8 +57,8 @@ export default function Studio() {
   const s = !vp.h
     ? 1
     : wide
-      ? // phones (wide screens) get room to pan; tablets (closer to 4:3) see most of the room
-        Math.max(vp.w / SCENE_W, vp.h / SCENE_H) * (vp.w / vp.h > 1.7 ? 1.22 : 1.04)
+      ? // landscape: the whole room fits on screen, no zoom; extra width fades to the background
+        Math.min(vp.w / SCENE_W, vp.h / SCENE_H)
       : Math.max((vp.h * 0.66) / SCENE_H, Math.min(vp.w / SCENE_W, (vp.h * 0.9) / SCENE_H));
   const SW = SCENE_W * s, SH = SCENE_H * s;
   /** Landscape card width: a side panel on the right. */
@@ -312,6 +312,13 @@ export default function Studio() {
             className="pointer-events-none absolute inset-x-0 -bottom-px z-10 h-[16%]"
             style={{ background: "linear-gradient(to top, #0c0a09, transparent)" }}
           />
+          {/* on screens wider than the room, its side walls fade into the background */}
+          {SW * view.z < vp.w - 2 && (
+            <>
+              <div className="pointer-events-none absolute inset-y-0 -left-px z-10 w-[7%]" style={{ background: "linear-gradient(to right, #0c0a09, transparent)" }} />
+              <div className="pointer-events-none absolute inset-y-0 -right-px z-10 w-[7%]" style={{ background: "linear-gradient(to left, #0c0a09, transparent)" }} />
+            </>
+          )}
           <RoomScene
             active={focus ?? hover}
             state={{ mastered, streak, sheet, recheckDue: due > 0, upgrades: game?.upgrades.filter((u) => u.unlocked).map((u) => u.id) }}
@@ -377,7 +384,7 @@ export default function Studio() {
       )}
 
       {/* HUD */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 pl-[max(1rem,var(--sa-l))] pr-[max(1rem,var(--sa-r))] pt-[max(1rem,var(--sa-t))]">
         <button
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => router.push(user ? "/profile" : "/login")}
@@ -395,7 +402,7 @@ export default function Studio() {
         </div>
       </div>
       {/* level + XP, and the coach */}
-      <div className="pointer-events-none absolute inset-x-0 top-[calc(max(1rem,env(safe-area-inset-top))+3rem)] flex items-start justify-between gap-3 px-4">
+      <div className="pointer-events-none absolute inset-x-0 top-[calc(max(1rem,var(--sa-t))+3rem)] flex items-start justify-between gap-3 pl-[max(1rem,var(--sa-l))] pr-[max(1rem,var(--sa-r))]">
         {game ? (
           <div className="pointer-events-auto w-44 rounded-2xl border border-cream/10 bg-ink-950/70 px-3 py-2 backdrop-blur" aria-label={`Level ${game.level}, ${game.title}, ${game.xp} XP`}>
             <p className="label-mono text-[10px] text-amber-400">Level {game.level} · {game.title}</p>
@@ -421,7 +428,7 @@ export default function Studio() {
 
       {/* room view: next step + hint */}
       {!station && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 pb-[max(1.25rem,var(--sa-b))] text-center">
           {next && (
             <button
               onPointerDown={(e) => e.stopPropagation()}
@@ -441,8 +448,8 @@ export default function Studio() {
         <div
           className={
             wide
-              ? "absolute bottom-0 right-0 top-0 flex items-end p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pr-[max(0.75rem,env(safe-area-inset-right))]"
-              : "absolute inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+              ? "absolute bottom-0 right-0 top-0 flex items-end p-3 pb-[max(0.75rem,var(--sa-b))] pr-[max(0.75rem,var(--sa-r))]"
+              : "absolute inset-x-0 bottom-0 p-3 pb-[max(0.75rem,var(--sa-b))]"
           }
           style={wide ? { width: cardW + 24 } : undefined}
           onPointerDown={(e) => e.stopPropagation()}
