@@ -67,7 +67,7 @@ export default function Room({ state, badges = {}, hide = [], hrefs = {}, blurbs
   };
 
   return (
-    <div className={className}>
+    <div className={`os-force-dark ${className ?? ""}`}>
       <div
         ref={wrap}
         onPointerMove={onMove}

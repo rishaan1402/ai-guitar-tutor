@@ -10,7 +10,8 @@
    amp-red for live/energy, sage for "you nailed it".
    ============================================ */
 @layer base {
-  :root {
+  /* .os-force-dark keeps a scene on the night stage in either theme (the studio room) */
+  :root, .os-force-dark {
     /* ===== Stage Lights (dark, the default) ===== */
     --acc-50: 255 240 246; --acc-100: 255 214 232; --acc-200: 255 173 208; --acc-300: 255 127 181; --acc-400: 255 61 139; --acc-500: 240 33 111; --acc-600: 200 18 90; --acc-700: 154 14 71; --acc-800: 110 11 52; --acc-900: 74 8 36; --acc-950: 42 4 19;
     --ok-50: 233 255 253; --ok-100: 196 251 246; --ok-200: 140 245 236; --ok-300: 79 236 224; --ok-400: 46 230 214; --ok-500: 20 196 182; --ok-600: 14 156 145; --ok-700: 13 122 114; --ok-800: 14 92 87; --ok-900: 13 70 66; --ok-950: 5 37 35;

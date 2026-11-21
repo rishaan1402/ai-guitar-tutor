@@ -300,7 +300,7 @@ export default function Studio() {
 
   return (
     <div
-      className="fixed inset-0 select-none overflow-hidden bg-ink-950 touch-none"
+      className="os-force-dark fixed inset-0 select-none overflow-hidden bg-ink-950 text-cream touch-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -367,7 +367,7 @@ export default function Studio() {
       )}
 
       {/* soft vignette, darker at the bottom for the card */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(130% 80% at 50% 40%, transparent 55%, rgba(0,0,0,0.6) 100%), linear-gradient(to bottom, rgba(12,10,9,0.55), transparent 18%, transparent 62%, rgba(12,10,9,0.85))" }} />
+      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(130% 80% at 50% 40%, transparent 55%, rgba(0,0,0,0.6) 100%), linear-gradient(to bottom, rgba(11,10,26,0.55), transparent 18%, transparent 62%, rgba(11,10,26,0.85))" }} />
 
       {/* what the pick points at */}
       {!focus && hover && (() => {
@@ -392,8 +392,15 @@ export default function Studio() {
           height="46"
           viewBox="0 0 34 46"
         >
-          {/* a pick, point down: its tip is the cursor */}
-          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill={hover ? "rgb(var(--acc-400))" : "#d8c9a8"} stroke="rgb(var(--ink-950))" strokeWidth="2" />
+          {/* a neon pick, point down: its tip is the cursor; it lights up over something you can open */}
+          <defs>
+            <linearGradient id="os-pick" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor={hover ? "#ff7fb5" : "#b494ff"} />
+              <stop offset="0.55" stopColor={hover ? "#ff3d8b" : "#8a5cff"} />
+              <stop offset="1" stopColor={hover ? "#8a5cff" : "#2ee6d6"} />
+            </linearGradient>
+          </defs>
+          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill="url(#os-pick)" stroke="rgb(var(--ink-950))" strokeWidth="2" style={{ filter: hover ? "drop-shadow(0 0 10px rgba(255,61,139,0.9))" : "drop-shadow(0 0 6px rgba(138,92,255,0.7))" }} />
           <path d="M8 10 C 11 6, 23 6, 26 10" fill="none" stroke="rgba(var(--cream-rgb),0.45)" strokeWidth="2" strokeLinecap="round" />
           <circle cx="17" cy="45" r="2" fill="rgb(var(--ink-950))" opacity="0.6" />
         </svg>

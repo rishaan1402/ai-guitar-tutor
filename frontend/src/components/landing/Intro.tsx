@@ -54,7 +54,7 @@ export default function Intro() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+      className="os-force-dark fixed inset-0 z-[100] flex items-center justify-center overflow-hidden text-cream"
       role="dialog"
       aria-label="Open Strings"
       onClick={enter}
