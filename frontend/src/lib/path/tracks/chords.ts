@@ -187,6 +187,32 @@ Tips for a clean reading:
       ],
     },
     {
+      id: "songs-1",
+      title: "Songs 1 · Traditional songbook",
+      blurb: "Four traditional songs with the open chords you know, plus D7.",
+      sessions: [
+        S("sg-saints", "When the Saints Go Marching In", "G, C and a new chord: D7.",
+          ...chord("D7", "A little triangle pointing the other way from D: index on B 1st fret, middle on G 2nd, ring on e 2nd.", "Strum from the open D string.", "D7 pulls strongly back to G."),
+          read("The song", `A New Orleans spiritual from the early 1900s, now played by every brass band on earth. It's in **G**: almost all G, with a trip to **C** and **D7** pulling home.
+
+Strum **D . D U . U D U** and let it bounce.`),
+          groove(g("song-saints", "When the Saints Go Marching In (traditional)", [["G"], ["G"], ["G"], ["G"], ["G"], ["G"], ["D7"], ["D7"], ["G"], ["G"], ["C"], ["C"], ["G"], ["D7"], ["G"], ["G"]], { style: "folk", bpm: 96, strum: "D.DU.UDU", loops: 1, focus: ["G", "D7"] }), "follow")),
+        S("sg-susanna", "Oh! Susanna", "D, G and A7: a classic in D.",
+          read("The song", `An American song from 1848 by Stephen Foster, long in the public domain. Verse in **D** with **A7** pulling home; the chorus starts on **G**.
+
+Keep the strum light and quick: it's a walking song.`),
+          groove(g("song-susanna", "Oh! Susanna (Stephen Foster, 1848)", [["D"], ["D"], ["D"], ["A7"], ["D"], ["D"], ["A7"], ["D"], ["G"], ["G"], ["D"], ["D"], ["D"], ["D"], ["A7"], ["D"]], { style: "folk", bpm: 100, strum: "D.D.D.DU", loops: 1, focus: ["D", "A7"] }), "follow")),
+        S("sg-redriver", "Red River Valley", "A cowboy ballad in G.",
+          read("The song", `A traditional North American ballad. Slow and steady in **G**, with **D7** and **C**. Let each chord ring and keep the down-strums even.`),
+          groove(g("song-redriver", "Red River Valley (traditional)", [["G"], ["G"], ["G"], ["D7"], ["G"], ["G"], ["D7"], ["D7"], ["G"], ["G"], ["C"], ["C"], ["G"], ["D7"], ["G"], ["G"]], { style: "ballad", bpm: 84, strum: "D.D.D.D.", loops: 1, focus: ["G", "C"] }), "follow")),
+        S("sg-greensleeves", "Greensleeves", "An English tune from the 1500s, in 3/4.",
+          read("The song", `One of the oldest songs most people know. It's a waltz in **A minor**: count **1 2 3**. The **E** major chord at the end of each line gives it that ancient, haunted pull back to Am.
+
+Verse: Am G Am E · Am G Am-E Am. Chorus: C G Am E · C G Am-E Am.`),
+          groove(g("song-greensleeves", "Greensleeves (traditional)", [["Am"], ["G"], ["Am"], ["E"], ["Am"], ["G"], ["Am", "E"], ["Am"], ["C"], ["G"], ["Am"], ["E"], ["C"], ["G"], ["Am", "E"], ["Am"]], { style: "ballad", bpm: 90, strum: "D.D.D.", loops: 1, beatsPerBar: 3, focus: ["Am", "E"] }), "follow")),
+      ],
+    },
+    {
       id: "chords-5",
       title: "Chords 5 · Barre chords",
       blurb: "F, Bm and movable shapes: every chord, anywhere on the neck.",
@@ -412,6 +438,66 @@ Chart symbols you'll see:
             q("N.C. means…", ["Next chord", "No chord: stop or let the band play", "Normal capo"], 1, "No chord: rest or play the riff/melody only."))),
         S("c9-gig", "Final gig: the whole toolbox", "Barres, sevenths and a push.",
           groove(g("gig-c9", "Night Session", [["Am7"], ["Dm7"], ["G7"], ["Cmaj7"], ["F"], ["Bm7b5"], ["E7"], ["Am"], ["F"], ["G"], ["Em"], ["Am"], ["Dm7"], ["G7"], ["C"], ["E7"]], { style: "pop", bpm: 84, strum: "D.DU.UDU", loops: 1, focus: ["Bm7b5", "E7"] }), "play")),
+      ],
+    },
+    {
+      id: "chords-10",
+      title: "Chords 10 · Advanced harmony and rhythm",
+      blurb: "Jazz voicings, inversions, altered chords, ghost notes and odd meters.",
+      sessions: [
+        S("c10-drop2", "Drop-2 voicings", "The jazz guitarist's four-note shapes.",
+          read("Drop 2", `Take a four-note chord stacked closely (C E G B), **drop the second-highest note an octave**, and you get a **drop-2 voicing**: four notes on four neighbouring strings, easy to finger and beautifully spread. Jazz guitarists play almost everything with them.
+
+On the top four strings:
+- **Cmaj7**: x x 10 12 12 12
+- **Dm7**: x x 12 14 13 13
+- **G7**: x x 5 7 6 7
+
+Move between them with the **smallest finger moves** (voice leading).`,
+            fret("4:10R 3:12 2:12 1:12", "Cmaj7 drop 2", 9, 13), fret("4:5R 3:7 2:6 1:7", "G7 drop 2", 4, 8)),
+          play("Play the voicings", "Pluck each note of Cmaj7 then G7, low to high.", notes("4:10 3:12 2:12 1:12 4:5 3:7 2:6 1:7")),
+          groove(g("p-drop2", "ii–V–I in drop 2", [["Dm7"], ["G7"], ["Cmaj7"], ["Cmaj7"]], { style: "ballad", bpm: 80, strum: "D...D...", focus: ["G7", "Cmaj7"] }))),
+        S("c10-inversions", "Triad inversions everywhere", "Every chord, three ways, on one string set.",
+          read("Inversions", `A triad has three notes, so it has three **inversions** depending on which is lowest:
+- **Root position**: C E G
+- **1st inversion**: E G C
+- **2nd inversion**: G C E
+
+On the G, B and e strings, the three C shapes climb the neck: frets 5-5-3, 9-8-8, 12-13-12. Learn them for every chord you use and you can play any progression without moving more than a fret or two.`,
+            fret("3:5R 2:5 1:3", "Root position", 2, 6), fret("3:9 2:8 1:8R", "1st inversion", 7, 10), fret("3:12 2:13R 1:12", "2nd inversion", 11, 14)),
+          play("Climb the inversions", "Play all three C shapes, low to high.", notes("3:5 2:5 1:3 3:9 2:8 1:8 3:12 2:13 1:12")),
+          quiz("Inversions",
+            q("In a 1st-inversion triad, the lowest note is…", ["the root", "the 3rd", "the 5th"], 1, "1st inversion puts the 3rd in the bass: E G C for C major."),
+            q("G B D with B lowest is…", ["G root position", "G 1st inversion", "G 2nd inversion"], 1, "The 3rd (B) is lowest: 1st inversion."))),
+        S("c10-altered", "Altered dominants", "Tension that begs to resolve.",
+          read("Altered chords", `A dominant 7th can take **altered** notes for more tension: **♭9, #9, ♭5/#11, #5/♭13**.
+
+The most famous is the **7#9**, the "Hendrix chord": E G# D and a G on top. The G (#9) clashes against the G# (3rd): bluesy, gritty and unforgettable. It's played x 7 6 7 8 x.
+
+In jazz, altered dominants make the V chord sound more urgent before it resolves to I.`, fig("E7#9")),
+          ...chord("E7#9", "x 7 6 7 8 x: root on the A string with your middle finger.", "Mute the low E with your fretting thumb or the tip of your middle finger.", "Hit it hard and short: it's a rhythm chord."),
+          groove(g("p-hendrix", "Purple riff", [["E7#9"], ["E7#9"], ["G"], ["A"]], { style: "rock", bpm: 92, strum: "D.D..DU.", focus: ["E7#9", "G"] }))),
+        S("c10-ghost", "Ghost notes and the pocket", "The notes you feel more than hear.",
+          read("Ghost notes", `**Ghost notes** are muted strums between the real hits: the strumming hand never stops, and the fretting hand releases pressure so the in-between strums are just a percussive *chk*. They fill the groove without adding harmony.
+
+**The pocket** is where your hits sit against the drummer: a little behind the beat feels laid-back (soul, reggae), right on it feels driving (rock), a hair ahead feels urgent (punk).`),
+          strumRhythm("Sixteenth groove", "Hit the dots; everything else is a muted ghost strum.", "x..xx.x...x..x.x", 72),
+          strumRhythm("Funk push", "Accents on 1, the a of 2 and the & of 3.", "x......x..x.....", 76)),
+        S("c10-odd", "Odd meters", "Five and seven.",
+          read("Counting in five and seven", `**5/4** is usually felt as **3 + 2**: *ONE two three FOUR five*. (*Take Five* is the classic.)
+
+**7/8** is usually **2 + 2 + 3**: *ONE two THREE four FIVE six seven*. It turns up in Balkan folk, prog rock and film music.
+
+The trick is always the same: **find the groupings**, count them out loud, and tap the first beat of each group.`),
+          quiz("Odd meters",
+            q("5/4 is most often grouped as…", ["3 + 2", "4 + 1", "1 + 1 + 1 + 1 + 1"], 0, "Three then two (or two then three): never five even beats."),
+            q("7/8 grouped 2 + 2 + 3 accents which eighths?", ["1, 3 and 5", "1, 4 and 7", "1 and 5"], 0, "Groups start on eighths 1, 3 and 5."),
+            q("In 6/8 how many main pulses does a bar have?", ["2", "3", "6"], 0, "Two groups of three eighths."))),
+        S("c10-gig", "Gig: Jazz blues in F", "Twelve bars, jazz chords.",
+          read("Jazz blues", `The jazz version of the 12-bar adds a **ii–V** (Gm7 C7) at the end and a **D7** that leads to it:
+
+F7 · B♭7 · F7 · F7 · B♭7 · B♭7 · F7 · D7 · Gm7 · C7 · F7 · C7`),
+          groove(g("gig-jazzblues", "Jazz blues in F", [["F7"], ["Bb7"], ["F7"], ["F7"], ["Bb7"], ["Bb7"], ["F7"], ["D7"], ["Gm7"], ["C7"], ["F7"], ["C7"]], { style: "ballad", bpm: 100, strum: "D.D.D.D.", loops: 1, focus: ["Gm7", "C7"] }), "play")),
       ],
     },
   ],

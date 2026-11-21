@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { nextSession, TRACKS } from "@/lib/path/curriculum";
+import { isCheck, nextSession, TRACKS } from "@/lib/path/curriculum";
 import { loadPathProgress } from "@/lib/path/progress";
 import { listSongLessons, songSessionId } from "@/lib/path/songLesson";
 
@@ -129,7 +129,7 @@ export default function PathPage() {
                           className={`flex items-center gap-3 rounded-2xl border p-3 ${isNext ? "border-amber-400/70 bg-amber-400/10" : "border-cream/10"}`}
                         >
                           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${stars ? "bg-sage-300/20 text-sage-200" : isNext ? "bg-amber-400 text-ink-950" : "border border-cream/15 text-cream/50"}`}>
-                            {stars ? "✓" : i + 1}
+                            {isCheck(s.id) ? "◎" : stars ? "✓" : i + 1}
                           </span>
                           <span className="min-w-0 flex-1">
                             <span className="block truncate font-semibold text-cream">{s.title}</span>

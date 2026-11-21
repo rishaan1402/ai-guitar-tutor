@@ -316,5 +316,38 @@ Now the work is **repertoire, ears and other musicians**. Learn songs you love, 
           groove(g("gig-final", "Finale", [["Am7"], ["D7"], ["Gmaj7"], ["Cmaj7"], ["F"], ["Bm7b5"], ["E7"], ["Am"], ["C"], ["G"], ["Am"], ["F"], ["Dm7"], ["G7"], ["C"], ["E7"]], { style: "pop", bpm: 88, strum: "D.DU.UDU", loops: 1, focus: ["Bm7b5", "E7"] }), "play")),
       ],
     },
+    {
+      id: "finger-4",
+      title: "Fingerstyle 4 · Études and open tunings",
+      blurb: "Classical arpeggio études, a famous anonymous romance, and DADGAD.",
+      sessions: [
+        S("f4-etude", "Arpeggio étude", "p i m a m i, the classical way.",
+          read("Études", `19th-century guitar teachers like **Carcassi** and **Giuliani** wrote short studies (*études*) built on arpeggio patterns. The most common is **p i m a m i**: thumb, then the fingers up and back down.
+
+Over **Am** and **E7**, let the bass ring and keep every note even in volume. Play it so slowly it's boring; that's how it gets beautiful.`, tab(`e|-----0-----------0-----|
+B|---1---1-------0---0---|
+G|-2-------2---1-------1-|
+A|0---------------------|
+E|------------0----------|`, "p i m a m i over Am, then E7")),
+          play("Am, then E7", "Thumb on the bass, then i m a m i.", notes("5:0 3:2 2:1 1:0 2:1 3:2 6:0 3:1 2:0 1:0 2:0 3:1"))),
+        S("f4-romance", "Romance (anonymous)", "A Spanish study everyone wants to play.",
+          read("Spanish Romance", `This anonymous 19th-century piece is one of the most famous classical guitar works. The opening plays a melody on the **high e** with the **open B and G strings** as a ripple underneath, in triplets: *melody, B, G*.
+
+Melody notes on the e string: **7, 5, 3** (B, A, G), over an E minor bass.`),
+          play("The opening", "Melody note, then open B, then open G, three times down the melody.", notes("1:7 2:0 3:0 1:5 2:0 3:0 1:3 2:0 3:0"))),
+        S("f4-dadgad", "DADGAD and open tunings", "New tunings, new sounds.",
+          read("Open tunings", `Retune and the guitar becomes a new instrument:
+- **DADGAD** (low to high: D A D G A D): drop the low E, B and high E a whole step. Celtic music, Led Zeppelin's *Kashmir*; open strings ring in suspended harmony.
+- **Open G** (D G D G B D): a G chord on open strings; slide blues and Keith Richards.
+- **Drop D** (D A D G B E): heavy riffs (see the rock level).
+
+Always tune **down** to the new note, then back **up** afterwards: strings stay in tune better when tuned up to pitch.`),
+          quiz("Tunings",
+            q("DADGAD lowers which strings?", ["Low E, B and high E", "A and D", "Only the low E"], 0, "E→D, B→A, e→D: each a whole step."),
+            q("Open strings in open G make…", ["A G major chord", "A Gsus4 chord", "Nothing in particular"], 0, "D G D G B D: all G-chord tones."))),
+        S("f4-gig", "Gig: Fingerpicked ballad", "Thumb steady, fingers singing.",
+          groove(g("gig-f4-ballad", "Fingerpicked ballad", [["Am"], ["E7"], ["Am"], ["Am"], ["Dm"], ["Am"], ["E7"], ["Am"]], { style: "ballad", bpm: 66, strum: "D.D.D.D.", loops: 1, focus: ["Am", "E7"], tip: "Thumb on the bass, then i m a m i." }), "follow")),
+      ],
+    },
   ],
 };

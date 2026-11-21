@@ -12,7 +12,7 @@ import ChordTips from "@/components/chords/ChordTips";
 import { libraryKey, shapeFor } from "@/lib/chords/shape";
 import { EarStep, PlayStep, QuizStep, ReadStep, RhythmStep } from "@/components/path/steps/Steps";
 import { EchoStep, FretGameStep, ImproviseStep, LadderStep } from "@/components/path/steps/MoreSteps";
-import { ALL_SESSIONS, levelOf, sessionAfter, sessionById, trackOf, type PathSession } from "@/lib/path/curriculum";
+import { ALL_SESSIONS, checkAdvice, isCheck, levelOf, sessionAfter, sessionById, trackOf, type PathSession } from "@/lib/path/curriculum";
 import { chordsIn, SCORED, sessionStars, type Step } from "@/lib/path/steps";
 import { loadPathProgress, recordSession } from "@/lib/path/progress";
 import { buildSongSession, loadSongLesson } from "@/lib/path/songLesson";
@@ -138,7 +138,8 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
         {step?.kind === "ladder" && <LadderStep key={i} step={step} onDone={(s) => finish(i, s)} />}
         {step?.kind === "improvise" && <ImproviseStep key={i} step={step} onDone={(s) => (s === null ? (setSkipped(true), finish(i, null)) : finish(i, s))} />}
         {step?.kind === "fretgame" && <FretGameStep key={i} step={step} onDone={(s) => finish(i, s)} />}
-        {!step && (
+        {!step && level && isCheck(session.id) && <CheckResult levelId={level.id} stars={final} onAgain={() => { setI(0); setScores({}); setSkipped(false); }} />}
+        {!step && !(level && isCheck(session.id)) && (
           <div className="mx-auto max-w-xl rounded-[26px] border border-cream/10 p-6 text-center">
             <p className="label-mono text-amber-400">{isSong ? "Song lesson complete" : "Lesson complete"}</p>
             <div className="mt-2 text-5xl" aria-label={`${final} of 3 stars`}>
@@ -160,6 +161,66 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
         )}
       </div>
     </main>
+  );
+}
+
+/** After a level check: a recommendation, never a lock. */
+function CheckResult({ levelId, stars, onAgain }: { levelId: string; stars: number; onAgain: () => void }) {
+  const [done, setDone] = useState<Record<string, number> | null>(null);
+  useEffect(() => {
+    // give the check's own stars a moment to save, then read progress
+    const t = setTimeout(() => loadPathProgress().then(setDone), 400);
+    return () => clearTimeout(t);
+  }, []);
+  const advice = done ? checkAdvice(levelId, stars, done) : null;
+  const firstNext = advice?.next?.sessions[0];
+  return (
+    <div className="mx-auto max-w-xl rounded-[26px] border border-cream/10 p-6 text-center">
+      <p className="label-mono text-amber-400">Level check</p>
+      <div className="mt-2 text-5xl" aria-label={`${stars} of 3 stars`}>
+        {[0, 1, 2].map((k) => (
+          <span key={k} className={k < stars ? "text-amber-400" : "text-cream/15"}>★</span>
+        ))}
+      </div>
+      {advice && (
+        <>
+          <p className="mt-3 text-cream/80">
+            {advice.ready
+              ? advice.next
+                ? `You're ready for ${advice.next.title}.`
+                : "You've finished this track. Try another track on the Lessons page."
+              : "Nearly there. A little review first will make the next level feel easier."}
+          </p>
+          {!advice.ready && advice.review.length > 0 && (
+            <div className="mt-4 text-left">
+              <p className="label-mono text-[10px] text-cream/50">Worth revisiting</p>
+              <ul className="mt-2 space-y-1.5">
+                {advice.review.slice(0, 4).map((s) => (
+                  <li key={s.id}>
+                    <Link href={`/path/session?id=${s.id}`} className="flex items-center justify-between rounded-xl border border-cream/10 px-3 py-2 text-cream/85">
+                      <span className="truncate">{s.title}</span>
+                      <span className="text-amber-300">→</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="mt-6 flex flex-col gap-2">
+            {firstNext && (
+              <Link
+                href={`/path/session?id=${firstNext.id}`}
+                className={`flex h-12 items-center justify-center rounded-full px-4 font-semibold ${advice.ready ? "bg-amber-400 text-ink-950" : "border border-cream/15 text-cream/80"}`}
+              >
+                {advice.ready ? `Start ${advice.next!.title} →` : `Go on to ${advice.next!.title} anyway`}
+              </Link>
+            )}
+            <button onClick={onAgain} className="h-11 rounded-full border border-cream/15 text-cream/80">Take the check again</button>
+            <Link href="/path" className="flex h-11 items-center justify-center rounded-full border border-cream/15 text-cream/60">All lessons</Link>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
