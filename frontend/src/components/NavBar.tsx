@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/brand/Logo";
 import SoundToggle from "@/components/brand/SoundToggle";
+import ThemeToggle from "@/components/brand/ThemeToggle";
 
 interface NavItem {
   href: string;
@@ -81,6 +82,7 @@ export default function NavBar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
           <SoundToggle />
           {loading ? (
             <div className="h-8 w-20 rounded-full skeleton" />

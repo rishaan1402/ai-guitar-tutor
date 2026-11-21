@@ -642,7 +642,7 @@ function PracticeInner() {
                 stepText={`Step ${currentStep + 1} of ${STEPS.length} — ${STEPS[currentStep]?.label}`}
                 extra={
                   fromSong ? (
-                    <p className="text-xs mt-1" style={{ color: "#efc27a" }}>
+                    <p className="text-xs mt-1" style={{ color: "rgb(var(--acc-300))" }}>
                       Song practice mode — advisor tip after each attempt
                     </p>
                   ) : null
@@ -654,7 +654,7 @@ function PracticeInner() {
                         onClick={() => handleLeave(handleBackToSong)}
                         className="glass text-sm px-3 py-1.5 rounded-lg border transition-colors"
                         style={{
-                          color: "#efc27a",
+                          color: "rgb(var(--acc-300))",
                           borderColor: "rgba(var(--accent-rgb),0.4)",
                         }}
                       >

@@ -71,10 +71,10 @@ export default function AdminPage() {
                 onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
                 className="bg-white/5 text-white border border-white/10 rounded px-2 py-1 text-xs focus:outline-none"
               >
-                <option value="" className="bg-[#080a09]">All roles</option>
-                <option value="student" className="bg-[#080a09]">Students</option>
-                <option value="teacher" className="bg-[#080a09]">Teachers</option>
-                <option value="admin" className="bg-[#080a09]">Admins</option>
+                <option value="" className="bg-[rgb(var(--ink-950))]">All roles</option>
+                <option value="student" className="bg-[rgb(var(--ink-950))]">Students</option>
+                <option value="teacher" className="bg-[rgb(var(--ink-950))]">Teachers</option>
+                <option value="admin" className="bg-[rgb(var(--ink-950))]">Admins</option>
               </select>
             </div>
           </div>

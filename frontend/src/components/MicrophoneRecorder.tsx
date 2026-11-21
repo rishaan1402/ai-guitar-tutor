@@ -248,9 +248,9 @@ export default function MicrophoneRecorder({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const yFor = (db: number) => cssH - dbfsToLevel(db) * cssH;
     ctx.clearRect(0, 0, cssW, cssH);
-    ctx.fillStyle = "rgba(163,198,171,0.10)";
+    ctx.fillStyle = "rgba(79,236,224,0.10)";
     ctx.fillRect(0, yFor(GOOD_HIGH_DB), cssW, yFor(GOOD_LOW_DB) - yFor(GOOD_HIGH_DB));
-    ctx.fillStyle = "rgba(243,234,216,0.35)";
+    ctx.fillStyle = "rgba(243,242,255,0.35)";
     ctx.fillRect(0, cssH - 1.5, cssW, 1.5);
   }, []);
 
@@ -292,9 +292,9 @@ export default function MicrophoneRecorder({
 
           ctx.clearRect(0, 0, cssW, cssH);
           const yFor = (db: number) => cssH - dbfsToLevel(db) * cssH;
-          ctx.fillStyle = "rgba(163,198,171,0.10)";
+          ctx.fillStyle = "rgba(79,236,224,0.10)";
           ctx.fillRect(0, yFor(GOOD_HIGH_DB), cssW, yFor(GOOD_LOW_DB) - yFor(GOOD_HIGH_DB));
-          ctx.fillStyle = "rgba(222,122,92,0.55)";
+          ctx.fillStyle = "rgba(255,135,140,0.55)";
           ctx.fillRect(0, yFor(CLIP_DBFS), cssW, 1);
 
           // Colour by the take's running peak: a healthy strum's decay tail is
@@ -309,12 +309,12 @@ export default function MicrophoneRecorder({
             const db = DB_FLOOR * (1 - l);
             ctx.fillStyle =
               db > CLIP_DBFS - 2
-                ? "#de7a5c"
+                ? "#ff878c"
                 : db >= GOOD_LOW_DB
-                ? "#a3c6ab"
+                ? "#4fece0"
                 : peakGood || t < 1.5
-                ? "rgba(243,234,216,0.5)"
-                : "#efc27a";
+                ? "rgba(243,242,255,0.5)"
+                : "#85aaff";
             ctx.fillRect(startX + i * (BAR_PX + GAP_PX), cssH - h, barW, h);
           }
         }
@@ -621,7 +621,7 @@ export default function MicrophoneRecorder({
             />
           </div>
           <p
-            className={`mt-1.5 text-xs text-center min-h-[1rem] ${hint === "clipping" ? "text-[#de7a5c]" : "text-amber-300"}`}
+            className={`mt-1.5 text-xs text-center min-h-[1rem] ${hint === "clipping" ? "text-[#ff878c]" : "text-amber-300"}`}
             role="status"
           >
             {phase !== "idle" && hint ? LIVE_HINT[hint] : phase === "idle" ? <span className="text-gray-500">Input level</span> : ""}
@@ -629,7 +629,7 @@ export default function MicrophoneRecorder({
         </div>
       ) : (
         <p
-          className={`text-xs text-center min-h-[1rem] ${hint === "clipping" ? "text-[#de7a5c]" : "text-amber-300"}`}
+          className={`text-xs text-center min-h-[1rem] ${hint === "clipping" ? "text-[#ff878c]" : "text-amber-300"}`}
           role="status"
         >
           {phase !== "idle" && hint ? LIVE_HINT[hint] : ""}

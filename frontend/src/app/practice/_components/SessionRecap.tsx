@@ -31,15 +31,15 @@ export function Sparkline({ dots }: { dots: RecapDot[] }) {
       className="shrink-0"
       data-testid="sparkline"
     >
-      <line x1={pad} x2={W - pad} y1={H - pad} y2={H - pad} stroke="rgba(243,234,216,0.12)" strokeWidth={1} />
-      {graded > 1 && <path d={path} fill="none" stroke="#a3c6ab" strokeWidth={1.5} strokeLinejoin="round" />}
+      <line x1={pad} x2={W - pad} y1={H - pad} y2={H - pad} stroke="rgba(var(--cream-rgb),0.12)" strokeWidth={1} />
+      {graded > 1 && <path d={path} fill="none" stroke="rgb(var(--ok-300))" strokeWidth={1.5} strokeLinejoin="round" />}
       {dots.map((d, i) =>
         d.hollow ? (
-          <circle key={i} cx={x(i)} cy={H - pad} r={2.6} fill="none" stroke="rgba(243,234,216,0.55)" strokeWidth={1.2} data-dot="hollow" />
+          <circle key={i} cx={x(i)} cy={H - pad} r={2.6} fill="none" stroke="rgba(var(--cream-rgb),0.55)" strokeWidth={1.2} data-dot="hollow" />
         ) : d.score != null ? (
-          <circle key={i} cx={x(i)} cy={y(d.score)} r={2.6} fill={d.score >= 1 ? "#a3c6ab" : "#efc27a"} data-dot="filled" />
+          <circle key={i} cx={x(i)} cy={y(d.score)} r={2.6} fill={d.score >= 1 ? "rgb(var(--ok-300))" : "rgb(var(--acc-300))"} data-dot="filled" />
         ) : (
-          <circle key={i} cx={x(i)} cy={H - pad} r={2} fill="rgba(243,234,216,0.35)" />
+          <circle key={i} cx={x(i)} cy={H - pad} r={2} fill="rgba(var(--cream-rgb),0.35)" />
         ),
       )}
     </svg>

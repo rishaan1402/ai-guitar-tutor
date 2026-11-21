@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import RoomScene from "@/components/room/RoomScene";
+import LevelUp from "@/components/game/LevelUp";
 import { ROOM_OBJECTS, SCENE_H, SCENE_W, type RoomObject, type RoomObjectId } from "@/components/room/roomObjects";
 import { useAuth } from "@/context/AuthContext";
 import { getGame, getPlan, getProgress, type PlanItem } from "@/lib/api";
@@ -48,6 +49,21 @@ export default function Studio() {
   const { data: plan } = useSWR(user ? "/api/plan/next" : null, getPlan, swrOpts);
   const { data: game } = useSWR(user ? "/api/game" : null, getGame, swrOpts);
   const next: PlanItem | undefined = plan?.items?.[0];
+  const [levelUp, setLevelUp] = useState<{ level: number; title: string; unlock: string | null } | null>(null);
+  useEffect(() => {
+    if (!game) return;
+    let last = 0;
+    try {
+      last = Number(localStorage.getItem("os:last-level")) || 0;
+      localStorage.setItem("os:last-level", String(game.level));
+    } catch {
+      /* storage blocked: no celebration, nothing breaks */
+    }
+    if (last > 0 && game.level > last) {
+      const unlock = game.upgrades.find((u) => u.level === game.level)?.label ?? null;
+      setLevelUp({ level: game.level, title: game.title, unlock });
+    }
+  }, [game]);
   const due = plan?.items?.filter((i) => i.type === "review").length ?? 0;
 
   const vp = useViewport();
@@ -284,7 +300,7 @@ export default function Studio() {
 
   return (
     <div
-      className="fixed inset-0 select-none overflow-hidden bg-ink-950 touch-none"
+      className="os-force-dark fixed inset-0 select-none overflow-hidden bg-ink-950 text-cream touch-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -306,17 +322,17 @@ export default function Studio() {
         >
           <div
             className="pointer-events-none absolute inset-x-0 -top-px z-10 h-[14%]"
-            style={{ background: "linear-gradient(to bottom, #0c0a09, transparent)" }}
+            style={{ background: "linear-gradient(to bottom, rgb(var(--ink-950)), transparent)" }}
           />
           <div
             className="pointer-events-none absolute inset-x-0 -bottom-px z-10 h-[16%]"
-            style={{ background: "linear-gradient(to top, #0c0a09, transparent)" }}
+            style={{ background: "linear-gradient(to top, rgb(var(--ink-950)), transparent)" }}
           />
           {/* on screens wider than the room, its side walls fade into the background */}
           {SW * view.z < vp.w - 2 && (
             <>
-              <div className="pointer-events-none absolute inset-y-0 -left-px z-10 w-[7%]" style={{ background: "linear-gradient(to right, #0c0a09, transparent)" }} />
-              <div className="pointer-events-none absolute inset-y-0 -right-px z-10 w-[7%]" style={{ background: "linear-gradient(to left, #0c0a09, transparent)" }} />
+              <div className="pointer-events-none absolute inset-y-0 -left-px z-10 w-[7%]" style={{ background: "linear-gradient(to right, rgb(var(--ink-950)), transparent)" }} />
+              <div className="pointer-events-none absolute inset-y-0 -right-px z-10 w-[7%]" style={{ background: "linear-gradient(to left, rgb(var(--ink-950)), transparent)" }} />
             </>
           )}
           <RoomScene
@@ -336,7 +352,7 @@ export default function Studio() {
                 else select(o.id);
               }}
               className={`absolute rounded-2xl outline-none transition-[box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-amber-300/80 ${
-                hover === o.id && !focus ? "shadow-[0_0_0_2px_rgba(232,165,75,0.55),0_0_40px_rgba(232,165,75,0.25)]" : ""
+                hover === o.id && !focus ? "shadow-[0_0_0_2px_rgba(var(--accent-rgb),0.55),0_0_40px_rgba(var(--accent-rgb),0.25)]" : ""
               }`}
               style={{ left: o.x * s, top: o.y * s, width: o.w * s, height: o.h * s }}
             >
@@ -351,7 +367,7 @@ export default function Studio() {
       )}
 
       {/* soft vignette, darker at the bottom for the card */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(130% 80% at 50% 40%, transparent 55%, rgba(0,0,0,0.6) 100%), linear-gradient(to bottom, rgba(12,10,9,0.55), transparent 18%, transparent 62%, rgba(12,10,9,0.85))" }} />
+      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(130% 80% at 50% 40%, transparent 55%, rgba(0,0,0,0.6) 100%), linear-gradient(to bottom, rgba(11,10,26,0.55), transparent 18%, transparent 62%, rgba(11,10,26,0.85))" }} />
 
       {/* what the pick points at */}
       {!focus && hover && (() => {
@@ -376,12 +392,21 @@ export default function Studio() {
           height="46"
           viewBox="0 0 34 46"
         >
-          {/* a pick, point down: its tip is the cursor */}
-          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill={hover ? "#e8a54b" : "#d8c9a8"} stroke="#0c0a09" strokeWidth="2" />
-          <path d="M8 10 C 11 6, 23 6, 26 10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="17" cy="45" r="2" fill="#0c0a09" opacity="0.6" />
+          {/* a neon pick, point down: its tip is the cursor; it lights up over something you can open */}
+          <defs>
+            <linearGradient id="os-pick" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor={hover ? "#85aaff" : "#b494ff"} />
+              <stop offset="0.55" stopColor={hover ? "#3d7bff" : "#8a5cff"} />
+              <stop offset="1" stopColor={hover ? "#8a5cff" : "#2ee6d6"} />
+            </linearGradient>
+          </defs>
+          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill="url(#os-pick)" stroke="rgb(var(--ink-950))" strokeWidth="2" style={{ filter: hover ? "drop-shadow(0 0 10px rgba(61,123,255,0.9))" : "drop-shadow(0 0 6px rgba(138,92,255,0.7))" }} />
+          <path d="M8 10 C 11 6, 23 6, 26 10" fill="none" stroke="rgba(var(--cream-rgb),0.45)" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="17" cy="45" r="2" fill="rgb(var(--ink-950))" opacity="0.6" />
         </svg>
       )}
+
+      {levelUp && <LevelUp level={levelUp.level} title={levelUp.title} unlock={levelUp.unlock} onClose={() => setLevelUp(null)} />}
 
       {/* HUD */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 pl-[max(1rem,var(--sa-l))] pr-[max(1rem,var(--sa-r))] pt-[max(1rem,var(--sa-t))]">
@@ -398,7 +423,7 @@ export default function Studio() {
         </button>
         <div className="flex gap-2">
           {game && <DailyRing done={game.daily.done} total={game.daily.total} tasks={game.daily.tasks} />}
-          <Chip label="Streak" value={`${streak}🔥`} />
+          <Chip label="Streak" spoken={`${streak} day${streak === 1 ? "" : "s"}`} value={<>{streak}<span className={streak > 0 ? "os-flame ml-0.5" : "ml-0.5 grayscale"} aria-hidden="true">🔥</span></>} />
         </div>
       </div>
       {/* level + XP, and the coach */}
@@ -510,8 +535,8 @@ function DailyRing({ done, total, tasks }: { done: number; total: number; tasks:
         className="flex h-[34px] items-center gap-1.5 rounded-full border border-cream/10 bg-ink-950/70 pl-1 pr-3 backdrop-blur"
       >
         <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-          <circle cx="16" cy="16" r={r} fill="none" stroke="rgba(243,234,216,0.12)" strokeWidth="4" />
-          <circle cx="16" cy="16" r={r} fill="none" stroke={done >= total ? "#a3c6ab" : "#e8a54b"} strokeWidth="4" strokeLinecap="round"
+          <circle cx="16" cy="16" r={r} fill="none" stroke="rgba(var(--cream-rgb),0.12)" strokeWidth="4" />
+          <circle cx="16" cy="16" r={r} fill="none" stroke={done >= total ? "rgb(var(--ok-300))" : "rgb(var(--acc-400))"} strokeWidth="4" strokeLinecap="round"
             strokeDasharray={`${(done / total) * c} ${c}`} transform="rotate(-90 16 16)" />
         </svg>
         <span className="text-sm font-semibold text-cream">{done}/{total}</span>
@@ -536,9 +561,9 @@ function labelFor(o: RoomObject): string {
   return o.id === "guitar" ? "Lessons" : o.id === "metronome" ? "Grooves" : o.label;
 }
 
-function Chip({ label, value }: { label: string; value: string }) {
+function Chip({ label, value, spoken }: { label: string; value: React.ReactNode; spoken?: string }) {
   return (
-    <div className="rounded-full border border-cream/10 bg-ink-950/70 px-3 py-1.5 backdrop-blur" aria-label={`${label}: ${value}`}>
+    <div className="rounded-full border border-cream/10 bg-ink-950/70 px-3 py-1.5 backdrop-blur" aria-label={`${label}: ${spoken ?? String(value)}`}>
       <span className="label-mono text-cream/50">{label} </span>
       <span className="font-semibold text-cream">{value}</span>
     </div>

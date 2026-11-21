@@ -62,11 +62,11 @@ export default function RingButton({
   const discClass = primary
     ? live
       ? "bg-[#14110c]/90 border-amber-300/50"
-      : "bg-amber-400 border-amber-200 shadow-[0_0_32px_rgba(239,194,122,0.28)]"
+      : "bg-amber-400 border-amber-200 shadow-[0_0_32px_rgba(var(--accent-soft-rgb),0.28)]"
     : active
     ? "bg-amber-400/90 border-amber-300 motion-safe:animate-pulse"
     : "border-cream/40 bg-moss-900/40";
-  const labelClass = primary ? (live ? "text-cream" : "text-[#1c1206]") : active ? "text-[#1c1206]" : "text-cream";
+  const labelClass = primary ? (live ? "text-cream" : "text-[rgb(var(--ink-950))]") : active ? "text-[rgb(var(--ink-950))]" : "text-cream";
 
   const inner = (
     <>
@@ -75,13 +75,13 @@ export default function RingButton({
         className={cn("absolute inset-0 w-full h-full -rotate-90", listening && "motion-safe:animate-pulse")}
         aria-hidden
       >
-        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(243,234,216,0.14)" strokeWidth="0.6" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(var(--cream-rgb),0.14)" strokeWidth="0.6" />
         <circle
           cx="50"
           cy="50"
           r={r}
           fill="none"
-          stroke="#efc27a"
+          stroke="rgb(var(--acc-300))"
           strokeWidth={live ? 1.6 : primary ? 1.3 : 0.9}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -109,7 +109,7 @@ export default function RingButton({
         className={cn(
           "relative z-10 max-w-[70%] text-center font-bold uppercase leading-tight tracking-[0.18em] transition-colors duration-300",
           labelClass,
-          !primary && !disabled && !active && "group-hover:text-[#1c1206]",
+          !primary && !disabled && !active && "group-hover:text-[rgb(var(--ink-950))]",
         )}
         style={{ fontSize: labelPx }}
       >

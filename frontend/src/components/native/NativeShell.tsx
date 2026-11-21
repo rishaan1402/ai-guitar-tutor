@@ -50,7 +50,7 @@ export default function NativeShell() {
     else if (window.location.pathname === "/") router.replace("/studio");
 
     StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-    StatusBar.setBackgroundColor({ color: "#0c0a09" }).catch(() => {});
+    StatusBar.setBackgroundColor({ color: "rgb(var(--ink-950))" }).catch(() => {});
 
     const subs = [
       // Hardware back: go back a page, or leave the app from the first one

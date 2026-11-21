@@ -29,7 +29,7 @@ export function AppShell({ children }: AppShellProps) {
         toastOptions={{
           style: {
             background: "rgba(12, 10, 9, 0.95)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            border: "1px solid rgba(var(--cream-rgb),0.1)",
             color: "#e5e7eb",
             backdropFilter: "blur(16px)",
           },

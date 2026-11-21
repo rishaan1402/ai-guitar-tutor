@@ -30,8 +30,8 @@ export default function SongSearchBar({ onSearch, loading }: SongSearchBarProps)
           disabled={loading}
           className="flex-1 rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200"
           style={{
-            background: "rgba(255,255,255,0.07)",
-            border: "1px solid rgba(255,255,255,0.15)",
+            background: "rgba(var(--cream-rgb),0.07)",
+            border: "1px solid rgba(var(--cream-rgb),0.15)",
             color: "#fff",
             backdropFilter: "blur(12px)",
           }}
@@ -40,7 +40,7 @@ export default function SongSearchBar({ onSearch, loading }: SongSearchBarProps)
             e.currentTarget.style.boxShadow = "0 0 0 3px rgba(var(--accent-rgb),0.15)";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.border = "1px solid rgba(255,255,255,0.15)";
+            e.currentTarget.style.border = "1px solid rgba(var(--cream-rgb),0.15)";
             e.currentTarget.style.boxShadow = "none";
           }}
         />

@@ -53,9 +53,9 @@ const TONE: Record<string, string> = {
   amber: "border-amber-400/60 bg-amber-400/10 text-amber-200",
 };
 const STRING: Record<string, string> = {
-  ok: "bg-sage-300 shadow-[0_0_14px_rgba(163,198,171,0.8)]",
-  miss: "bg-amp-400 shadow-[0_0_14px_rgba(232,96,79,0.9)] animate-pulse",
-  unsure: "bg-amber-300/70 shadow-[0_0_10px_rgba(232,165,75,0.6)]",
+  ok: "bg-sage-300 shadow-[0_0_14px_rgba(var(--sage-soft-rgb),0.8)]",
+  miss: "bg-amp-400 shadow-[0_0_14px_rgba(var(--amp-rgb),0.9)] animate-pulse",
+  unsure: "bg-amber-300/70 shadow-[0_0_10px_rgba(var(--accent-rgb),0.6)]",
   mute: "bg-cream/15",
 };
 

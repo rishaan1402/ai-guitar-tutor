@@ -77,7 +77,7 @@ export default function LevelCheck({ analyser, onPassed }: Props) {
         {state.passed ? (
           <span className="text-emerald-200">Sounds good — I can hear you.</span>
         ) : hint === "clipping" ? (
-          <span className="text-[#de7a5c]">That&apos;s distorting — move back a little.</span>
+          <span className="text-[rgb(var(--live-300))]">That&apos;s distorting — move back a little.</span>
         ) : hint === "noisy" ? (
           <span className="text-amber-200">It&apos;s noisy here — move closer to the guitar.</span>
         ) : timedOut ? (

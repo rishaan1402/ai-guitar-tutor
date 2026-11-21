@@ -105,7 +105,7 @@ Record yourself weekly. Rest when your hand hurts: pain is a signal to stop, not
         S("l3-box1", "Box 1", "A minor pentatonic at the 5th fret.",
           read("Five notes", `The **minor pentatonic** has five notes: in A, **A C D E G**. It's almost impossible to play a "wrong" note with it over a minor or blues song: that's why it's every guitarist's first solo scale.
 
-The **box 1** shape sits at the 5th fret: two notes per string. Amber dots are the root, **A**. Index finger on the 5th fret, ring (or little) finger on the 7th and 8th.`,
+The **box 1** shape sits at the 5th fret: two notes per string. The highlighted dots are the root, **A**. Index finger on the 5th fret, ring (or little) finger on the 7th and 8th.`,
             fret(PENT1, "A minor pentatonic, box 1", 4, 9),
             hear("Hear it", "6:5 6:8 5:5 5:7 4:5 4:7 3:5 3:7 2:5 2:8 1:5 1:8", 0.3)),
           play("Up the box", "Play box 1 from the low E to the high e, alternate picking.", notes("6:5 6:8 5:5 5:7 4:5 4:7 3:5 3:7 2:5 2:8 1:5 1:8"))),

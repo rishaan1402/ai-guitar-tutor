@@ -44,18 +44,18 @@ export function FingeringTipCard({
                 finger === 1
                   ? "rgba(var(--sage-rgb),0.4)"
                   : finger === 2
-                  ? "rgba(134,176,146,0.4)"
+                  ? "rgba(var(--sage-rgb),0.4)"
                   : finger === 3
                   ? "rgba(245,158,11,0.4)"
-                  : "rgba(232,96,79,0.4)",
+                  : "rgba(var(--amp-rgb),0.4)",
               border:
                 finger === 1
                   ? "1px solid rgba(var(--sage-rgb),0.7)"
                   : finger === 2
-                  ? "1px solid rgba(134,176,146,0.7)"
+                  ? "1px solid rgba(var(--sage-rgb),0.7)"
                   : finger === 3
                   ? "1px solid rgba(245,158,11,0.7)"
-                  : "1px solid rgba(232,96,79,0.7)",
+                  : "1px solid rgba(var(--amp-rgb),0.7)",
             }}
           >
             {finger || "?"}
@@ -80,13 +80,13 @@ export function FingeringTipCard({
           style={{
             background:
               feedback === true
-                ? "rgba(134,176,146,0.2)"
-                : "rgba(134,176,146,0.05)",
+                ? "rgba(var(--sage-rgb),0.2)"
+                : "rgba(var(--sage-rgb),0.05)",
             border:
               feedback === true
-                ? "1px solid rgba(134,176,146,0.6)"
-                : "1px solid rgba(134,176,146,0.2)",
-            color: feedback === true ? "#86efac" : "rgba(134,239,172,0.6)",
+                ? "1px solid rgba(var(--sage-rgb),0.6)"
+                : "1px solid rgba(var(--sage-rgb),0.2)",
+            color: feedback === true ? "rgb(var(--ok-300))" : "rgba(134,239,172,0.6)",
           }}
         >
           👍 Helped
@@ -97,13 +97,13 @@ export function FingeringTipCard({
           style={{
             background:
               feedback === false
-                ? "rgba(232,96,79,0.2)"
-                : "rgba(232,96,79,0.05)",
+                ? "rgba(var(--amp-rgb),0.2)"
+                : "rgba(var(--amp-rgb),0.05)",
             border:
               feedback === false
-                ? "1px solid rgba(232,96,79,0.6)"
-                : "1px solid rgba(232,96,79,0.2)",
-            color: feedback === false ? "#fca5a5" : "rgba(252,165,165,0.6)",
+                ? "1px solid rgba(var(--amp-rgb),0.6)"
+                : "1px solid rgba(var(--amp-rgb),0.2)",
+            color: feedback === false ? "rgb(var(--live-200))" : "rgba(252,165,165,0.6)",
           }}
         >
           😕 Unclear

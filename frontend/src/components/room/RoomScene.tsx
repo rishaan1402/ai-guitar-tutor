@@ -36,31 +36,31 @@ function Amp({ live }: { live: boolean }) {
   return (
     <g>
       {/* body */}
-      <rect x="226" y="414" width="312" height="312" rx="16" fill="#1d1815" stroke="#3a3029" strokeWidth="3" />
-      <rect x="226" y="414" width="312" height="74" rx="16" fill="#2b231e" />
-      <rect x="226" y="470" width="312" height="18" fill="#2b231e" />
+      <rect x="226" y="414" width="312" height="312" rx="16" fill="#1b1a3d" stroke="#33306a" strokeWidth="3" />
+      <rect x="226" y="414" width="312" height="74" rx="16" fill="#24224d" />
+      <rect x="226" y="470" width="312" height="18" fill="#24224d" />
       {/* knobs */}
       {[0, 1, 2, 3, 4, 5].map((i) => (
         <g key={i} transform={`translate(${262 + i * 40} 451)`}>
-          <circle r="11" fill="#cdbb9c" />
-          <circle r="11" fill="none" stroke="#7b6a52" strokeWidth="1.5" />
-          <line x1="0" y1="0" x2={4 - i * 1.4} y2="-8" stroke="#2b231e" strokeWidth="2.2" strokeLinecap="round" />
+          <circle r="11" fill="#c3c0e6" />
+          <circle r="11" fill="none" stroke="#6f6ba8" strokeWidth="1.5" />
+          <line x1="0" y1="0" x2={4 - i * 1.4} y2="-8" stroke="#24224d" strokeWidth="2.2" strokeLinecap="round" />
         </g>
       ))}
       {/* power LED */}
-      <circle cx="510" cy="451" r="6" fill="#ff5a47" className={live ? "os-led-pulse" : undefined} />
-      <circle cx="510" cy="451" r="14" fill="#ff5a47" opacity="0.18" />
+      <circle cx="510" cy="451" r="6" fill="#ff4f7f" className={live ? "os-led-pulse" : undefined} />
+      <circle cx="510" cy="451" r="14" fill="#ff4f7f" opacity="0.18" />
       {/* grille */}
-      <rect x="248" y="504" width="268" height="200" rx="8" fill="url(#os-cloth)" stroke="#120e0c" strokeWidth="3" />
+      <rect x="248" y="504" width="268" height="200" rx="8" fill="url(#os-cloth)" stroke="#0b0a1a" strokeWidth="3" />
       <rect x="248" y="504" width="268" height="200" rx="8" fill="url(#os-grille-shade)" />
       {/* badge */}
-      <rect x="342" y="680" width="80" height="16" rx="3" fill="#cdbb9c" opacity="0.9" />
-      <text x="382" y="692" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="9" fontWeight="600" fill="#2b231e" letterSpacing="1.5">
+      <rect x="342" y="680" width="80" height="16" rx="3" fill="#c3c0e6" opacity="0.9" />
+      <text x="382" y="692" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="9" fontWeight="600" fill="#24224d" letterSpacing="1.5">
         OPEN·STR
       </text>
       {/* feet */}
-      <rect x="244" y="724" width="34" height="10" rx="3" fill="#0f0c0a" />
-      <rect x="486" y="724" width="34" height="10" rx="3" fill="#0f0c0a" />
+      <rect x="244" y="724" width="34" height="10" rx="3" fill="#0b0a1a" />
+      <rect x="486" y="724" width="34" height="10" rx="3" fill="#0b0a1a" />
     </g>
   );
 }
@@ -87,28 +87,28 @@ function Guitar({ ringing }: { ringing: boolean }) {
   return (
     <g transform="rotate(-5 817 764)">
       {/* stand */}
-      <path d="M770 764 L812 600 M864 764 L822 600 M786 700 L848 700" stroke="#2c2520" strokeWidth="7" strokeLinecap="round" fill="none" />
+      <path d="M770 764 L812 600 M864 764 L822 600 M786 700 L848 700" stroke="#24224d" strokeWidth="7" strokeLinecap="round" fill="none" />
       {/* headstock */}
-      <path d="M800 196 L834 196 L830 252 L804 252 Z" fill="#2a1a0e" />
+      <path d="M800 196 L834 196 L830 252 L804 252 Z" fill="#24224d" />
       {[0, 1, 2].map((i) => (
         <g key={i}>
-          <circle cx="796" cy={208 + i * 14} r="4" fill="#cdbb9c" />
-          <circle cx="838" cy={208 + i * 14} r="4" fill="#cdbb9c" />
+          <circle cx="796" cy={208 + i * 14} r="4" fill="#c3c0e6" />
+          <circle cx="838" cy={208 + i * 14} r="4" fill="#c3c0e6" />
         </g>
       ))}
       {/* neck */}
-      <rect x="806" y="250" width="22" height="236" fill="#3b2513" />
+      <rect x="806" y="250" width="22" height="236" fill="#24224d" />
       {[276, 300, 322, 342, 360, 377, 393, 408, 422, 435, 447].map((y) => (
-        <line key={y} x1="806" x2="828" y1={y} y2={y} stroke="#b9a07a" strokeWidth="1.2" opacity="0.7" />
+        <line key={y} x1="806" x2="828" y1={y} y2={y} stroke="#c3c0e6" strokeWidth="1.2" opacity="0.7" />
       ))}
       {/* body: one outline — upper bout, waist, lower bout */}
-      <path d={GUITAR_BODY} fill="url(#os-wood)" stroke="#2a1a0e" strokeWidth="3" />
+      <path d={GUITAR_BODY} fill="url(#os-wood)" stroke="#24224d" strokeWidth="3" />
       <path d={GUITAR_BODY} fill="url(#os-wood-sheen)" />
       {/* soundhole + rosette */}
-      <circle cx="817" cy="566" r="31" fill="none" stroke="#e8a54b" strokeWidth="3" opacity="0.85" />
-      <circle cx="817" cy="566" r="26" fill="#120c08" />
+      <circle cx="817" cy="566" r="31" fill="none" stroke="#3d7bff" strokeWidth="3" opacity="0.85" />
+      <circle cx="817" cy="566" r="26" fill="#0b0a1a" />
       {/* bridge */}
-      <rect x="787" y="664" width="60" height="12" rx="4" fill="#2a1a0e" />
+      <rect x="787" y="664" width="60" height="12" rx="4" fill="#24224d" />
       {/* strings */}
       {strings.map((i) => (
         <line
@@ -117,7 +117,7 @@ function Guitar({ ringing }: { ringing: boolean }) {
           x2={803 + i * 5.6}
           y1="252"
           y2="668"
-          stroke="#e9e1cf"
+          stroke="#e6e4ff"
           strokeWidth={1.6 - i * 0.16}
           opacity="0.85"
           className={ringing ? "os-string-ring" : undefined}
@@ -132,19 +132,19 @@ function MusicStand({ sheet }: { sheet: [string, string] }) {
   return (
     <g>
       {/* tripod + pole */}
-      <path d="M1030 470 L1030 740 M1030 740 L986 770 M1030 740 L1074 770 M1030 740 L1030 774" stroke="#2c2520" strokeWidth="6" strokeLinecap="round" fill="none" />
+      <path d="M1030 470 L1030 740 M1030 740 L986 770 M1030 740 L1074 770 M1030 740 L1030 774" stroke="#24224d" strokeWidth="6" strokeLinecap="round" fill="none" />
       {/* desk */}
       <g transform="rotate(-6 1030 360)">
-        <rect x="938" y="282" width="184" height="168" rx="6" fill="#211b17" stroke="#3a3029" strokeWidth="3" />
-        <rect x="934" y="444" width="192" height="12" rx="4" fill="#2c2520" />
+        <rect x="938" y="282" width="184" height="168" rx="6" fill="#1b1a3d" stroke="#33306a" strokeWidth="3" />
+        <rect x="934" y="444" width="192" height="12" rx="4" fill="#24224d" />
         {/* the chart */}
-        <rect x="952" y="294" width="156" height="140" rx="3" fill="#efe6d2" />
-        <text x="966" y="318" fontFamily="var(--font-display), sans-serif" fontSize="13" fill="#1d1815">MY SONG</text>
-        <text x="966" y="334" fontFamily="var(--font-mono), monospace" fontSize="8.5" fill="#7b6a52" letterSpacing="1">KEY G · CAPO 2</text>
-        <line x1="966" x2="1094" y1="342" y2="342" stroke="#cdbb9c" />
-        <text x="966" y="364" fontFamily="var(--font-mono), monospace" fontSize="11" fontWeight="600" fill="#1d1815">{sheet[0]}</text>
-        <text x="966" y="388" fontFamily="var(--font-mono), monospace" fontSize="11" fontWeight="600" fill="#1d1815">{sheet[1]}</text>
-        <text x="966" y="414" fontFamily="var(--font-mono), monospace" fontSize="8" fill="#b5372c" letterSpacing="1">▶ AUTOSCROLL</text>
+        <rect x="952" y="294" width="156" height="140" rx="3" fill="#e6e4ff" />
+        <text x="966" y="318" fontFamily="var(--font-display), sans-serif" fontSize="13" fill="#1b1a3d">MY SONG</text>
+        <text x="966" y="334" fontFamily="var(--font-mono), monospace" fontSize="8.5" fill="#6f6ba8" letterSpacing="1">KEY G · CAPO 2</text>
+        <line x1="966" x2="1094" y1="342" y2="342" stroke="#c3c0e6" />
+        <text x="966" y="364" fontFamily="var(--font-mono), monospace" fontSize="11" fontWeight="600" fill="#1b1a3d">{sheet[0]}</text>
+        <text x="966" y="388" fontFamily="var(--font-mono), monospace" fontSize="11" fontWeight="600" fill="#1b1a3d">{sheet[1]}</text>
+        <text x="966" y="414" fontFamily="var(--font-mono), monospace" fontSize="8" fill="#b51a4c" letterSpacing="1">▶ AUTOSCROLL</text>
       </g>
     </g>
   );
@@ -154,34 +154,34 @@ function RecordPlayer({ playing }: { playing: boolean }) {
   return (
     <g>
       {/* cabinet */}
-      <rect x="1148" y="598" width="350" height="140" rx="6" fill="#2a211b" stroke="#3a3029" strokeWidth="3" />
-      <rect x="1166" y="616" width="152" height="104" rx="4" fill="#231c17" stroke="#3a3029" strokeWidth="2" />
-      <rect x="1328" y="616" width="152" height="104" rx="4" fill="#231c17" stroke="#3a3029" strokeWidth="2" />
+      <rect x="1148" y="598" width="350" height="140" rx="6" fill="#1b1a3d" stroke="#33306a" strokeWidth="3" />
+      <rect x="1166" y="616" width="152" height="104" rx="4" fill="#1b1a3d" stroke="#33306a" strokeWidth="2" />
+      <rect x="1328" y="616" width="152" height="104" rx="4" fill="#1b1a3d" stroke="#33306a" strokeWidth="2" />
       {/* records peeking out */}
       {[0, 1, 2, 3].map((i) => (
-        <rect key={i} x={1176 + i * 12} y="626" width="9" height="88" rx="2" fill={["#d9483b", "#e8a54b", "#efe6d2", "#6a9576"][i]} opacity="0.75" />
+        <rect key={i} x={1176 + i * 12} y="626" width="9" height="88" rx="2" fill={["#e0245e", "#3d7bff", "#e6e4ff", "#14c4b6"][i]} opacity="0.75" />
       ))}
-      <circle cx="1404" cy="668" r="5" fill="#cdbb9c" />
-      <rect x="1160" y="736" width="16" height="30" fill="#1a1512" />
-      <rect x="1470" y="736" width="16" height="30" fill="#1a1512" />
+      <circle cx="1404" cy="668" r="5" fill="#c3c0e6" />
+      <rect x="1160" y="736" width="16" height="30" fill="#131230" />
+      <rect x="1470" y="736" width="16" height="30" fill="#131230" />
       {/* plinth */}
-      <rect x="1168" y="548" width="236" height="52" rx="8" fill="#5a3d26" />
-      <rect x="1168" y="548" width="236" height="10" rx="4" fill="#6e4b2f" />
+      <rect x="1168" y="548" width="236" height="52" rx="8" fill="#4a4590" />
+      <rect x="1168" y="548" width="236" height="10" rx="4" fill="#4a4590" />
       {/* platter + vinyl */}
-      <ellipse cx="1264" cy="552" rx="80" ry="17" fill="#0d0b0a" />
+      <ellipse cx="1264" cy="552" rx="80" ry="17" fill="#0b0a1a" />
       <ellipse cx="1264" cy="550" rx="76" ry="15" fill="url(#os-vinyl)" />
-      <ellipse cx="1264" cy="550" rx="18" ry="4" fill="#e8a54b" />
-      <ellipse cx="1264" cy="550" rx="2.5" ry="1" fill="#2b231e" />
+      <ellipse cx="1264" cy="550" rx="18" ry="4" fill="#3d7bff" />
+      <ellipse cx="1264" cy="550" rx="2.5" ry="1" fill="#24224d" />
       {/* groove shimmer that sweeps while playing */}
-      <ellipse cx="1264" cy="550" rx="56" ry="11" fill="none" stroke="#f3ead8" strokeOpacity="0.12" strokeDasharray="30 200" className={playing ? "os-spin-dash" : undefined} />
+      <ellipse cx="1264" cy="550" rx="56" ry="11" fill="none" stroke="#e6e4ff" strokeOpacity="0.12" strokeDasharray="30 200" className={playing ? "os-spin-dash" : undefined} />
       {/* tonearm */}
       <g transform={`rotate(${playing ? 9 : 0} 1374 540)`} style={{ transition: "transform 700ms cubic-bezier(0.16,1,0.3,1)" }}>
-        <circle cx="1374" cy="540" r="8" fill="#cdbb9c" />
-        <path d="M1374 540 L1318 552" stroke="#cdbb9c" strokeWidth="4" strokeLinecap="round" />
-        <rect x="1306" y="547" width="16" height="8" rx="2" fill="#2b231e" />
+        <circle cx="1374" cy="540" r="8" fill="#c3c0e6" />
+        <path d="M1374 540 L1318 552" stroke="#c3c0e6" strokeWidth="4" strokeLinecap="round" />
+        <rect x="1306" y="547" width="16" height="8" rx="2" fill="#24224d" />
       </g>
       {/* knob */}
-      <circle cx="1188" cy="584" r="6" fill="#cdbb9c" />
+      <circle cx="1188" cy="584" r="6" fill="#c3c0e6" />
     </g>
   );
 }
@@ -189,14 +189,14 @@ function RecordPlayer({ playing }: { playing: boolean }) {
 function Metronome({ ticking }: { ticking: boolean }) {
   return (
     <g>
-      <path d="M1420 598 L1490 598 L1468 418 L1442 418 Z" fill="#3d2f24" stroke="#5a4532" strokeWidth="2" />
-      <path d="M1431 590 L1479 590 L1462 440 L1448 440 Z" fill="#efe6d2" opacity="0.9" />
+      <path d="M1420 598 L1490 598 L1468 418 L1442 418 Z" fill="#33306a" stroke="#4a4590" strokeWidth="2" />
+      <path d="M1431 590 L1479 590 L1462 440 L1448 440 Z" fill="#e6e4ff" opacity="0.9" />
       {[460, 480, 500, 520, 540, 560].map((y) => (
-        <line key={y} x1="1451" x2="1459" y1={y} y2={y} stroke="#7b6a52" strokeWidth="1" />
+        <line key={y} x1="1451" x2="1459" y1={y} y2={y} stroke="#6f6ba8" strokeWidth="1" />
       ))}
       <g className={ticking ? "os-tick" : undefined} style={{ transformOrigin: "1455px 584px" }}>
-        <line x1="1455" y1="584" x2="1455" y2="446" stroke="#1d1815" strokeWidth="2.5" />
-        <rect x="1448" y="488" width="14" height="10" rx="2" fill="#d9483b" />
+        <line x1="1455" y1="584" x2="1455" y2="446" stroke="#1b1a3d" strokeWidth="2.5" />
+        <rect x="1448" y="488" width="14" height="10" rx="2" fill="#e0245e" />
       </g>
     </g>
   );
@@ -206,15 +206,15 @@ function Pedal() {
   return (
     <g>
       {/* cable to the amp */}
-      <path d="M576 742 C 520 760, 560 700, 520 712" stroke="#0f0c0a" strokeWidth="5" fill="none" />
-      <rect x="572" y="702" width="146" height="74" rx="12" fill="#b5372c" stroke="#7a241d" strokeWidth="3" />
-      <rect x="586" y="712" width="76" height="26" rx="4" fill="#120e0c" />
+      <path d="M576 742 C 520 760, 560 700, 520 712" stroke="#0b0a1a" strokeWidth="5" fill="none" />
+      <rect x="572" y="702" width="146" height="74" rx="12" fill="#b51a4c" stroke="#7a1236" strokeWidth="3" />
+      <rect x="586" y="712" width="76" height="26" rx="4" fill="#0b0a1a" />
       {/* needle display */}
-      <line x1="600" x2="648" y1="732" y2="732" stroke="#4b3a2e" strokeWidth="1" />
-      <line x1="624" y1="732" x2="628" y2="716" stroke="#86b092" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="680" cy="722" r="4" fill="#86b092" />
-      <circle cx="645" cy="758" r="11" fill="#cdbb9c" stroke="#7b6a52" strokeWidth="2" />
-      <text x="690" y="766" fontFamily="var(--font-mono), monospace" fontSize="8" fontWeight="600" fill="#f3ead8" letterSpacing="1">TUNE</text>
+      <line x1="600" x2="648" y1="732" y2="732" stroke="#33306a" strokeWidth="1" />
+      <line x1="624" y1="732" x2="628" y2="716" stroke="#2ee6d6" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="680" cy="722" r="4" fill="#2ee6d6" />
+      <circle cx="645" cy="758" r="11" fill="#c3c0e6" stroke="#6f6ba8" strokeWidth="2" />
+      <text x="690" y="766" fontFamily="var(--font-mono), monospace" fontSize="8" fontWeight="600" fill="#e6e4ff" letterSpacing="1">TUNE</text>
     </g>
   );
 }
@@ -227,17 +227,17 @@ function RecordWall({ mastered, streak }: { mastered: number; streak?: number })
         const gold = i < mastered;
         return (
           <g key={i}>
-            <rect x={x} y="112" width="136" height="136" rx="4" fill="#120e0c" stroke={gold ? "#b98b3c" : "#3a3029"} strokeWidth="5" />
-            <circle cx={x + 68} cy="180" r="50" fill={gold ? "url(#os-gold)" : "#1b1714"} />
+            <rect x={x} y="112" width="136" height="136" rx="4" fill="#0b0a1a" stroke={gold ? "#b98b3c" : "#33306a"} strokeWidth="5" />
+            <circle cx={x + 68} cy="180" r="50" fill={gold ? "url(#os-gold)" : "#131230"} />
             {[38, 30, 22].map((r) => (
-              <circle key={r} cx={x + 68} cy="180" r={r} fill="none" stroke={gold ? "#7a5a22" : "#2c2520"} strokeOpacity="0.5" />
+              <circle key={r} cx={x + 68} cy="180" r={r} fill="none" stroke={gold ? "#7a5a22" : "#24224d"} strokeOpacity="0.5" />
             ))}
-            <circle cx={x + 68} cy="180" r="12" fill={gold ? "#fff2d6" : "#2c2520"} />
+            <circle cx={x + 68} cy="180" r="12" fill={gold ? "#d6e3ff" : "#24224d"} />
           </g>
         );
       })}
-      <rect x="196" y="270" width="318" height="34" rx="3" fill="#cdbb9c" opacity="0.88" />
-      <text x="355" y="292" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="11" fontWeight="600" fill="#2b231e" letterSpacing="2">
+      <rect x="196" y="270" width="318" height="34" rx="3" fill="#c3c0e6" opacity="0.88" />
+      <text x="355" y="292" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="11" fontWeight="600" fill="#24224d" letterSpacing="2">
         {streak && streak > 0 ? `${streak}-DAY STREAK · ${mastered} MASTERED` : "HALL OF CLEAN TAKES"}
       </text>
     </g>
@@ -277,21 +277,21 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
     >
       <defs>
         <linearGradient id="os-wall" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1a1411" />
-          <stop offset="1" stopColor="#120e0c" />
+          <stop offset="0" stopColor="#131230" />
+          <stop offset="1" stopColor="#0b0a1a" />
         </linearGradient>
         <linearGradient id="os-floor" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#241a14" />
-          <stop offset="1" stopColor="#0c0a09" />
+          <stop offset="0" stopColor="#1b1a3d" />
+          <stop offset="1" stopColor="#0b0a1a" />
         </linearGradient>
         <radialGradient id="os-lamp" cx="0.5" cy="0" r="1">
-          <stop offset="0" stopColor="#ffcf8a" stopOpacity="0.32" />
-          <stop offset="0.55" stopColor="#e8a54b" stopOpacity="0.06" />
-          <stop offset="1" stopColor="#e8a54b" stopOpacity="0" />
+          <stop offset="0" stopColor="#a9c2ff" stopOpacity="0.32" />
+          <stop offset="0.55" stopColor="#3d7bff" stopOpacity="0.06" />
+          <stop offset="1" stopColor="#3d7bff" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="os-halo" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#e8a54b" stopOpacity="0.16" />
-          <stop offset="1" stopColor="#e8a54b" stopOpacity="0" />
+          <stop offset="0" stopColor="#3d7bff" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#3d7bff" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="os-wood" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#e3a253" />
@@ -311,18 +311,18 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
           </feMerge>
         </filter>
         <radialGradient id="os-vinyl" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#2a2420" />
-          <stop offset="0.7" stopColor="#141110" />
-          <stop offset="1" stopColor="#0b0908" />
+          <stop offset="0" stopColor="#24224d" />
+          <stop offset="0.7" stopColor="#131230" />
+          <stop offset="1" stopColor="#0b0a1a" />
         </radialGradient>
         <radialGradient id="os-gold" cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stopColor="#fff0c4" />
+          <stop offset="0" stopColor="#d6e3ff" />
           <stop offset="0.35" stopColor="#e3b55a" />
           <stop offset="1" stopColor="#8a6424" />
         </radialGradient>
         <pattern id="os-cloth" width="6" height="6" patternUnits="userSpaceOnUse">
-          <rect width="6" height="6" fill="#5b1e18" />
-          <path d="M0 6 L6 0 M-1 1 L1 -1 M5 7 L7 5" stroke="#7a2a22" strokeWidth="1" />
+          <rect width="6" height="6" fill="#560c27" />
+          <path d="M0 6 L6 0 M-1 1 L1 -1 M5 7 L7 5" stroke="#7a1236" strokeWidth="1" />
         </pattern>
         <linearGradient id="os-grille-shade" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#000" stopOpacity="0" />
@@ -342,61 +342,61 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
         <rect x="-60" y="-40" width="1720" height="700" fill="url(#os-wall)" />
         {/* acoustic panels behind a neon sign */}
         {Array.from({ length: 12 }, (_, i) => (
-          <rect key={i} x={1196 + (i % 4) * 92} y={96 + Math.floor(i / 4) * 92} width="84" height="84" rx="6" fill="#1b1512" stroke="#241c17" />
+          <rect key={i} x={1196 + (i % 4) * 92} y={96 + Math.floor(i / 4) * 92} width="84" height="84" rx="6" fill="#131230" stroke="#1b1a3d" />
         ))}
         <g className="os-neon" filter="url(#os-neon)" aria-hidden="true">
-          <rect x="1214" y="150" width="332" height="154" rx="22" fill="none" stroke="#e8604f" strokeWidth="3" opacity="0.85" />
-          <text x="1380" y="214" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#ffcf8a" strokeWidth="2.4">OPEN</text>
-          <text x="1380" y="272" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#ffcf8a" strokeWidth="2.4">STRINGS</text>
+          <rect x="1214" y="150" width="332" height="154" rx="22" fill="none" stroke="#ff5a7a" strokeWidth="3" opacity="0.85" />
+          <text x="1380" y="214" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#a9c2ff" strokeWidth="2.4">OPEN</text>
+          <text x="1380" y="272" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#a9c2ff" strokeWidth="2.4">STRINGS</text>
         </g>
         {/* lamps + light cones */}
         {[440, 1060].map((x) => (
           <g key={x}>
             <path d={`M${x - 60} 60 L${x + 60} 60 L${x + 360} 660 L${x - 360} 660 Z`} fill="url(#os-lamp)" />
-            <rect x={x - 26} y="40" width="52" height="22" rx="4" fill="#2b231e" />
-            <rect x={x - 22} y="58" width="44" height="5" rx="2" fill="#ffd79a" />
+            <rect x={x - 26} y="40" width="52" height="22" rx="4" fill="#24224d" />
+            <rect x={x - 22} y="58" width="44" height="5" rx="2" fill="#a9c2ff" />
           </g>
         ))}
         <ellipse cx="820" cy="470" rx="420" ry="300" fill="url(#os-halo)" />
         {has("poster") && (
           <g data-upgrade="poster" transform="rotate(-3 1035 170)">
-            <rect x="965" y="92" width="140" height="190" rx="4" fill="#e9d9b8" />
-            <rect x="975" y="102" width="120" height="96" fill="#c9452f" />
-            <circle cx="1035" cy="150" r="30" fill="#141110" />
-            <circle cx="1035" cy="150" r="8" fill="#e8a54b" />
-            <text x="1035" y="226" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#2b231e">LIVE</text>
-            <text x="1035" y="248" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#2b231e">TONIGHT</text>
-            <text x="1035" y="268" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="9" fill="#5b4a3a">OPEN MIC · 8PM</text>
+            <rect x="965" y="92" width="140" height="190" rx="4" fill="#e6e4ff" />
+            <rect x="975" y="102" width="120" height="96" fill="#d22057" />
+            <circle cx="1035" cy="150" r="30" fill="#131230" />
+            <circle cx="1035" cy="150" r="8" fill="#3d7bff" />
+            <text x="1035" y="226" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#24224d">LIVE</text>
+            <text x="1035" y="248" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#24224d">TONIGHT</text>
+            <text x="1035" y="268" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="9" fill="#4a4590">OPEN MIC · 8PM</text>
           </g>
         )}
         {has("guitar2") && (
           <g data-upgrade="guitar2">
-            <rect x="660" y="150" width="34" height="8" rx="3" fill="#3a3029" />
-            <rect x="672" y="140" width="10" height="180" rx="3" fill="#7a5a3a" />
-            <rect x="666" y="128" width="22" height="30" rx="5" fill="#1b1512" />
-            <path d="M650 318 C640 300 655 280 677 284 C699 280 714 300 704 318 C716 334 712 372 677 376 C642 372 638 334 650 318 Z" fill="#2e5b8a" stroke="#1b3a5c" strokeWidth="3" />
-            <rect x="664" y="330" width="26" height="6" rx="2" fill="#d9d4ca" />
+            <rect x="660" y="150" width="34" height="8" rx="3" fill="#33306a" />
+            <rect x="672" y="140" width="10" height="180" rx="3" fill="#4a4590" />
+            <rect x="666" y="128" width="22" height="30" rx="5" fill="#131230" />
+            <path d="M650 318 C640 300 655 280 677 284 C699 280 714 300 704 318 C716 334 712 372 677 376 C642 372 638 334 650 318 Z" fill="#6a4cff" stroke="#3a2a99" strokeWidth="3" />
+            <rect x="664" y="330" width="26" height="6" rx="2" fill="#c3c0e6" />
           </g>
         )}
         {has("neon") && (
-          <rect x="1206" y="142" width="348" height="170" rx="26" fill="none" stroke="#ffcf8a" strokeWidth="2" opacity="0.7" filter="url(#os-neon)" />
+          <rect x="1206" y="142" width="348" height="170" rx="26" fill="none" stroke="#a9c2ff" strokeWidth="2" opacity="0.7" filter="url(#os-neon)" />
         )}
         <g data-obj="wall" className={active === "wall" ? "is-active" : undefined}>
           <RecordWall mastered={Math.min(3, state.mastered ?? 2)} streak={state.streak} />
         </g>
         {/* skirting */}
-        <rect x="-60" y="636" width="1720" height="10" fill="#0f0c0a" />
+        <rect x="-60" y="636" width="1720" height="10" fill="#0b0a1a" />
         {has("lights") && (
           <g data-upgrade="lights" aria-hidden="true">
-            <path d="M-20 16 Q 200 70 420 18 Q 640 70 860 18 Q 1080 70 1300 18 Q 1460 60 1640 16" fill="none" stroke="#3a3029" strokeWidth="2" />
+            <path d="M-20 16 Q 200 70 420 18 Q 640 70 860 18 Q 1080 70 1300 18 Q 1460 60 1640 16" fill="none" stroke="#33306a" strokeWidth="2" />
             {Array.from({ length: 24 }, (_, i) => {
               const x = -10 + i * 70;
               const seg = ((x + 20) % 440) / 440;
               const y = 18 + Math.sin(seg * Math.PI) * 36;
               return (
                 <g key={i}>
-                  <circle cx={x} cy={y + 10} r="12" fill="#ffcf8a" opacity="0.18" />
-                  <circle cx={x} cy={y + 10} r="4.5" fill={i % 3 === 0 ? "#ffb36b" : "#ffe2a8"} />
+                  <circle cx={x} cy={y + 10} r="12" fill="#a9c2ff" opacity="0.18" />
+                  <circle cx={x} cy={y + 10} r="4.5" fill={i % 3 === 0 ? "#8fb2ff" : "#d6e3ff"} />
                 </g>
               );
             })}
@@ -409,16 +409,16 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
         <rect x="-80" y="644" width="1760" height="300" fill="url(#os-floor)" />
         {Array.from({ length: 15 }, (_, i) => {
           const xb = -260 + i * 150;
-          return <line key={i} x1={800 + (xb - 800) * 0.32} y1="646" x2={xb} y2="920" stroke="#0c0a09" strokeOpacity="0.55" strokeWidth="2" />;
+          return <line key={i} x1={800 + (xb - 800) * 0.32} y1="646" x2={xb} y2="920" stroke="#0b0a1a" strokeOpacity="0.55" strokeWidth="2" />;
         })}
-        <ellipse cx="820" cy="784" rx="560" ry="74" fill="#3a1511" opacity="0.65" />
-        <ellipse cx="820" cy="784" rx="500" ry="58" fill="none" stroke="#7a2a22" strokeOpacity="0.5" strokeWidth="3" strokeDasharray="10 8" />
+        <ellipse cx="820" cy="784" rx="560" ry="74" fill="#33071a" opacity="0.65" />
+        <ellipse cx="820" cy="784" rx="500" ry="58" fill="none" stroke="#7a1236" strokeOpacity="0.5" strokeWidth="3" strokeDasharray="10 8" />
         {has("rug") && <ellipse data-upgrade="rug" cx="820" cy="784" rx="548" ry="70" fill="none" stroke="#e3b55a" strokeOpacity="0.7" strokeWidth="4" />}
         {has("plant") && (
           <g data-upgrade="plant">
             <path d="M70 700 L150 700 L140 780 L80 780 Z" fill="#b0603a" />
             {[-40, -20, 0, 20, 40].map((a, i) => (
-              <ellipse key={i} cx={110 + a * 0.9} cy={650 - Math.abs(a) * 0.6} rx="16" ry="52" fill={i % 2 ? "#3f6b46" : "#56875a"} transform={`rotate(${a} 110 700)`} />
+              <ellipse key={i} cx={110 + a * 0.9} cy={650 - Math.abs(a) * 0.6} rx="16" ry="52" fill={i % 2 ? "#0e7a72" : "#1aa89c"} transform={`rotate(${a} 110 700)`} />
             ))}
           </g>
         )}

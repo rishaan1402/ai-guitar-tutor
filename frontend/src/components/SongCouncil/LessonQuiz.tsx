@@ -75,9 +75,9 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
       <div className="w-full max-w-2xl mx-auto py-12 flex flex-col items-center gap-4 fade-in-up">
         <div
           className="w-10 h-10 rounded-full border-2 animate-spin"
-          style={{ borderColor: "rgba(var(--accent-rgb),0.3)", borderTopColor: "#d98b2b" }}
+          style={{ borderColor: "rgba(var(--accent-rgb),0.3)", borderTopColor: "rgb(var(--acc-500))" }}
         />
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+        <p className="text-sm" style={{ color: "rgba(var(--cream-rgb),0.5)" }}>
           Generating quiz questions…
         </p>
       </div>
@@ -89,7 +89,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
       <div className="w-full max-w-2xl mx-auto py-8 fade-in-up">
         <div
           className="glass-card p-6 text-center"
-          style={{ border: "1px solid rgba(232,96,79,0.3)", color: "#ee8a7c" }}
+          style={{ border: "1px solid rgba(var(--amp-rgb),0.3)", color: "rgb(var(--live-300))" }}
         >
           <p className="mb-4">⚠️ {error}</p>
           <button
@@ -112,10 +112,10 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
       <div className="w-full max-w-2xl mx-auto py-12 flex flex-col items-center gap-4 fade-in-up">
         <div
           className="glass-card p-8 text-center animate-quiz-correct"
-          style={{ border: "1px solid rgba(134,176,146,0.4)" }}
+          style={{ border: "1px solid rgba(var(--sage-rgb),0.4)" }}
         >
           <div className="text-4xl mb-3">🎉</div>
-          <p className="text-lg font-bold" style={{ color: "#86efac" }}>
+          <p className="text-lg font-bold" style={{ color: "rgb(var(--ok-300))" }}>
             Well done! Unlocking Practice…
           </p>
         </div>
@@ -134,16 +134,16 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
   return (
     <div className="w-full max-w-2xl mx-auto fade-in-up space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.7)" }}>
+        <h3 className="text-sm font-semibold" style={{ color: "rgba(var(--cream-rgb),0.7)" }}>
           🧠 Knowledge Check — {questions.length} Questions
         </h3>
         {submitted && (
           <span
             className="text-sm font-semibold px-3 py-1 rounded-full"
             style={{
-              background: correctCount >= 2 ? "rgba(134,176,146,0.15)" : "rgba(232,96,79,0.15)",
-              border: `1px solid ${correctCount >= 2 ? "rgba(134,176,146,0.4)" : "rgba(232,96,79,0.4)"}`,
-              color: correctCount >= 2 ? "#86efac" : "#ee8a7c",
+              background: correctCount >= 2 ? "rgba(var(--sage-rgb),0.15)" : "rgba(var(--amp-rgb),0.15)",
+              border: `1px solid ${correctCount >= 2 ? "rgba(var(--sage-rgb),0.4)" : "rgba(var(--amp-rgb),0.4)"}`,
+              color: correctCount >= 2 ? "rgb(var(--ok-300))" : "rgb(var(--live-300))",
             }}
           >
             {correctCount}/{questions.length} correct
@@ -164,14 +164,14 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
               animationDelay: `${qi * 0.1}s`,
               border: submitted
                 ? isCorrect
-                  ? "1px solid rgba(134,176,146,0.5)"
+                  ? "1px solid rgba(var(--sage-rgb),0.5)"
                   : isWrong
-                  ? "1px solid rgba(232,96,79,0.5)"
-                  : "1px solid rgba(255,255,255,0.1)"
-                : "1px solid rgba(255,255,255,0.1)",
+                  ? "1px solid rgba(var(--amp-rgb),0.5)"
+                  : "1px solid rgba(var(--cream-rgb),0.1)"
+                : "1px solid rgba(var(--cream-rgb),0.1)",
             }}
           >
-            <p className="text-sm font-medium" style={{ color: "#e2e8f0" }}>
+            <p className="text-sm font-medium" style={{ color: "rgb(var(--text-muted))" }}>
               {qi + 1}. {q.question}
             </p>
 
@@ -181,22 +181,22 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
                 const isCorrectOption = submitted && oi === q.correct_index;
                 const isWrongSelection = submitted && isSelected && oi !== q.correct_index;
 
-                let optBg = "rgba(255,255,255,0.04)";
-                let optBorder = "rgba(255,255,255,0.12)";
-                let optColor = "rgba(255,255,255,0.7)";
+                let optBg = "rgba(var(--cream-rgb),0.04)";
+                let optBorder = "rgba(var(--cream-rgb),0.12)";
+                let optColor = "rgba(var(--cream-rgb),0.7)";
 
                 if (!submitted && isSelected) {
                   optBg = "rgba(var(--accent-rgb),0.25)";
                   optBorder = "rgba(var(--accent-rgb),0.6)";
-                  optColor = "#f4d69f";
+                  optColor = "rgb(var(--acc-200))";
                 } else if (isCorrectOption) {
-                  optBg = "rgba(134,176,146,0.15)";
-                  optBorder = "rgba(134,176,146,0.5)";
-                  optColor = "#86efac";
+                  optBg = "rgba(var(--sage-rgb),0.15)";
+                  optBorder = "rgba(var(--sage-rgb),0.5)";
+                  optColor = "rgb(var(--ok-300))";
                 } else if (isWrongSelection) {
-                  optBg = "rgba(232,96,79,0.15)";
-                  optBorder = "rgba(232,96,79,0.5)";
-                  optColor = "#ee8a7c";
+                  optBg = "rgba(var(--amp-rgb),0.15)";
+                  optBorder = "rgba(var(--amp-rgb),0.5)";
+                  optColor = "rgb(var(--live-300))";
                 }
 
                 return (
@@ -223,7 +223,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
             {submitted && (
               <p
                 className="text-xs leading-relaxed"
-                style={{ color: "rgba(255,255,255,0.5)", fontStyle: "italic" }}
+                style={{ color: "rgba(var(--cream-rgb),0.5)", fontStyle: "italic" }}
               >
                 {q.explanation}
               </p>
@@ -255,9 +255,9 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
                 onClick={onSkip}
                 className="px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  color: "rgba(255,255,255,0.6)",
-                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(var(--cream-rgb),0.2)",
+                  color: "rgba(var(--cream-rgb),0.6)",
+                  background: "rgba(var(--cream-rgb),0.05)",
                 }}
               >
                 Skip Quiz →
@@ -270,7 +270,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
       {failCount > 0 && !submitted && (
         <p
           className="text-center text-xs"
-          style={{ color: "rgba(255,255,255,0.35)" }}
+          style={{ color: "rgba(var(--cream-rgb),0.35)" }}
         >
           Attempt {failCount + 1} of 3
           {failCount >= 2 && " — skip available after submitting again"}

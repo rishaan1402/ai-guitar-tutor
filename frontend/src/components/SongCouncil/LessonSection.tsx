@@ -25,12 +25,12 @@ export function LessonSection({ title, icon, content, defaultOpen = false }: Les
       >
         <span className="flex items-center gap-3 font-semibold text-sm">
           <span className="text-lg">{icon}</span>
-          <span style={{ color: "#e2e8f0" }}>{title}</span>
+          <span style={{ color: "rgb(var(--text-muted))" }}>{title}</span>
         </span>
         <span
           className="text-xs transition-transform duration-200"
           style={{
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--cream-rgb),0.4)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             display: "inline-block",
           }}
@@ -41,7 +41,7 @@ export function LessonSection({ title, icon, content, defaultOpen = false }: Les
       {open && (
         <div
           className="px-4 pb-4 text-sm leading-relaxed animate-in fade-in-50 duration-200"
-          style={{ color: "rgba(255,255,255,0.75)" }}
+          style={{ color: "rgba(var(--cream-rgb),0.75)" }}
         >
           <RichText text={content} />
         </div>

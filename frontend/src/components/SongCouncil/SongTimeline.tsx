@@ -36,9 +36,9 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
 
     const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
 
-    if (avgScore >= 0.8) return "rgba(134,176,146,0.3)"; // green - mastered
-    if (avgScore >= 0.5) return "rgba(232,165,75,0.3)"; // yellow - intermediate
-    return "rgba(232,96,79,0.3)"; // red - needs work
+    if (avgScore >= 0.8) return "rgba(var(--sage-rgb),0.3)"; // green - mastered
+    if (avgScore >= 0.5) return "rgba(var(--accent-rgb),0.3)"; // yellow - intermediate
+    return "rgba(var(--amp-rgb),0.3)"; // red - needs work
   };
 
   const activeData = activeSection
@@ -62,15 +62,15 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
                     : getSectionColor(section.chords),
                   border: isActive
                     ? "2px solid rgba(var(--accent-soft-rgb),0.9)"
-                    : "1px solid rgba(255,255,255,0.2)",
-                  color: "rgba(255,255,255,0.95)",
+                    : "1px solid rgba(var(--cream-rgb),0.2)",
+                  color: "rgba(var(--cream-rgb),0.95)",
                   transform: isActive ? "scale(1.08)" : undefined,
                   boxShadow: isActive ? "0 0 12px rgba(var(--accent-rgb),0.4)" : undefined,
                 }}
               >
                 {section.name}
                 {section.chords.length > 0 && (
-                  <span className="ml-1 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  <span className="ml-1 text-xs" style={{ color: "rgba(var(--cream-rgb),0.5)" }}>
                     ({section.chords.length})
                   </span>
                 )}
@@ -93,7 +93,7 @@ export function SongTimeline({ lesson, chordScores, activeSection, onSectionClic
               style={{
                 background: "rgba(var(--accent-rgb),0.2)",
                 border: "1px solid rgba(var(--accent-soft-rgb),0.5)",
-                color: "#f4d69f",
+                color: "rgb(var(--acc-200))",
               }}
             >
               {chord}

@@ -14,10 +14,19 @@ import { starsFor, targetMatches, pcName, type Question, type Step, type Target,
 import { makeRound, type EarRound } from "@/lib/path/ear";
 import { planRhythm, scoreTaps, type RhythmScore } from "@/lib/path/rhythm";
 import { lessonBand, playNotes } from "@/lib/path/synth";
+import { pluck } from "@/lib/sound";
 import { OnsetDetector } from "@/lib/path/exercises";
 import { bandLevelDb } from "@/lib/groove/detect";
 
 type Done = (stars: number | null) => void;
+
+/** A right answer rings a high note and taps; a wrong one a low note and buzzes. */
+function answerFeedback(right: boolean) {
+  pluck(right ? 659.25 : 98, 0.14);
+  import("@capacitor/haptics")
+    .then(({ Haptics, ImpactStyle, NotificationType }) => (right ? Haptics.impact({ style: ImpactStyle.Light }) : Haptics.notification({ type: NotificationType.Error })))
+    .catch(() => {});
+}
 
 const primary = "h-12 rounded-full bg-amber-400 px-6 font-semibold text-ink-950 disabled:opacity-40";
 const secondary = "h-11 rounded-full border border-cream/15 px-5 text-cream/80";
@@ -106,10 +115,11 @@ export function QuizStep({ step, onDone }: { step: Extract<Step, { kind: "quiz" 
               disabled={show}
               onClick={() => {
                 setPicked(k);
+                answerFeedback(k === qn.answer);
                 if (k === qn.answer) setRight((r) => r + 1);
               }}
               className={`rounded-2xl border p-3 text-left text-[15px] ${
-                show && good ? "border-sage-300 bg-sage-300/15 text-sage-100" : show && picked === k ? "border-amp-400 bg-amp-500/10 text-cream" : "border-cream/12 text-cream/85"
+                show && good ? `border-sage-300 bg-sage-300/15 text-sage-100 ${picked === k ? "os-pop" : ""}` : show && picked === k ? "os-shake border-amp-400 bg-amp-500/10 text-cream" : "border-cream/12 text-cream/85"
               }`}
             >
               {o}
@@ -316,10 +326,11 @@ export function EarStep({ step, onDone }: { step: Extract<Step, { kind: "ear" }>
               disabled={show}
               onClick={() => {
                 setPicked(o);
+                answerFeedback(o === round.answer);
                 if (o === round.answer) setRight((r) => r + 1);
               }}
               className={`rounded-2xl border p-3 text-[15px] ${step.mode === "progression" ? "font-mono" : "capitalize"} ${
-                show && o === round.answer ? "border-sage-300 bg-sage-300/15 text-sage-100" : show && o === picked ? "border-amp-400 text-cream" : "border-cream/12 text-cream/85"
+                show && o === round.answer ? `border-sage-300 bg-sage-300/15 text-sage-100 ${o === picked ? "os-pop" : ""}` : show && o === picked ? "os-shake border-amp-400 text-cream" : "border-cream/12 text-cream/85"
               }`}
             >
               {o}

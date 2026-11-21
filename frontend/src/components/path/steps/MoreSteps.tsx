@@ -377,7 +377,7 @@ export function FretGameStep({ step, onDone }: { step: Extract<Step, { kind: "fr
         <p className="label-mono text-cream/45">{n + 1} / {step.rounds} · {right} right</p>
       </div>
       <RichText text={step.prompt} className="text-[15px] text-cream/85" />
-      <div className={`rounded-[22px] transition-shadow ${flash === "right" ? "shadow-[0_0_0_2px_#a3c6ab]" : flash === "wrong" ? "shadow-[0_0_0_2px_#e8604f]" : ""}`}>
+      <div className={`rounded-[22px] transition-shadow ${flash === "right" ? "shadow-[0_0_0_2px_rgb(var(--ok-300))]" : flash === "wrong" ? "shadow-[0_0_0_2px_rgb(var(--live-400))]" : ""}`}>
         <Fretboard dots={[{ string: q.string, fret: q.fret, role: "root", label: flash ? q.answer : "?" }]} from={step.frets[0] === 0 ? 0 : step.frets[0] - 1} to={step.frets[1]} />
       </div>
       <div className="grid grid-cols-6 gap-1.5 landscape:grid-cols-12" role="group" aria-label="Note names">

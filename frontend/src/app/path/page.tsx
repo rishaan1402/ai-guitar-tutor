@@ -5,6 +5,14 @@ import Link from "next/link";
 import { isCheck, nextSession, TRACKS } from "@/lib/path/curriculum";
 import { loadPathProgress } from "@/lib/path/progress";
 import { listSongLessons, songSessionId } from "@/lib/path/songLesson";
+import { loadPlacements, savePlacement, testedOut } from "@/lib/path/placement";
+import { canReview, reviewId } from "@/lib/path/review";
+
+/** Today on this device, YYYY-MM-DD. */
+function today(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 const TRACK_KEY = "os:path-track";
 
@@ -13,9 +21,13 @@ export default function PathPage() {
   const [done, setDone] = useState<Record<string, number> | null>(null);
   const [trackId, setTrackId] = useState(TRACKS[0].id);
   const [songs, setSongs] = useState<ReturnType<typeof listSongLessons>>([]);
+  const [placements, setPlacements] = useState<Record<string, string>>({});
+  const [day, setDay] = useState("");
   useEffect(() => {
     loadPathProgress().then(setDone);
     setSongs(listSongLessons());
+    setPlacements(loadPlacements());
+    setDay(today());
     try {
       const t = new URLSearchParams(window.location.search).get("track") ?? localStorage.getItem(TRACK_KEY);
       if (t && TRACKS.some((x) => x.id === t)) setTrackId(t);
@@ -32,7 +44,13 @@ export default function PathPage() {
     }
   };
   const track = TRACKS.find((t) => t.id === trackId)!;
-  const next = done ? nextSession(done, track.id) : null;
+  const next = done ? nextSession(done, track.id, placements[track.id]) : null;
+  const placedLevel = track.levels.find((l) => l.id === placements[track.id]);
+  const reviewDone = !!day && (done?.[reviewId(day)] ?? 0) > 0;
+  const resetPlacement = () => {
+    savePlacement(track.id, null);
+    setPlacements(loadPlacements());
+  };
   const sessionsIn = (t: (typeof TRACKS)[number]) => t.levels.flatMap((l) => l.sessions);
 
   return (
@@ -74,16 +92,39 @@ export default function PathPage() {
         </div>
         <p className="mt-3 max-w-prose text-sm text-cream/60">{track.blurb}</p>
 
-        {next && (
-          <Link href={`/path/session?id=${next.id}`} className="mt-4 flex items-center justify-between gap-4 rounded-[22px] bg-amber-400 px-5 py-4 text-ink-950">
-            <span className="min-w-0">
-              <span className="label-mono block text-ink-950/60">Up next</span>
-              <span className="mt-1 block truncate font-display text-xl uppercase">{next.title}</span>
-              <span className="mt-0.5 block truncate text-sm text-ink-950/70">{next.blurb}</span>
-            </span>
-            <span className="text-3xl" aria-hidden="true">→</span>
-          </Link>
-        )}
+        <p className="mt-2 text-sm text-cream/55">
+          {placedLevel ? (
+            <>
+              Starting from <span className="text-cream">{placedLevel.title}</span> ·{" "}
+              <Link href={`/path/placement?track=${track.id}`} className="text-amber-300 underline-offset-4 hover:underline">Retake</Link> ·{" "}
+              <button onClick={resetPlacement} className="text-amber-300 underline-offset-4 hover:underline">Start from the beginning</button>
+            </>
+          ) : (
+            <Link href={`/path/placement?track=${track.id}`} className="text-amber-300 underline-offset-4 hover:underline">Not a beginner? Find your level →</Link>
+          )}
+        </p>
+
+        <div className="mt-4 grid gap-2 landscape:grid-cols-[2fr_1fr]">
+          {next && (
+            <Link href={`/path/session?id=${next.id}`} className="flex items-center justify-between gap-4 rounded-[22px] bg-amber-400 px-5 py-4 text-ink-950">
+              <span className="min-w-0">
+                <span className="label-mono block text-ink-950/60">Up next</span>
+                <span className="mt-1 block truncate font-display text-xl uppercase">{next.title}</span>
+                <span className="mt-0.5 block truncate text-sm text-ink-950/70">{next.blurb}</span>
+              </span>
+              <span className="text-3xl" aria-hidden="true">→</span>
+            </Link>
+          )}
+          {done && canReview(done) && (
+            <Link href="/path/session?review=1" className={`flex items-center justify-between gap-3 rounded-[22px] border px-5 py-4 ${reviewDone ? "border-sage-300/40 text-sage-100" : "border-amber-400/50 text-cream"}`}>
+              <span className="min-w-0">
+                <span className="label-mono block text-[10px] text-cream/50">Daily review</span>
+                <span className="mt-1 block font-semibold">{reviewDone ? "Done today ✓" : "10 minutes on weak spots"}</span>
+              </span>
+              <span className="text-2xl" aria-hidden="true">↻</span>
+            </Link>
+          )}
+        </div>
 
         {songs.length > 0 && (
           <section aria-labelledby="songs-h" className="mt-8">
@@ -114,7 +155,10 @@ export default function PathPage() {
             return (
               <section key={level.id} aria-labelledby={`lvl-${level.id}`}>
                 <div className="flex items-end justify-between gap-3">
-                  <h2 id={`lvl-${level.id}`} className="font-display text-lg uppercase text-cream">{level.title}</h2>
+                  <h2 id={`lvl-${level.id}`} className="font-display text-lg uppercase text-cream">
+                    {level.title}
+                    {testedOut(track.id, level.id, placements) && <span className="label-mono ml-2 align-middle text-[10px] text-sage-200">Tested out</span>}
+                  </h2>
                   <span className="label-mono shrink-0 text-cream/50">{earned}/{level.sessions.length * 3} ★</span>
                 </div>
                 <p className="mt-1 text-sm text-cream/55">{level.blurb}</p>

@@ -15,6 +15,7 @@ import { generateGroove, saveGrooveRun, type ChordFingering } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { grooveHref, type GrooveWithSource } from "@/lib/groove/link";
 import { Band } from "@/lib/groove/band";
+import Celebrate from "@/components/game/Celebrate";
 import { ChordTracker } from "@/lib/groove/detect";
 import { NoteTracker } from "@/lib/groove/pitch";
 import { noteName, parseNote, STRING_NAMES } from "@/lib/groove/lead";
@@ -349,10 +350,8 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
         {phase === "done" && (
           <div className="absolute inset-x-0 bottom-0 max-h-full overflow-y-auto rounded-[26px] border border-cream/10 bg-ink-950/95 p-5 shadow-2xl backdrop-blur landscape:static landscape:w-[52%] landscape:max-w-[560px] landscape:shrink-0 landscape:p-4">
             <p className="label-mono text-amber-400">Run complete</p>
-            <div className="mt-1 flex items-center gap-1 text-3xl" aria-label={`${stars} of 3 stars`}>
-              {[0, 1, 2].map((i) => (
-                <span key={i} className={i < stars ? "text-amber-400" : "text-cream/15"}>★</span>
-              ))}
+            <div className="mt-2 flex">
+              <Celebrate stars={stars} xp={stars * 10} size="md" />
             </div>
             <ul className="mt-3 space-y-2">
               {pairs.map((p) => (

@@ -195,7 +195,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
     ctx.fill();
 
     // Marker line
-    ctx.strokeStyle = "#a3c6ab";
+    ctx.strokeStyle = "#4fece0";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(MARKER_X, LANE_Y);
@@ -242,20 +242,20 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       const isCurrent = i === clampedIdx;
       const result = blockResultsRef.current[i];
 
-      let fillColor = "rgba(232,165,75,0.22)";
-      if (isCurrent) fillColor = "rgba(232,165,75,0.50)";
-      if (result === "great") fillColor = "rgba(134,176,146,0.30)";
-      else if (result === "ok") fillColor = "rgba(232,165,75,0.28)";
-      else if (result === "miss") fillColor = "rgba(232,96,79,0.22)";
+      let fillColor = "rgba(61,123,255,0.22)";
+      if (isCurrent) fillColor = "rgba(61,123,255,0.50)";
+      if (result === "great") fillColor = "rgba(46,230,214,0.30)";
+      else if (result === "ok") fillColor = "rgba(61,123,255,0.28)";
+      else if (result === "miss") fillColor = "rgba(255,90,95,0.22)";
 
       ctx.fillStyle = fillColor;
       safeRoundRect(ctx, blockLeft, LANE_Y + 8, BLOCK_WIDTH, LANE_H - 16, 6);
       ctx.fill();
 
-      ctx.strokeStyle = result === "great" ? "#86b092"
-        : result === "ok" ? "#e8a54b"
-        : result === "miss" ? "#e8604f"
-        : isCurrent ? "#efc27a" : "rgba(232,165,75,0.35)";
+      ctx.strokeStyle = result === "great" ? "#2ee6d6"
+        : result === "ok" ? "#3d7bff"
+        : result === "miss" ? "#ff5a5f"
+        : isCurrent ? "#85aaff" : "rgba(61,123,255,0.35)";
       ctx.lineWidth = isCurrent ? 2 : 1;
       ctx.stroke();
 
@@ -334,7 +334,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
   const matchCount = liveNotes.filter((n) => expectedNotes.includes(n)).length;
   const isOnChord = expectedNotes.length > 0 && matchCount >= Math.ceil(expectedNotes.length * 0.4);
 
-  const flashColor = flashResult === "GREAT!" ? "#86b092" : flashResult === "OK" ? "#e8a54b" : "#e8604f";
+  const flashColor = flashResult === "GREAT!" ? "#2ee6d6" : flashResult === "OK" ? "#3d7bff" : "#ff5a5f";
 
   if (availableChords.length === 0) {
     return (
@@ -399,13 +399,13 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
               style={{
                 background: liveNotes.length === 0
                   ? "rgba(255,255,255,0.05)"
-                  : isOnChord ? "rgba(134,176,146,0.15)" : "rgba(232,96,79,0.12)",
+                  : isOnChord ? "rgba(46,230,214,0.15)" : "rgba(255,90,95,0.12)",
                 border: liveNotes.length === 0
                   ? "1px solid rgba(255,255,255,0.1)"
-                  : isOnChord ? "1px solid rgba(134,176,146,0.4)" : "1px solid rgba(232,96,79,0.3)",
+                  : isOnChord ? "1px solid rgba(46,230,214,0.4)" : "1px solid rgba(255,90,95,0.3)",
                 color: liveNotes.length === 0
                   ? "rgba(255,255,255,0.3)"
-                  : isOnChord ? "#86b092" : "#e8604f",
+                  : isOnChord ? "#2ee6d6" : "#ff5a5f",
               }}
             >
               {liveNotes.length === 0 ? "🎸 Play to detect" : isOnChord ? `✓ ${liveNotes.join(", ")}` : `Hearing: ${liveNotes.join(", ")}`}

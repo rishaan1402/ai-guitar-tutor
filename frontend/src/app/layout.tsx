@@ -1,29 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo_Black, IBM_Plex_Mono, Manrope } from "next/font/google";
+import { Inter, JetBrains_Mono, Unbounded } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import NativeShell, { NATIVE_BOOT_SCRIPT } from "@/components/native/NativeShell";
 import RotateHint from "@/components/native/RotateHint";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 
-// Display: heavy grotesk for big statements. Mono: labels, readouts, tabs.
-// Body: open, airy sans.
-const display = Archivo_Black({
+// Stage Lights type: a wide, bold geometric display face for big statements,
+// a crisp text face, and a mono for labels, readouts and tabs.
+const display = Unbounded({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["500", "700", "800"],
   variable: "--font-display",
   display: "swap",
 });
 
-const mono = IBM_Plex_Mono({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "700"],
   variable: "--font-mono",
   display: "swap",
 });
 
-const body = Manrope({
+const body = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
   display: "swap",
 });
@@ -34,17 +35,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0c0a09",
+  themeColor: "#0b0a1a",
   // draw edge to edge (behind a phone's camera cutout); pages pad with the safe-area insets
   viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${mono.variable} ${body.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${display.variable} ${mono.variable} ${body.variable}`}>
       <head>
         {/* Android app only: carry a deep path across a full reload (no-op in browsers) */}
         <script dangerouslySetInnerHTML={{ __html: NATIVE_BOOT_SCRIPT }} />
+        {/* the saved theme, before the first paint */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
       <body className="font-sans">
         <AuthProvider>

@@ -74,23 +74,23 @@ export function Fretboard({ dots, from, to, caption, active }: { dots: Dot[]; fr
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto min-w-[280px] w-full max-w-[560px]" role="img" aria-label={caption ?? "Fretboard diagram"}>
         {/* fret markers */}
         {[3, 5, 7, 9, 15].filter((f) => f > lo && f <= hi).map((f) => (
-          <circle key={f} cx={x(f)} cy={top + 2.5 * gap} r="4" fill="rgba(243,234,216,0.12)" />
+          <circle key={f} cx={x(f)} cy={top + 2.5 * gap} r="4" fill="rgba(var(--cream-rgb),0.12)" />
         ))}
-        {hi >= 12 && lo < 12 && [1.5, 3.5].map((k) => <circle key={k} cx={x(12)} cy={top + k * gap} r="4" fill="rgba(243,234,216,0.12)" />)}
+        {hi >= 12 && lo < 12 && [1.5, 3.5].map((k) => <circle key={k} cx={x(12)} cy={top + k * gap} r="4" fill="rgba(var(--cream-rgb),0.12)" />)}
         {/* frets */}
         {Array.from({ length: n + 1 }, (_, k) => (
-          <line key={k} x1={46 + k * 58} x2={46 + k * 58} y1={top} y2={top + 5 * gap} stroke={k === 0 && lo === 0 ? "#f3ead8" : "rgba(243,234,216,0.3)"} strokeWidth={k === 0 && lo === 0 ? 4 : 1.5} />
+          <line key={k} x1={46 + k * 58} x2={46 + k * 58} y1={top} y2={top + 5 * gap} stroke={k === 0 && lo === 0 ? "rgb(var(--text))" : "rgba(var(--cream-rgb),0.3)"} strokeWidth={k === 0 && lo === 0 ? 4 : 1.5} />
         ))}
         {/* strings */}
         {[1, 2, 3, 4, 5, 6].map((s) => (
           <g key={s}>
-            <line x1={46} x2={46 + n * 58} y1={y(s)} y2={y(s)} stroke="rgba(243,234,216,0.45)" strokeWidth={0.8 + s * 0.25} />
-            <text x={8} y={y(s) + 4} fontSize="11" fill="rgba(243,234,216,0.45)" fontFamily="monospace">{STRING_LABEL[s]}</text>
+            <line x1={46} x2={46 + n * 58} y1={y(s)} y2={y(s)} stroke="rgba(var(--cream-rgb),0.45)" strokeWidth={0.8 + s * 0.25} />
+            <text x={8} y={y(s) + 4} fontSize="11" fill="rgba(var(--cream-rgb),0.45)" fontFamily="monospace">{STRING_LABEL[s]}</text>
           </g>
         ))}
         {/* fret numbers */}
         {Array.from({ length: n }, (_, k) => lo + k + 1).map((f) => (
-          <text key={f} x={x(f)} y={H - 4} fontSize="10" textAnchor="middle" fill="rgba(243,234,216,0.4)" fontFamily="monospace">{f}</text>
+          <text key={f} x={x(f)} y={H - 4} fontSize="10" textAnchor="middle" fill="rgba(var(--cream-rgb),0.4)" fontFamily="monospace">{f}</text>
         ))}
         {/* dots */}
         {dots.map((d, k) => {
@@ -101,12 +101,12 @@ export function Fretboard({ dots, from, to, caption, active }: { dots: Dot[]; fr
                 cx={x(d.fret)}
                 cy={y(d.string)}
                 r={isActive ? 11 : 9.5}
-                fill={ghost ? "transparent" : root ? "#e8a54b" : isActive ? "#a3c6ab" : "#f3ead8"}
-                stroke={ghost ? "#f3ead8" : isActive ? "#a3c6ab" : "#0c0a09"}
+                fill={ghost ? "transparent" : root ? "rgb(var(--acc-400))" : isActive ? "rgb(var(--ok-300))" : "rgb(var(--text))"}
+                stroke={ghost ? "rgb(var(--text))" : isActive ? "rgb(var(--ok-300))" : "rgb(var(--ink-950))"}
                 strokeWidth={ghost ? 1.5 : 1.5}
               />
               {d.label && (
-                <text x={x(d.fret)} y={y(d.string) + 3.5} fontSize="9.5" fontWeight="700" textAnchor="middle" fill={ghost ? "#f3ead8" : "#0c0a09"}>
+                <text x={x(d.fret)} y={y(d.string) + 3.5} fontSize="9.5" fontWeight="700" textAnchor="middle" fill={ghost ? "rgb(var(--text))" : "rgb(var(--ink-950))"}>
                   {d.label}
                 </text>
               )}

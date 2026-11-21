@@ -133,12 +133,12 @@ export default function Tuner({ analyser, sampleRate, onDone }: Props) {
         data-testid="tuner-needle"
       >
         <svg viewBox="-130 -120 260 130" className="w-full" aria-hidden>
-          <path d={arc(-50, 50)} fill="none" stroke="rgba(243,234,216,0.12)" strokeWidth={10} strokeLinecap="round" />
+          <path d={arc(-50, 50)} fill="none" stroke="rgba(var(--cream-rgb),0.12)" strokeWidth={10} strokeLinecap="round" />
           {/* sage ±5 c zone */}
-          <path d={arc(-6, 6)} fill="none" stroke="rgba(163,198,171,0.55)" strokeWidth={10} />
+          <path d={arc(-6, 6)} fill="none" stroke="rgba(var(--sage-soft-rgb),0.55)" strokeWidth={10} />
           {[-50, -25, 0, 25, 50].map((c) => {
             const a = ((c / 50) * 60 * Math.PI) / 180;
-            return <line key={c} x1={Math.sin(a) * 108} y1={-Math.cos(a) * 108} x2={Math.sin(a) * 96} y2={-Math.cos(a) * 96} stroke="rgba(243,234,216,0.3)" strokeWidth={1.5} />;
+            return <line key={c} x1={Math.sin(a) * 108} y1={-Math.cos(a) * 108} x2={Math.sin(a) * 96} y2={-Math.cos(a) * 96} stroke="rgba(var(--cream-rgb),0.3)" strokeWidth={1.5} />;
           })}
           <g
             style={{
@@ -147,9 +147,9 @@ export default function Tuner({ analyser, sampleRate, onDone }: Props) {
               transition: reduceMotion ? "none" : "transform var(--dur-fast) var(--ease-out-expo)",
             }}
           >
-            <line x1={0} y1={0} x2={0} y2={-112} stroke={inTune ? "#a3c6ab" : "#efc27a"} strokeWidth={3} strokeLinecap="round" />
+            <line x1={0} y1={0} x2={0} y2={-112} stroke={inTune ? "rgb(var(--ok-300))" : "rgb(var(--acc-300))"} strokeWidth={3} strokeLinecap="round" />
           </g>
-          <circle r={6} fill={inTune ? "#a3c6ab" : "#efc27a"} />
+          <circle r={6} fill={inTune ? "rgb(var(--ok-300))" : "rgb(var(--acc-300))"} />
         </svg>
         <p className="mt-1 font-display text-h3 text-cream tabular-nums min-h-[1.75rem]">
           {!ready ? (loadError ? "Tuner unavailable" : "…") : cents === null ? "Listening…" : `${cents > 0 ? "+" : ""}${Math.round(cents)} c`}
@@ -161,7 +161,7 @@ export default function Tuner({ analyser, sampleRate, onDone }: Props) {
 
       <div className="flex items-center gap-4 text-sm">
         {st.tuned.length >= 3 && !all && (
-          <button type="button" onClick={onDone} className="rounded-xl bg-amber-400 text-[#1c1206] px-4 py-2 font-semibold hover:bg-amber-300">
+          <button type="button" onClick={onDone} className="rounded-xl bg-amber-400 text-[rgb(var(--ink-950))] px-4 py-2 font-semibold hover:bg-amber-300">
             Good enough →
           </button>
         )}

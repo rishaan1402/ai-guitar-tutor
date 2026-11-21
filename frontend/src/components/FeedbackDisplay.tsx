@@ -232,9 +232,9 @@ export default function FeedbackDisplay({
                 aria-label={speaking ? "Stop reading feedback" : "Read feedback aloud"}
                 className="shrink-0 mt-0.5 rounded-lg px-2 py-1 text-sm transition-all duration-200"
                 style={{
-                  background: speaking ? "rgba(var(--accent-rgb),0.2)" : "rgba(255,255,255,0.06)",
-                  border: speaking ? "1px solid rgba(var(--accent-rgb),0.5)" : "1px solid rgba(255,255,255,0.1)",
-                  color: speaking ? "#efc27a" : "rgba(255,255,255,0.5)",
+                  background: speaking ? "rgba(var(--accent-rgb),0.2)" : "rgba(var(--cream-rgb),0.06)",
+                  border: speaking ? "1px solid rgba(var(--accent-rgb),0.5)" : "1px solid rgba(var(--cream-rgb),0.1)",
+                  color: speaking ? "rgb(var(--acc-300))" : "rgba(var(--cream-rgb),0.5)",
                 }}
               >
                 {speaking ? "⏹" : "🔊"}
@@ -459,7 +459,7 @@ function NeutralTakeCard({
   return (
     <div
       className="glass-card space-y-4 border border-cream/15 animate-enter"
-      style={{ borderLeft: "3px solid #efc27a" }}
+      style={{ borderLeft: "3px solid rgb(var(--acc-300))" }}
       data-testid="neutral-take"
       data-kind={kind}
     >
@@ -535,7 +535,7 @@ function NeutralTakeCard({
           <button
             onClick={onRetry}
             disabled={busy}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-semibold bg-amber-400 text-[#1c1206] hover:bg-amber-300 disabled:opacity-50 transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-semibold bg-amber-400 text-[rgb(var(--ink-950))] hover:bg-amber-300 disabled:opacity-50 transition-colors"
           >
             {COPY.strumAgain}
           </button>
