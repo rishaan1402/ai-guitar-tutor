@@ -45,7 +45,7 @@ export interface Target {
   label: string;
 }
 
-export type EarMode = "interval" | "quality" | "higher";
+export type EarMode = "interval" | "quality" | "higher" | "progression";
 
 export type Step =
   | { kind: "read"; title: string; body: string; figures?: Figure[] }
@@ -55,7 +55,15 @@ export type Step =
   | { kind: "quiz"; title: string; questions: Question[] }
   | { kind: "play"; title: string; prompt: string; targets: Target[]; figure?: Figure }
   | { kind: "ear"; title: string; mode: EarMode; options: string[]; rounds: number }
-  | { kind: "rhythm"; title: string; prompt: string; pattern: string; bpm: number; bars: number };
+  | { kind: "rhythm"; title: string; prompt: string; pattern: string; bpm: number; bars: number; input?: "tap" | "strum" }
+  /** The app plays a phrase; you play it back (the mic checks it, any octave). */
+  | { kind: "echo"; title: string; prompt: string; phrases: Target[][]; showNotes?: boolean }
+  /** A riff or change that gets faster each time you play it cleanly. */
+  | { kind: "ladder"; title: string; prompt: string; groove: Groove; start: number; target: number; step?: number }
+  /** Solo over a backing band; scored on scale notes, phrasing and landing home. */
+  | { kind: "improvise"; title: string; prompt: string; bars: string[][]; bpm: number; style: Groove["style"]; scalePcs: number[]; homePc: number; loops: number; figure?: Figure }
+  /** Name the note at a highlighted fret, against the clock. */
+  | { kind: "fretgame"; title: string; prompt: string; strings: number[]; frets: [number, number]; rounds: number };
 
 export interface PathSession {
   id: string;
@@ -79,7 +87,7 @@ export interface PathTrack {
   levels: PathLevel[];
 }
 
-export const SCORED: Step["kind"][] = ["groove", "quiz", "play", "ear", "rhythm"];
+export const SCORED: Step["kind"][] = ["groove", "quiz", "play", "ear", "rhythm", "echo", "ladder", "improvise", "fretgame"];
 
 /** Stars for a share of right answers / clean hits. */
 export function starsFor(share: number): number {
@@ -109,6 +117,16 @@ export const q = (question: string, options: string[], answer: number, why: stri
 export const ear = (title: string, mode: EarMode, options: string[], rounds = 8): Step => ({ kind: "ear", title, mode, options, rounds });
 export const rhythm = (title: string, prompt: string, pattern: string, bpm: number, bars = 2): Step => ({ kind: "rhythm", title, prompt, pattern, bpm, bars });
 export const play = (title: string, prompt: string, targets: Target[], figure?: Figure): Step => ({ kind: "play", title, prompt, targets, figure });
+/** Rhythm with your real guitar: the mic hears each strum. */
+export const strumRhythm = (title: string, prompt: string, pattern: string, bpm: number, bars = 2): Step => ({ kind: "rhythm", title, prompt, pattern, bpm, bars, input: "strum" });
+/** Play it back: phrases written as tab tokens ("3:5 3:7 2:5"). */
+export const echo = (title: string, prompt: string, phrases: string[], showNotes = false): Step => ({ kind: "echo", title, prompt, phrases: phrases.map(notes), showNotes });
+export const ladder = (title: string, prompt: string, gr: Groove, start: number, target: number, step = 4): Step => ({ kind: "ladder", title, prompt, groove: gr, start, target, step });
+export const improvise = (title: string, prompt: string, o: { bars: string[][]; bpm: number; style?: Groove["style"]; scale: string; home: string; loops?: number; figure?: Figure }): Step => ({
+  kind: "improvise", title, prompt, bars: o.bars, bpm: o.bpm, style: o.style ?? "rock", loops: o.loops ?? 2, figure: o.figure,
+  scalePcs: pcs(o.scale).map((t) => t.pc!), homePc: pcs(o.home)[0].pc!,
+});
+export const fretgame = (title: string, prompt: string, strings: number[], frets: [number, number], rounds = 12): Step => ({ kind: "fretgame", title, prompt, strings, frets, rounds });
 
 export const g = (id: string, title: string, bars: string[][], o: Partial<Groove> = {}): Groove => ({
   id, title, style: "folk", bpm: 66, bars, strum: "D...D...", loops: 2, ...o,

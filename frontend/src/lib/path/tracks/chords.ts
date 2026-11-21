@@ -3,7 +3,7 @@
  * open chords, strumming and time, barre chords, power chords, sevenths,
  * colour chords, triads and comping. Songs are traditional / public domain.
  */
-import { chord, ear, fig, fret, g, groove, hearChord, notes, play, q, quiz, read, rhythm, S, tab, type PathTrack } from "../steps";
+import { chord, ear, fig, fret, g, groove, hearChord, ladder, notes, play, q, quiz, read, rhythm, S, strumRhythm, tab, type PathTrack } from "../steps";
 
 export const CHORDS_TRACK: PathTrack = {
   id: "chords",
@@ -86,6 +86,11 @@ Your strumming hand should **never stop moving**: down on the beat, up between. 
           quiz("Counting",
             q("How many eighth notes fit in a bar of 4/4?", ["4", "8", "16"], 1, "Four beats, two eighths each: 1 & 2 & 3 & 4 &."),
             q("You strum up on…", ["the numbers", "the \"&\"s", "beat 1 only"], 1, "Down on the beat, up on the &: the hand swings like a pendulum."))),
+        S("b2-ladder", "G ↔ C speed ladder", "The hardest beginner change, faster each time.",
+          read("Climb the ladder", `Speed comes from **clean repetitions**, not from rushing. The ladder starts slow; every time you play the change cleanly (2 stars or more), it goes up **4 bpm**. Miss, and you stay on the same rung.
+
+Your best speed is saved, so tomorrow you start just below it. Watch it climb over a week.`),
+          ladder("G ↔ C ladder", "Play the change cleanly to climb a rung.", g("ladder-gc", "G ↔ C ladder", [["G"], ["C"], ["G"], ["C"]], { style: "pop", strum: "D.D.D.D.", focus: ["G", "C"] }), 60, 96)),
         S("b2-loop", "The four-chord loop", "G, C, Em, D: the loop behind half the radio.",
           read("Down, down, down, down-up", `You know every chord here. Now string them together with a strum that's **D . D . D . D U**: down on 1, 2, 3, then down-up on 4.
 
@@ -166,6 +171,16 @@ Good rhythm players use silence on purpose.`),
             q("Where does the snare usually hit in pop and rock?", ["Beats 1 and 3", "Beats 2 and 4", "Every eighth note"], 1, "The backbeat: 2 and 4. Accent those and you lock with the drummer."),
             q("How do you play quieter without stopping the hand?", ["Strum fewer strings, lighter, nearer the neck", "Squeeze the pick harder", "Press the frets less"], 0, "Fewer strings and a lighter touch; the hand keeps its motion."),
             q("A chuck is…", ["A muted percussive strum", "A fast down strum", "A chord with no third"], 0, "Palm (or fretting fingers) kill the strings as you strum: a drum-like hit."))),
+        S("r4-strum", "Strum it for real", "The mic hears your strums.",
+          read("From tapping to strumming", `So far you've tapped rhythms. Now **strum them on the guitar**: the mic hears each strum and checks it against the beat.
+
+Tips for a clean reading:
+- **Mute the strings** with your fretting hand resting on them: each strum becomes a crisp *chk*, easy to hear.
+- Keep the hand moving down-up all the time; only hit the strings on the dots.
+- Headphones keep the click out of the mic.`),
+          strumRhythm("Quarter strums", "Down-strums on every beat: **1 2 3 4**.", "x.x.x.x.", 72),
+          strumRhythm("Eighth strums", "Down-up on every eighth: **1 & 2 & 3 & 4 &**.", "xxxxxxxx", 72),
+          strumRhythm("The everyday strum", "**1, 2 &, & 4 &**: down, down-up, up-down-up.", "x.xx.xxx", 76)),
         S("r4-gig", "Gig: Rhythm workout", "Four chords, three feels.",
           groove(g("gig-r4-pop", "Pop push", [["G"], ["D"], ["Em"], ["C"]], { style: "pop", bpm: 84, strum: "D.DU.UDU", loops: 2, focus: ["Em", "C"] }), "play"),
           groove(g("gig-r4-folk", "Folk 3/4", [["G"], ["C"], ["D"], ["G"]], { style: "folk", bpm: 90, strum: "D.DUDU", loops: 2, beatsPerBar: 3, focus: ["C", "D"] }), "play")),

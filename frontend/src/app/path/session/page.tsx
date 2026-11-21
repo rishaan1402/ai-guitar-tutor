@@ -11,6 +11,7 @@ import ChordLesson from "@/components/chords/ChordLesson";
 import ChordTips from "@/components/chords/ChordTips";
 import { libraryKey, shapeFor } from "@/lib/chords/shape";
 import { EarStep, PlayStep, QuizStep, ReadStep, RhythmStep } from "@/components/path/steps/Steps";
+import { EchoStep, FretGameStep, ImproviseStep, LadderStep } from "@/components/path/steps/MoreSteps";
 import { ALL_SESSIONS, levelOf, sessionAfter, sessionById, trackOf, type PathSession } from "@/lib/path/curriculum";
 import { chordsIn, SCORED, sessionStars, type Step } from "@/lib/path/steps";
 import { loadPathProgress, recordSession } from "@/lib/path/progress";
@@ -133,6 +134,10 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
         {step?.kind === "play" && <PlayStep key={i} step={step} onDone={(s) => (s === null ? (setSkipped(true), finish(i, null)) : finish(i, s))} />}
         {step?.kind === "ear" && <EarStep key={i} step={step} onDone={(s) => finish(i, s)} />}
         {step?.kind === "rhythm" && <RhythmStep key={i} step={step} onDone={(s) => finish(i, s)} />}
+        {step?.kind === "echo" && <EchoStep key={i} step={step} onDone={(s) => (s === null ? (setSkipped(true), finish(i, null)) : finish(i, s))} />}
+        {step?.kind === "ladder" && <LadderStep key={i} step={step} onDone={(s) => finish(i, s)} />}
+        {step?.kind === "improvise" && <ImproviseStep key={i} step={step} onDone={(s) => (s === null ? (setSkipped(true), finish(i, null)) : finish(i, s))} />}
+        {step?.kind === "fretgame" && <FretGameStep key={i} step={step} onDone={(s) => finish(i, s)} />}
         {!step && (
           <div className="mx-auto max-w-xl rounded-[26px] border border-cream/10 p-6 text-center">
             <p className="label-mono text-amber-400">{isSong ? "Song lesson complete" : "Lesson complete"}</p>

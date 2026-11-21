@@ -14,6 +14,8 @@ import { starsFor, targetMatches, pcName, type Question, type Step, type Target,
 import { makeRound, type EarRound } from "@/lib/path/ear";
 import { planRhythm, scoreTaps, type RhythmScore } from "@/lib/path/rhythm";
 import { lessonBand, playNotes } from "@/lib/path/synth";
+import { OnsetDetector } from "@/lib/path/exercises";
+import { bandLevelDb } from "@/lib/groove/detect";
 
 type Done = (stars: number | null) => void;
 
@@ -139,7 +141,7 @@ export function QuizStep({ step, onDone }: { step: Extract<Step, { kind: "quiz" 
 
 /* ------------------------------------------------------------------ play the notes (pitch) */
 
-function useNoteListener(onNote: (midi: number) => void) {
+export function useNoteListener(onNote: (midi: number) => void) {
   const [state, setState] = useState<"idle" | "listening">("idle");
   const [error, setError] = useState<string | null>(null);
   const [level, setLevel] = useState(0);
@@ -274,8 +276,12 @@ export function EarStep({ step, onDone }: { step: Extract<Step, { kind: "ear" }>
   const [right, setRight] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const finished = n >= step.rounds;
-  const playIt = (r = round) => playNotes(r.notes, 0.7, r.together);
-  const prompt = step.mode === "interval" ? "Which interval?" : step.mode === "quality" ? "Which kind of chord?" : "Which note is higher?";
+  const playIt = (r = round) => {
+    if (r.chords) r.chords.forEach((c, k) => setTimeout(() => playNotes(c, 0, true), k * 950));
+    else playNotes(r.notes, 0.7, r.together);
+  };
+  const prompt =
+    step.mode === "interval" ? "Which interval?" : step.mode === "quality" ? "Which kind of chord?" : step.mode === "progression" ? "Which progression?" : "Which note is higher?";
 
   if (finished) {
     const stars = starsFor(right / step.rounds);
@@ -312,7 +318,7 @@ export function EarStep({ step, onDone }: { step: Extract<Step, { kind: "ear" }>
                 setPicked(o);
                 if (o === round.answer) setRight((r) => r + 1);
               }}
-              className={`rounded-2xl border p-3 text-[15px] capitalize ${
+              className={`rounded-2xl border p-3 text-[15px] ${step.mode === "progression" ? "font-mono" : "capitalize"} ${
                 show && o === round.answer ? "border-sage-300 bg-sage-300/15 text-sage-100" : show && o === picked ? "border-amp-400 text-cream" : "border-cream/12 text-cream/85"
               }`}
             >
@@ -354,11 +360,55 @@ export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhyt
   const raf = useRef(0);
   const beat = 60 / step.bpm;
   const slots = step.pattern.replace(/\s+/g, "");
-  useEffect(() => () => cancelAnimationFrame(raf.current), []);
+  const strumMode = step.input === "strum";
+  const [micError, setMicError] = useState<string | null>(null);
+  const stopMic = useRef<() => void>(() => {});
+  useEffect(() => () => {
+    cancelAnimationFrame(raf.current);
+    stopMic.current();
+  }, []);
 
-  function run(listen: boolean) {
+  /** Strum mode: hear strums from the guitar (only its low-mid band, so the click doesn't count). */
+  async function openStrumMic(): Promise<boolean> {
+    const b = lessonBand();
+    if (!b) return false;
+    try {
+      const stream = await openMic();
+      const src = b.ctx.createMediaStreamSource(stream);
+      const an = b.ctx.createAnalyser();
+      an.fftSize = 1024;
+      an.smoothingTimeConstant = 0;
+      src.connect(an);
+      const db = new Float32Array(an.frequencyBinCount);
+      const det = new OnsetDetector(0.09, 2.0, 0.004);
+      // the click reaches you late through the speaker and your strum reaches the mic late: undo both
+      const lag = Math.min(0.25, Math.max(0.03, (b.ctx.outputLatency || 0) + (b.ctx.baseLatency || 0) + 0.02));
+      const timer = setInterval(() => {
+        an.getFloatFrequencyData(db);
+        const level = Math.sqrt(Math.pow(10, bandLevelDb(db, b.ctx.sampleRate, an.fftSize, 80, 900) / 10));
+        const hit = det.feedLevel(level, b.ctx.currentTime);
+        if (hit !== null) taps.current.push(hit - lag - t0.current);
+      }, 8);
+      stopMic.current = () => {
+        clearInterval(timer);
+        stream.getTracks().forEach((t) => t.stop());
+        src.disconnect();
+      };
+      return true;
+    } catch (e) {
+      setMicError(micErrorMessage(e));
+      return false;
+    }
+  }
+
+  async function run(listen: boolean) {
     const b = lessonBand();
     if (!b) return;
+    setMicError(null);
+    if (strumMode && !listen) {
+      stopMic.current();
+      if (!(await openStrumMic())) return;
+    }
     const now = b.ctx.currentTime + 0.1;
     const countIn = listen ? 0 : beat * 4;
     t0.current = now + countIn;
@@ -376,7 +426,10 @@ export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhyt
         setCursor(-1);
         if (listen) setPhase("ready");
         else {
-          setScore(scoreTaps(plan.hits, taps.current));
+          stopMic.current();
+          stopMic.current = () => {};
+          // in strum mode, strums before the downbeat (the count-in) don't count
+          setScore(scoreTaps(plan.hits, strumMode ? taps.current.filter((x) => x > -0.15) : taps.current));
           setPhase("done");
         }
         return;
@@ -455,8 +508,18 @@ export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhyt
             }}
             className={`h-28 rounded-[22px] border-2 font-display text-xl uppercase ${phase === "tap" ? "border-amber-400 bg-amber-400/15 text-amber-100" : phase === "count" ? "border-cream/30 text-cream/70" : "border-cream/10 text-cream/30"}`}
           >
-            {phase === "count" ? "Get ready… 1 2 3 4" : phase === "tap" ? "Tap the dots" : phase === "listen" ? "Listen…" : "Tap here (or space)"}
+            {phase === "count"
+              ? "Get ready… 1 2 3 4"
+              : phase === "tap"
+                ? strumMode ? "Strum on the dots" : "Tap the dots"
+                : phase === "listen"
+                  ? "Listen…"
+                  : strumMode ? "Strum along on your guitar" : "Tap here (or space)"}
           </button>
+          {strumMode && phase === "ready" && (
+            <p className="text-xs text-cream/50 landscape:col-span-2">The mic listens to your strums. Mute the strings with your fretting hand for a crisp, clear hit; headphones keep the click out of the mic.</p>
+          )}
+          {micError && <p role="alert" className="text-sm text-red-300 landscape:col-span-2">{micError}</p>}
         </div>
       )}
     </div>
