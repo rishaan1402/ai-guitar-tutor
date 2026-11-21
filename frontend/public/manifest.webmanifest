@@ -1,0 +1,24 @@
+{
+  "name": "Open Strings",
+  "short_name": "Open Strings",
+  "description": "The guitar practice room that listens: lessons, a tuner, play-alongs and any song as a chord chart.",
+  "id": "/studio",
+  "start_url": "/studio?source=pwa",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#0c0a09",
+  "theme_color": "#0c0a09",
+  "categories": ["music", "education"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Lessons", "url": "/path", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Tuner", "url": "/tuner", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Grooves", "url": "/groove", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
