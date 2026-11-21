@@ -89,9 +89,12 @@ function sessionsOf(trackId?: string): PathSession[] {
   return t ? t.levels.flatMap((l) => l.sessions) : ALL_SESSIONS;
 }
 
-/** The first session without stars, in one track or the whole path. */
-export function nextSession(done: Record<string, number>, trackId?: string): PathSession {
-  const list = sessionsOf(trackId);
+/** The first session without stars, in one track or the whole path (from your placement level, if you took the test). */
+export function nextSession(done: Record<string, number>, trackId?: string, fromLevel?: string): PathSession {
+  let list = sessionsOf(trackId);
+  const track = TRACKS.find((t) => t.id === trackId);
+  const start = fromLevel && track ? track.levels.findIndex((l) => l.id === fromLevel) : -1;
+  if (track && start > 0) list = track.levels.slice(start).flatMap((l) => l.sessions);
   return list.find((s) => !(done[s.id] > 0)) ?? list[list.length - 1];
 }
 

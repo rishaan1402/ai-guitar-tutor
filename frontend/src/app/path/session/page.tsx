@@ -16,6 +16,7 @@ import { ALL_SESSIONS, checkAdvice, isCheck, levelOf, sessionAfter, sessionById,
 import { chordsIn, SCORED, sessionStars, type Step } from "@/lib/path/steps";
 import { loadPathProgress, recordSession } from "@/lib/path/progress";
 import { buildSongSession, loadSongLesson } from "@/lib/path/songLesson";
+import { buildReview } from "@/lib/path/review";
 import { getAudioUrl, getVideoUrl, type ChordFingering } from "@/lib/api";
 import { prettySymbol } from "@/lib/chordShape";
 
@@ -32,33 +33,51 @@ function knownChords(done: Record<string, number>): Set<string> {
   return new Set(ALL_SESSIONS.filter((s) => done[s.id] > 0).flatMap(chordsIn));
 }
 
+/** Today on this device, YYYY-MM-DD (the daily review changes at local midnight). */
+function today(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function SessionRoute() {
   const params = useSearchParams();
   const songSlug = params.get("song");
+  const isReviewRoute = params.get("review") === "1";
   const fixed = sessionById(params.get("id"));
   const [song, setSong] = useState<PathSession | null | undefined>(undefined);
 
   useEffect(() => {
+    if (isReviewRoute) {
+      loadPathProgress().then((done) => setSong(buildReview(done, today())));
+      return;
+    }
     if (!songSlug) return;
     const src = loadSongLesson(songSlug);
     if (!src) return setSong(null);
     loadPathProgress().then((done) => setSong(buildSongSession(songSlug, src, knownChords(done))));
-  }, [songSlug]);
+  }, [songSlug, isReviewRoute]);
 
-  const session = songSlug ? song : fixed;
-  if (songSlug && song === undefined) return <main className="min-h-[100dvh] bg-ink-950" />;
+  const built = songSlug || isReviewRoute;
+  const session = built ? song : fixed;
+  if (built && song === undefined) return <main className="min-h-[100dvh] bg-ink-950" />;
   if (!session) {
     return (
       <main className="min-h-[100dvh] bg-ink-950 p-6">
-        <p className="text-cream">{songSlug ? "That song lesson isn't on this device. Open the song again from Learn any song." : "That lesson doesn't exist."}</p>
+        <p className="text-cream">
+          {isReviewRoute
+            ? "Finish a few lessons first: the daily review is built from what you've learned."
+            : songSlug
+              ? "That song lesson isn't on this device. Open the song again from Learn any song."
+              : "That lesson doesn't exist."}
+        </p>
         <Link href="/path" className="mt-4 inline-block text-amber-300">← All lessons</Link>
       </main>
     );
   }
-  return <Session key={session.id} session={session} isSong={!!songSlug} />;
+  return <Session key={session.id} session={session} isSong={!!songSlug} isReview={isReviewRoute} />;
 }
 
-function Session({ session, isSong }: { session: PathSession; isSong: boolean }) {
+function Session({ session, isSong, isReview = false }: { session: PathSession; isSong: boolean; isReview?: boolean }) {
   const router = useRouter();
   const steps = session.steps;
   const total = steps.length + 1; // + the done screen
@@ -73,7 +92,7 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
   const back = () => (i > 0 ? setI(i - 1) : router.push("/path"));
   const level = levelOf(session.id);
   const track = trackOf(session.id);
-  const after = isSong ? undefined : sessionAfter(session.id);
+  const after = isSong || isReview ? undefined : sessionAfter(session.id);
   const scoredCount = steps.filter((s) => SCORED.includes(s.kind)).length;
   const final = sessionStars(Object.values(scores), skipped || Object.keys(scores).length < scoredCount);
 
@@ -102,7 +121,7 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
       <div className="mx-auto flex max-w-5xl items-center gap-3">
         <button onClick={back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 text-cream/80">←</button>
         <div className="min-w-0 flex-1">
-          <p className="label-mono truncate text-amber-400">{isSong ? "Song lesson" : `${track?.title ?? ""} · ${level?.title ?? ""}`}</p>
+          <p className="label-mono truncate text-amber-400">{isSong ? "Song lesson" : isReview ? "Daily review" : `${track?.title ?? ""} · ${level?.title ?? ""}`}</p>
           <h1 className="truncate font-display text-xl uppercase text-cream">{session.title}</h1>
         </div>
         <span className="label-mono shrink-0 text-cream/45">{Math.min(i + 1, total)}/{total}</span>
@@ -141,7 +160,7 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
         {!step && level && isCheck(session.id) && <CheckResult levelId={level.id} stars={final} onAgain={() => { setI(0); setScores({}); setSkipped(false); }} />}
         {!step && !(level && isCheck(session.id)) && (
           <div className="mx-auto max-w-xl rounded-[26px] border border-cream/10 p-6 text-center">
-            <p className="label-mono text-amber-400">{isSong ? "Song lesson complete" : "Lesson complete"}</p>
+            <p className="label-mono text-amber-400">{isSong ? "Song lesson complete" : isReview ? "Review done for today" : "Lesson complete"}</p>
             <div className="mt-2 text-5xl" aria-label={`${final} of 3 stars`}>
               {[0, 1, 2].map((k) => (
                 <span key={k} className={k < final ? "text-amber-400" : "text-cream/15"}>★</span>
@@ -151,7 +170,7 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
             <div className="mt-6 flex flex-col gap-2">
               {after ? (
                 <Link href={`/path/session?id=${after.id}`} className="flex h-12 items-center justify-center rounded-full bg-amber-400 px-4 font-semibold text-ink-950">Next: {after.title} →</Link>
-              ) : !isSong ? (
+              ) : !isSong && !isReview ? (
                 <p className="text-cream/60">You&apos;ve finished this track. Try another one on the Lessons page.</p>
               ) : null}
               <button onClick={() => { setI(0); setScores({}); setSkipped(false); }} className="h-11 rounded-full border border-cream/15 text-cream/80">Do it again</button>
