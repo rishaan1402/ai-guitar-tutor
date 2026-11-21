@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   LessonDocument,
   generateSongLesson,
@@ -12,6 +12,8 @@ import {
 import SongSearchBar from "./SongSearchBar";
 import CouncilProgress from "./CouncilProgress";
 import { IntegratedLessonView } from "./IntegratedLessonView";
+import SavedSongs from "./SavedSongs";
+import { isSongSaved, loadCurrentSong, saveCurrentSong, saveSong, updateSavedSong, type SongWork } from "@/lib/songStore";
 
 interface SongCouncilProps {
   onPracticeChord: (chordKey: string, lessonContext: SongCouncilContext) => void;
@@ -36,6 +38,44 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
   const [revising, setRevising] = useState(false);
   // track attempt count per chord
   const [attemptCounts, setAttemptCounts] = useState<Record<string, number>>({});
+  const [saved, setSaved] = useState(false);
+
+  // the song in progress comes back when you return to this page
+  const restored = useRef(false);
+  useEffect(() => {
+    const w = loadCurrentSong();
+    if (w?.lesson?.lesson_id) restore(w);
+    restored.current = true;
+  }, []);
+
+  function restore(w: SongWork) {
+    setLesson(w.lesson);
+    setChordScores(w.chordScores ?? {});
+    setChordScoreHistory(w.chordScoreHistory ?? {});
+    setAllChordsAttempted(!!w.allChordsAttempted);
+    setAttemptCounts(w.attemptCounts ?? {});
+    setSaved(isSongSaved(w.lesson.lesson_id));
+  }
+
+  // keep it, and a saved copy, up to date as you practise
+  useEffect(() => {
+    if (!restored.current || !lesson) return;
+    const w: SongWork = { lesson, chordScores, chordScoreHistory, allChordsAttempted, attemptCounts };
+    saveCurrentSong(w);
+    updateSavedSong(w);
+  }, [lesson, chordScores, chordScoreHistory, allChordsAttempted, attemptCounts]);
+
+  function handleSave() {
+    if (!lesson) return;
+    saveSong({ lesson, chordScores, chordScoreHistory, allChordsAttempted, attemptCounts });
+    setSaved(true);
+  }
+
+  function openSaved(w: SongWork) {
+    restore(w);
+    saveCurrentSong(w);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function handleSearch(query: string) {
     setLoading(true);
@@ -45,9 +85,12 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
     setChordScoreHistory({});
     setAllChordsAttempted(false);
     setAttemptCounts({});
+    setSaved(false);
+    saveCurrentSong(null);
     try {
       const doc = await generateSongLesson(query);
       setLesson(doc);
+      setSaved(isSongSaved(doc.lesson_id));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to generate lesson");
     } finally {
@@ -132,9 +175,13 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
             revising={revising}
             onPracticeChord={handlePracticeChord}
             onRevise={handleRevise}
+            saved={saved}
+            onSave={handleSave}
           />
         </div>
       )}
+
+      {!loading && <SavedSongs currentId={lesson?.lesson_id ?? null} onOpen={openSaved} />}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import Logo from "@/components/brand/Logo";
 import SoundToggle from "@/components/brand/SoundToggle";
 import ThemeToggle from "@/components/brand/ThemeToggle";
+import InstallApp from "@/components/native/InstallApp";
 
 interface NavItem {
   href: string;
@@ -184,6 +185,7 @@ export function AppMenu({ className = "" }: { className?: string }) {
                       </div>
                     );
                   })}
+                  <InstallApp variant="menu" />
                 </div>
                 <div className="space-y-1 border-t border-cream/10 p-3">
                   {user ? (

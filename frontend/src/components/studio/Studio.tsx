@@ -352,9 +352,8 @@ export default function Studio() {
                 if (focus === o.id) router.push(hrefFor(o.id));
                 else select(o.id);
               }}
-              className={`absolute rounded-2xl outline-none transition-[box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-amber-300/80 ${
-                hover === o.id && !focus ? "shadow-[0_0_0_2px_rgba(var(--accent-rgb),0.55),0_0_40px_rgba(var(--accent-rgb),0.25)]" : ""
-              }`}
+              // the object itself glows when the pick points at it (RoomScene); no outline box around it
+              className="absolute rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80"
               style={{ left: o.x * s, top: o.y * s, width: o.w * s, height: o.h * s }}
             >
               {!focus && (o.id === "wall" ? due > 0 : o.id === "guitar" && !!next) && (

@@ -23,6 +23,9 @@ interface IntegratedLessonViewProps {
   revising: boolean;
   onPracticeChord: (chordKey: string, context: SongCouncilContext) => void;
   onRevise: () => void;
+  /** This song is in "Your saved songs". */
+  saved?: boolean;
+  onSave?: () => void;
 }
 
 /**
@@ -37,6 +40,8 @@ export function IntegratedLessonView({
   revising,
   onPracticeChord,
   onRevise,
+  saved = false,
+  onSave,
 }: IntegratedLessonViewProps) {
   const router = useRouter();
   const [showChordDrawer, setShowChordDrawer] = useState(false);
@@ -181,6 +186,16 @@ export function IntegratedLessonView({
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <SongLessonButton lesson={lesson} chart={lesson.chart || lessonToChordPro(lesson)} />
+          {onSave && (
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saved}
+              className={`inline-flex h-12 items-center gap-2 rounded-full border px-5 font-semibold ${saved ? "border-sage-300/50 text-sage-200" : "border-amber-400/50 text-amber-100 hover:bg-amber-400/10"}`}
+            >
+              {saved ? "✓ Saved" : "Save this song"}
+            </button>
+          )}
           <p className="text-sm text-cream/55">New chords, the strum, the hardest change, each section, then the whole song with a band.</p>
         </div>
 
