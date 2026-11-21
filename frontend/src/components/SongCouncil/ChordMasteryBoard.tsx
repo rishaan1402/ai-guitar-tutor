@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import { LessonDocument } from "@/lib/api";
 import EnhancedPracticeChordCard from "./EnhancedPracticeChordCard";
+import { buildFingering } from "@/lib/chords/voicing";
 
 interface ChordMasteryBoardProps {
   lesson: LessonDocument;
@@ -33,6 +34,12 @@ export function ChordMasteryBoard({
     const map: Record<string, any> = {};
     if (lesson.practice_chords) {
       lesson.practice_chords.forEach((chord) => {
+        // no shape from the lesson (a chord outside the library): build one
+        if (!chord.positions?.length) {
+          const built = buildFingering(chord.symbol);
+          if (built) map[chord.symbol] = built;
+          return;
+        }
         if (chord.positions) {
           // Create ChordFingering-like object from practice_chord data
           map[chord.symbol] = {

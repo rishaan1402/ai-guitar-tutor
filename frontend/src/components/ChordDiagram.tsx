@@ -31,10 +31,10 @@ const DOT_R = 5;
 
 // Warm, distinct per finger; kept clear of the green/red used for scoring
 const FINGER_COLORS: Record<number, string> = {
-  1: "#3d7bff",
-  2: "#2ee6d6",
-  3: "#c3c0e6",
-  4: "#ff878c",
+  1: "#e8a54b",
+  2: "#86b092",
+  3: "#e9d9b8",
+  4: "#de7a5c",
 };
 
 export default function ChordDiagram({ fingering, caption, positions: override, note, liveNotes, fluid, className }: Props) {
@@ -161,7 +161,7 @@ export default function ChordDiagram({ fingering, caption, positions: override, 
 
           if (pos.action === "mute") {
             return (
-              <text key={`m-${i}`} x={x} y={y} fontSize={7} fill="#ff5a5f" textAnchor="middle" fontWeight="bold">
+              <text key={`m-${i}`} x={x} y={y} fontSize={7} fill="#e8604f" textAnchor="middle" fontWeight="bold">
                 X
               </text>
             );
@@ -174,7 +174,7 @@ export default function ChordDiagram({ fingering, caption, positions: override, 
                 x={x}
                 y={y}
                 fontSize={7}
-                fill={isLiveMode ? (isLive ? "#4fece0" : "#a3c6ab55") : "#4fece0"}
+                fill={isLiveMode ? (isLive ? "#a3c6ab" : "#a3c6ab55") : "#a3c6ab"}
                 textAnchor="middle"
                 fontWeight="bold"
                 filter={isLive ? "url(#liveGlow)" : undefined}
@@ -210,7 +210,7 @@ export default function ChordDiagram({ fingering, caption, positions: override, 
             const baseColor = pos.finger ? FINGER_COLORS[pos.finger] || "#6b7280" : "#6b7280";
             const isLive = isLiveMode && pos.note && liveNotes!.includes(pos.note);
             const fill = isLiveMode
-              ? isLive ? "#4fece0" : `${baseColor}44`
+              ? isLive ? "#a3c6ab" : `${baseColor}44`
               : baseColor;
 
             return (
@@ -220,13 +220,13 @@ export default function ChordDiagram({ fingering, caption, positions: override, 
                   cy={y}
                   r={isLive ? DOT_R + 1 : DOT_R}
                   fill={fill}
-                  stroke={isLive ? "#4fece0" : "rgba(28,18,6,0.6)"}
+                  stroke={isLive ? "#a3c6ab" : "rgba(28,18,6,0.6)"}
                   strokeWidth={isLive ? 1.5 : 0.8}
                   filter={isLive ? "url(#liveGlow)" : undefined}
                   style={{ transition: "fill 0.15s, r 0.1s" }}
                 />
                 {pos.finger && !isLiveMode && (
-                  <text x={x} y={y + 2.2} fontSize={6} fill="#0b0a1a" textAnchor="middle" fontWeight="bold" aria-hidden>
+                  <text x={x} y={y + 2.2} fontSize={6} fill="#1c1206" textAnchor="middle" fontWeight="bold" aria-hidden>
                     {pos.finger}
                   </text>
                 )}

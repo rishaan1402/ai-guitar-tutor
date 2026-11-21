@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { AppMenu } from "@/components/NavBar";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChordLesson from "@/components/chords/ChordLesson";
 import ChordCheck from "@/components/path/ChordCheck";
@@ -62,6 +63,7 @@ function LearnChord() {
             />
             <button className="h-10 rounded-full border border-amber-400/50 px-4 text-sm font-semibold text-amber-100">Build</button>
           </form>
+          <AppMenu />
         </div>
 
         <div className="mt-5 space-y-5">

@@ -22,7 +22,7 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         Window window = getWindow();
         WindowCompat.setDecorFitsSystemWindows(window, false);
-        window.getDecorView().setBackgroundColor(Color.parseColor("#0b0a1a"));
+        window.getDecorView().setBackgroundColor(Color.parseColor("#0c0a09"));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

@@ -12,24 +12,24 @@ const config: CapacitorConfig = {
   android: {
     // the app's origin is https://localhost (the API must allow it in ALLOWED_ORIGINS)
     allowMixedContent: false,
-    backgroundColor: "#0b0a1a",
+    backgroundColor: "#0c0a09",
   },
   ios: {
     // the app's origin is capacitor://localhost (the API must allow it in ALLOWED_ORIGINS);
     // draw edge to edge; the web app pads itself with the safe-area insets
     contentInset: "never",
-    backgroundColor: "#0b0a1a",
+    backgroundColor: "#0c0a09",
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 900,
       launchAutoHide: true,
-      backgroundColor: "#0b0a1a",
+      backgroundColor: "#0c0a09",
       showSpinner: false,
     },
     StatusBar: {
       style: "DARK",
-      backgroundColor: "#0b0a1a",
+      backgroundColor: "#0c0a09",
       overlaysWebView: true,
     },
     // full screen: MainActivity hides the bars; the page is viewport-fit=cover, so insets go to CSS

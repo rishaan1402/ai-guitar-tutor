@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- the app's ink background: shows behind the page instead of white -->
-    <color name="os_ink">#0B0A1A</color>
+    <color name="os_ink">#0C0A09</color>
 </resources>

@@ -20,6 +20,37 @@ export const OPEN_STRINGS: readonly OpenString[] = [
   { string: 1, name: "e", hz: 329.6276 },
 ];
 
+const hzOf = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+/** Strings low to high from MIDI notes; the top string is lower-case when it's E like standard. */
+function strings(midis: number[]): OpenString[] {
+  return midis.map((m, i) => {
+    const name = NOTE_NAMES[m % 12];
+    return { string: 6 - i, name: i === 5 && name === "E" ? "e" : name, hz: hzOf(m) };
+  });
+}
+
+export interface Tuning {
+  id: string;
+  label: string;
+  strings: readonly OpenString[];
+}
+
+export const TUNINGS: readonly Tuning[] = [
+  { id: "standard", label: "Standard (E A D G B E)", strings: OPEN_STRINGS },
+  { id: "drop-d", label: "Drop D (D A D G B E)", strings: strings([38, 45, 50, 55, 59, 64]) },
+  { id: "half-down", label: "Half step down (E♭ A♭ D♭ G♭ B♭ E♭)", strings: strings([39, 44, 49, 54, 58, 63]) },
+  { id: "dadgad", label: "DADGAD", strings: strings([38, 45, 50, 55, 57, 62]) },
+  { id: "open-g", label: "Open G (D G D G B D)", strings: strings([38, 43, 50, 55, 59, 62]) },
+  { id: "open-d", label: "Open D (D A D F# A D)", strings: strings([38, 45, 50, 54, 57, 62]) },
+];
+
+/** Note name with octave for any frequency, e.g. 110 -> "A2". */
+export function noteOf(hz: number): string {
+  const m = Math.round(69 + 12 * Math.log2(hz / 440));
+  return NOTE_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+}
+
 /** Accept a reading only this clear (MPM clarity 0..1)… */
 export const MIN_CLARITY = 0.9;
 /** …and this loud. */
@@ -38,11 +69,11 @@ export function cents(hz: number, refHz: number): number {
 }
 
 /** The open string nearest to `hz` (in cents), or null when none is within ±300 c. */
-export function nearestString(hz: number): { index: number; cents: number } | null {
+export function nearestString(hz: number, set: readonly OpenString[] = OPEN_STRINGS): { index: number; cents: number } | null {
   if (!(hz > 0) || !Number.isFinite(hz)) return null;
   let best = -1;
   let bestC = Infinity;
-  OPEN_STRINGS.forEach((s, i) => {
+  set.forEach((s, i) => {
     const c = cents(hz, s.hz);
     if (Math.abs(c) < Math.abs(bestC)) {
       bestC = c;
@@ -87,16 +118,26 @@ export interface TunerState {
    * or the flow auto-selected the next one); readings for others are ignored.
    */
   target: number | null;
+  /** The tuning's strings, low to high. */
+  strings: readonly OpenString[];
+  /** When the current string went clearly out of tune (to un-tick a tuned string that drifted). */
+  outSince: number | null;
+  /** Guided mode moves on to the next string after each one; free mode never moves on its own. */
+  advance: boolean;
 }
 
-export function initialTuner(target: number | null = 0): TunerState {
-  return { index: target, cents: null, recent: [], inTuneSince: null, tuned: [], target };
+/** A tuned string that drifts this far for this long loses its tick. */
+export const RETUNE_CENTS = 15;
+export const RETUNE_MS = 700;
+
+export function initialTuner(target: number | null = 0, set: readonly OpenString[] = OPEN_STRINGS, advance = true): TunerState {
+  return { index: target, cents: null, recent: [], inTuneSince: null, tuned: [], target, strings: set, outSince: null, advance };
 }
 
 /** Next string not yet tuned, low E first (or null when all six are). */
-export function nextUntuned(tuned: number[], from = 0): number | null {
-  for (let k = 0; k < OPEN_STRINGS.length; k++) {
-    const i = (from + k) % OPEN_STRINGS.length;
+export function nextUntuned(tuned: number[], from = 0, count = OPEN_STRINGS.length): number | null {
+  for (let k = 0; k < count; k++) {
+    const i = (from + k) % count;
     if (!tuned.includes(i)) return i;
   }
   return null;
@@ -115,11 +156,11 @@ export function pushReading(state: TunerState, r: Reading): { state: TunerState;
   let index: number;
   let c: number;
   if (state.target !== null) {
-    c = cents(r.hz, OPEN_STRINGS[state.target].hz);
+    c = cents(r.hz, state.strings[state.target].hz);
     if (Math.abs(c) > MAX_CENTS) return { state: { ...state, inTuneSince: null }, justTuned: null };
     index = state.target;
   } else {
-    const n = nearestString(r.hz);
+    const n = nearestString(r.hz, state.strings);
     if (!n) return { state: { ...state, inTuneSince: null }, justTuned: null };
     index = n.index;
     c = n.cents;
@@ -128,13 +169,20 @@ export function pushReading(state: TunerState, r: Reading): { state: TunerState;
   const med = median(recent);
   const inTune = Math.abs(med) <= IN_TUNE_CENTS;
   const since = inTune ? (state.index === index && state.inTuneSince !== null ? state.inTuneSince : r.t) : null;
-  let next: TunerState = { ...state, index, cents: med, recent, inTuneSince: since };
+  // a tuned string that has clearly drifted loses its tick, so you can come back to it
+  const out = recent.length >= 3 && Math.abs(med) > RETUNE_CENTS;
+  const outSince = out ? (state.index === index && state.outSince !== null ? state.outSince : r.t) : null;
+  let next: TunerState = { ...state, index, cents: med, recent, inTuneSince: since, outSince };
+  if (outSince !== null && r.t - outSince >= RETUNE_MS && state.tuned.includes(index)) {
+    next = { ...next, tuned: state.tuned.filter((i) => i !== index) };
+  }
   let justTuned: number | null = null;
-  if (since !== null && r.t - since >= HOLD_MS && !state.tuned.includes(index)) {
-    const tuned = [...state.tuned, index];
+  if (since !== null && r.t - since >= HOLD_MS && !next.tuned.includes(index)) {
+    const tuned = [...next.tuned, index];
     justTuned = index;
-    const target = state.target === null ? null : nextUntuned(tuned, index + 1);
-    next = { ...next, tuned, target, index: target ?? index, recent: target === null ? recent : [], inTuneSince: null, cents: target === null ? med : null };
+    const target = state.target === null || !state.advance ? state.target : nextUntuned(tuned, index + 1, state.strings.length);
+    const moved = target !== null && target !== index;
+    next = { ...next, tuned, target, index: moved ? target : index, recent: moved ? [] : recent, inTuneSince: moved ? null : since, cents: moved ? null : med };
   }
   return { state: next, justTuned };
 }
@@ -197,4 +245,9 @@ export function levelHintFor(s: LevelState): LevelHintKind {
   if (s.clipFrames > 3) return "clipping";
   if (s.floorDbfs !== null && s.floorDbfs > NOISY_FLOOR_DBFS) return "noisy";
   return null;
+}
+
+/** Switch tuning: everything is re-checked against the new notes. */
+export function setTuning(state: TunerState, set: readonly OpenString[]): TunerState {
+  return { ...state, strings: set, tuned: [], recent: [], cents: null, inTuneSince: null, outSince: null, index: state.target };
 }

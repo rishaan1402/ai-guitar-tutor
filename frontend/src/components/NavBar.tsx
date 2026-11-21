@@ -18,18 +18,29 @@ interface NavItem {
   authRequired?: boolean;
   teacherOnly?: boolean;
   adminOnly?: boolean;
+  /** Shown in the top bar on wide screens (everything is in the menu). */
+  top?: boolean;
+  group: "Learn" | "Play" | "You";
+  /** One line under the label in the menu. */
+  hint?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", label: "Room", authRequired: true },
-  { href: "/practice", label: "Practice" },
-  { href: "/practice?mode=song", label: "Learn a song", match: "#song" },
-  { href: "/songs", label: "Songs" },
-  { href: "/tuner", label: "Tuner" },
-  { href: "/progress", label: "Progress", authRequired: true },
-  { href: "/teacher", label: "Class", authRequired: true, teacherOnly: true },
-  { href: "/admin", label: "Admin", authRequired: true, adminOnly: true },
+  { href: "/studio", label: "Studio", top: true, group: "Learn", hint: "Your practice room" },
+  { href: "/path", label: "Lessons", top: true, group: "Learn", hint: "Four tracks, beginner to pro" },
+  { href: "/practice", label: "Practice", top: true, group: "Learn", hint: "Play a chord, hear every string" },
+  { href: "/practice?mode=song", label: "Learn a song", match: "#song", top: true, group: "Learn", hint: "Any song: chart, tabs, a lesson" },
+  { href: "/chords/learn", label: "Build a chord", group: "Learn", hint: "Any chord, with its own lesson" },
+  { href: "/groove", label: "Grooves", top: true, group: "Play", hint: "Play along with a band" },
+  { href: "/songs", label: "Songs", top: true, group: "Play", hint: "Chord charts and tabs" },
+  { href: "/tuner", label: "Tuner", top: true, group: "Play", hint: "Tune any string, any tuning" },
+  { href: "/coach", label: "Coach", top: true, group: "You", hint: "Ask, set a goal, your week" },
+  { href: "/dashboard", label: "Today", authRequired: true, group: "You", hint: "Today's plan and streak" },
+  { href: "/progress", label: "Progress", authRequired: true, group: "You", hint: "Chords, stars and history" },
+  { href: "/teacher", label: "Class", authRequired: true, teacherOnly: true, group: "You" },
+  { href: "/admin", label: "Admin", authRequired: true, adminOnly: true, group: "You" },
 ];
+const GROUPS: NavItem["group"][] = ["Learn", "Play", "You"];
 
 function isActive(item: NavItem, pathname: string): boolean {
   if (item.match === "#song") return false; // query-based; Practice stays lit for /practice
@@ -40,12 +51,10 @@ export default function NavBar() {
   const { user, loading, logout, isTeacher, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     router.push("/");
-    setMobileOpen(false);
   };
 
   const items = NAV_ITEMS.filter((item) => {
@@ -58,12 +67,12 @@ export default function NavBar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-cream/5 bg-ink-950/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link href={user ? "/dashboard" : "/"} className="shrink-0" aria-label="Open Strings — your room">
+        <Link href="/studio" className="shrink-0" aria-label="Open Strings: your studio">
           <Logo size="md" />
         </Link>
 
-        <div className="hidden items-center gap-1 lg:flex">
-          {items.map((item) => {
+        <div className="hidden min-w-0 items-center gap-0.5 xl:flex">
+          {items.filter((i) => i.top).map((item) => {
             const active = isActive(item, pathname);
             return (
               <Link
@@ -71,7 +80,7 @@ export default function NavBar() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "label-mono rounded-full px-3 py-2 transition-colors duration-fast",
+                  "label-mono whitespace-nowrap rounded-full px-2.5 py-2 transition-colors duration-fast",
                   active ? "bg-amber-400/10 text-amber-300" : "text-cream/60 hover:text-cream",
                 )}
               >
@@ -113,32 +122,68 @@ export default function NavBar() {
             </span>
           )}
 
+          <AppMenu />
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+/** The app menu (all features, grouped). Used by the top bar and by full-screen screens that have no top bar. */
+export function AppMenu({ className = "" }: { className?: string }) {
+  const { user, logout, isTeacher, isAdmin } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+    setMobileOpen(false);
+  };
+  const items = NAV_ITEMS.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.teacherOnly && !isTeacher && !isAdmin) return false;
+    if (item.authRequired && !user) return false;
+    return true;
+  });
+  return (
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger className="rounded-full p-2 text-cream/70 hover:text-cream lg:hidden" aria-label="Open menu">
+            <SheetTrigger className={cn("rounded-full p-2 text-cream/70 hover:text-cream", className)} aria-label="Open menu">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                 <path d="M3 6h14M3 10h14M3 14h14" strokeLinecap="round" />
               </svg>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72 border-cream/10 bg-ink-950 p-0">
+            <SheetContent side="right" className="w-80 overflow-y-auto border-cream/10 bg-ink-950 p-0">
               <div className="flex h-full flex-col">
                 <div className="border-b border-cream/10 p-5">
                   <Logo size="sm" />
                   {user && <p className="mt-3 text-sm text-cream/70">Signed in as {user.display_name}</p>}
                 </div>
-                <div className="flex-1 space-y-1 p-3">
-                  {items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileOpen(false)}
-                      className={cn(
-                        "block rounded-xl px-4 py-3 font-display text-lg uppercase",
-                        isActive(item, pathname) ? "bg-amber-400/10 text-amber-300" : "text-cream hover:bg-cream/5",
-                      )}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                <div className="flex-1 space-y-3 p-3">
+                  {GROUPS.map((g) => {
+                    const list = items.filter((i) => i.group === g);
+                    if (!list.length) return null;
+                    return (
+                      <div key={g}>
+                        <p className="label-mono px-4 pb-1 pt-1 text-[10px] text-cream/40">{g}</p>
+                        {list.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMobileOpen(false)}
+                            aria-current={isActive(item, pathname) ? "page" : undefined}
+                            className={cn(
+                              "block rounded-xl px-4 py-2",
+                              isActive(item, pathname) ? "bg-amber-400/10 text-amber-300" : "text-cream hover:bg-cream/5",
+                            )}
+                          >
+                            <span className="block font-display text-base uppercase">{item.label}</span>
+                            {item.hint && <span className="block text-xs text-cream/50">{item.hint}</span>}
+                          </Link>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
                 <div className="space-y-1 border-t border-cream/10 p-3">
                   {user ? (
@@ -164,8 +209,5 @@ export default function NavBar() {
               </div>
             </SheetContent>
           </Sheet>
-        </div>
-      </div>
-    </nav>
   );
 }

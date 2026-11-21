@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import React from "react";
 import { PracticeChord } from "@/lib/api";
 
@@ -12,9 +14,9 @@ interface PracticeChordCardProps {
 }
 
 function scoreColor(score: number) {
-  if (score >= 0.8) return "#2ee6d6";
-  if (score >= 0.5) return "#3d7bff";
-  return "#ff5a5f";
+  if (score >= 0.8) return "#86b092";
+  if (score >= 0.5) return "#e8a54b";
+  return "#e8604f";
 }
 
 function ScoreSparkline({ history }: { history: number[] }) {
@@ -29,7 +31,7 @@ function ScoreSparkline({ history }: { history: number[] }) {
     <svg width={width} height={BAR_MAX_H} viewBox={`0 0 ${width} ${BAR_MAX_H}`}>
       {bars.map((s, i) => {
         const h = Math.max(2, Math.round(s * BAR_MAX_H));
-        const color = s >= 0.8 ? "#2ee6d6" : s >= 0.5 ? "#3d7bff" : "#ff5a5f";
+        const color = s >= 0.8 ? "#86b092" : s >= 0.5 ? "#e8a54b" : "#e8604f";
         return (
           <rect
             key={i}
@@ -54,7 +56,7 @@ export default function PracticeChordCard({ chord, score, scoreHistory = [], cho
       style={{
         border: score != null
           ? `1px solid ${scoreColor(score)}55`
-          : "1px solid rgba(var(--cream-rgb),0.1)",
+          : "1px solid rgba(255,255,255,0.1)",
       }}
     >
       {/* Chord symbol */}
@@ -90,18 +92,26 @@ export default function PracticeChordCard({ chord, score, scoreHistory = [], cho
         </div>
       )}
 
-      {/* Not-in-app badge */}
+      {/* no video lesson: the chord builder makes one */}
+
       {!chord.available_in_app && (
-        <span
-          className="text-xs px-2 py-0.5 rounded-full"
-          style={{
-            background: "rgba(var(--cream-rgb),0.05)",
-            border: "1px solid rgba(var(--cream-rgb),0.1)",
-            color: "rgba(var(--cream-rgb),0.4)",
-          }}
+
+        <Link
+
+          href={`/chords/learn?c=${encodeURIComponent(chord.symbol)}`}
+
+          onClick={(e) => e.stopPropagation()}
+
+          className="btn-gradient block w-full rounded-lg px-3 py-1.5 text-center text-xs font-semibold text-white"
+
+          title={`Build a lesson for ${chord.symbol}`}
+
         >
-          not in app
-        </span>
+
+          Learn it (built lesson)
+
+        </Link>
+
       )}
 
       {chord.available_in_app && chord.chord_key && (

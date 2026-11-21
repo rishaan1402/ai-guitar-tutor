@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { AppMenu } from "@/components/NavBar";
 import { isCheck, nextSession, TRACKS } from "@/lib/path/curriculum";
 import { loadPathProgress } from "@/lib/path/progress";
 import { listSongLessons, songSessionId } from "@/lib/path/songLesson";
@@ -57,7 +58,10 @@ export default function PathPage() {
     <main className="min-h-[100dvh] bg-ink-950 px-4 pb-12 pt-[max(1rem,env(safe-area-inset-top))] landscape:px-6">
       <div className="mx-auto max-w-5xl">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/studio" className="label-mono text-cream/50">← Studio</Link>
+          <span className="flex items-center gap-1">
+            <AppMenu className="-ml-2" />
+            <Link href="/studio" className="label-mono text-cream/50">← Studio</Link>
+          </span>
           <div className="flex items-center gap-3">
             <Link href="/chords/learn" className="rounded-full border border-amber-400/40 px-3 py-1 text-sm font-semibold text-amber-100">Build a chord</Link>
             <p className="label-mono text-cream/40">

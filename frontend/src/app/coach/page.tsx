@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { AppMenu } from "@/components/NavBar";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -34,6 +35,7 @@ function Coach() {
     <main className="flex min-h-[100dvh] flex-col bg-ink-950 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
       <div className="flex items-center justify-between">
         <Link href="/studio" className="label-mono text-cream/50">← Studio</Link>
+        <AppMenu />
       </div>
       <p className="label-mono mt-4 text-amber-400">Your coach</p>
       <h1 className="mt-1 font-display text-h1 uppercase text-cream">Coach</h1>
