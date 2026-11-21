@@ -72,7 +72,7 @@ export default function LessonDisplay({
     lesson.overall_difficulty === "beginner"
       ? "#2ee6d6"
       : lesson.overall_difficulty === "intermediate"
-      ? "#ff3d8b"
+      ? "#3d7bff"
       : "#ff5a5f";
 
   return (
@@ -173,7 +173,7 @@ export default function LessonDisplay({
           <button
             onClick={onPlayAlong}
             className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #14c4b6, #f0216f)" }}
+            style={{ background: "linear-gradient(135deg, #14c4b6, #2860f0)" }}
           >
             🎮 Play Along
           </button>

@@ -15,7 +15,7 @@ interface EnhancedPracticeChordCardProps {
 
 function scoreColor(score: number) {
   if (score >= 0.8) return "#2ee6d6";
-  if (score >= 0.5) return "#ff3d8b";
+  if (score >= 0.5) return "#3d7bff";
   return "#ff5a5f";
 }
 
@@ -31,7 +31,7 @@ function ScoreSparkline({ history }: { history: number[] }) {
     <svg width={width} height={BAR_MAX_H} viewBox={`0 0 ${width} ${BAR_MAX_H}`}>
       {bars.map((s, i) => {
         const h = Math.max(1, Math.round(s * BAR_MAX_H));
-        const color = s >= 0.8 ? "#2ee6d6" : s >= 0.5 ? "#ff3d8b" : "#ff5a5f";
+        const color = s >= 0.8 ? "#2ee6d6" : s >= 0.5 ? "#3d7bff" : "#ff5a5f";
         return (
           <rect
             key={i}

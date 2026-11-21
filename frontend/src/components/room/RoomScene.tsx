@@ -105,7 +105,7 @@ function Guitar({ ringing }: { ringing: boolean }) {
       <path d={GUITAR_BODY} fill="url(#os-wood)" stroke="#24224d" strokeWidth="3" />
       <path d={GUITAR_BODY} fill="url(#os-wood-sheen)" />
       {/* soundhole + rosette */}
-      <circle cx="817" cy="566" r="31" fill="none" stroke="#ff3d8b" strokeWidth="3" opacity="0.85" />
+      <circle cx="817" cy="566" r="31" fill="none" stroke="#3d7bff" strokeWidth="3" opacity="0.85" />
       <circle cx="817" cy="566" r="26" fill="#0b0a1a" />
       {/* bridge */}
       <rect x="787" y="664" width="60" height="12" rx="4" fill="#24224d" />
@@ -159,7 +159,7 @@ function RecordPlayer({ playing }: { playing: boolean }) {
       <rect x="1328" y="616" width="152" height="104" rx="4" fill="#1b1a3d" stroke="#33306a" strokeWidth="2" />
       {/* records peeking out */}
       {[0, 1, 2, 3].map((i) => (
-        <rect key={i} x={1176 + i * 12} y="626" width="9" height="88" rx="2" fill={["#e0245e", "#ff3d8b", "#e6e4ff", "#14c4b6"][i]} opacity="0.75" />
+        <rect key={i} x={1176 + i * 12} y="626" width="9" height="88" rx="2" fill={["#e0245e", "#3d7bff", "#e6e4ff", "#14c4b6"][i]} opacity="0.75" />
       ))}
       <circle cx="1404" cy="668" r="5" fill="#c3c0e6" />
       <rect x="1160" y="736" width="16" height="30" fill="#131230" />
@@ -170,7 +170,7 @@ function RecordPlayer({ playing }: { playing: boolean }) {
       {/* platter + vinyl */}
       <ellipse cx="1264" cy="552" rx="80" ry="17" fill="#0b0a1a" />
       <ellipse cx="1264" cy="550" rx="76" ry="15" fill="url(#os-vinyl)" />
-      <ellipse cx="1264" cy="550" rx="18" ry="4" fill="#ff3d8b" />
+      <ellipse cx="1264" cy="550" rx="18" ry="4" fill="#3d7bff" />
       <ellipse cx="1264" cy="550" rx="2.5" ry="1" fill="#24224d" />
       {/* groove shimmer that sweeps while playing */}
       <ellipse cx="1264" cy="550" rx="56" ry="11" fill="none" stroke="#e6e4ff" strokeOpacity="0.12" strokeDasharray="30 200" className={playing ? "os-spin-dash" : undefined} />
@@ -232,7 +232,7 @@ function RecordWall({ mastered, streak }: { mastered: number; streak?: number })
             {[38, 30, 22].map((r) => (
               <circle key={r} cx={x + 68} cy="180" r={r} fill="none" stroke={gold ? "#7a5a22" : "#24224d"} strokeOpacity="0.5" />
             ))}
-            <circle cx={x + 68} cy="180" r="12" fill={gold ? "#ffd6e8" : "#24224d"} />
+            <circle cx={x + 68} cy="180" r="12" fill={gold ? "#d6e3ff" : "#24224d"} />
           </g>
         );
       })}
@@ -285,13 +285,13 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
           <stop offset="1" stopColor="#0b0a1a" />
         </linearGradient>
         <radialGradient id="os-lamp" cx="0.5" cy="0" r="1">
-          <stop offset="0" stopColor="#ffb3d4" stopOpacity="0.32" />
-          <stop offset="0.55" stopColor="#ff3d8b" stopOpacity="0.06" />
-          <stop offset="1" stopColor="#ff3d8b" stopOpacity="0" />
+          <stop offset="0" stopColor="#a9c2ff" stopOpacity="0.32" />
+          <stop offset="0.55" stopColor="#3d7bff" stopOpacity="0.06" />
+          <stop offset="1" stopColor="#3d7bff" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="os-halo" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#ff3d8b" stopOpacity="0.16" />
-          <stop offset="1" stopColor="#ff3d8b" stopOpacity="0" />
+          <stop offset="0" stopColor="#3d7bff" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#3d7bff" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="os-wood" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#e3a253" />
@@ -316,7 +316,7 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
           <stop offset="1" stopColor="#0b0a1a" />
         </radialGradient>
         <radialGradient id="os-gold" cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stopColor="#ffd6e8" />
+          <stop offset="0" stopColor="#d6e3ff" />
           <stop offset="0.35" stopColor="#e3b55a" />
           <stop offset="1" stopColor="#8a6424" />
         </radialGradient>
@@ -346,15 +346,15 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
         ))}
         <g className="os-neon" filter="url(#os-neon)" aria-hidden="true">
           <rect x="1214" y="150" width="332" height="154" rx="22" fill="none" stroke="#ff5a7a" strokeWidth="3" opacity="0.85" />
-          <text x="1380" y="214" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#ffb3d4" strokeWidth="2.4">OPEN</text>
-          <text x="1380" y="272" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#ffb3d4" strokeWidth="2.4">STRINGS</text>
+          <text x="1380" y="214" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#a9c2ff" strokeWidth="2.4">OPEN</text>
+          <text x="1380" y="272" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="46" fill="none" stroke="#a9c2ff" strokeWidth="2.4">STRINGS</text>
         </g>
         {/* lamps + light cones */}
         {[440, 1060].map((x) => (
           <g key={x}>
             <path d={`M${x - 60} 60 L${x + 60} 60 L${x + 360} 660 L${x - 360} 660 Z`} fill="url(#os-lamp)" />
             <rect x={x - 26} y="40" width="52" height="22" rx="4" fill="#24224d" />
-            <rect x={x - 22} y="58" width="44" height="5" rx="2" fill="#ffb3d4" />
+            <rect x={x - 22} y="58" width="44" height="5" rx="2" fill="#a9c2ff" />
           </g>
         ))}
         <ellipse cx="820" cy="470" rx="420" ry="300" fill="url(#os-halo)" />
@@ -363,7 +363,7 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
             <rect x="965" y="92" width="140" height="190" rx="4" fill="#e6e4ff" />
             <rect x="975" y="102" width="120" height="96" fill="#d22057" />
             <circle cx="1035" cy="150" r="30" fill="#131230" />
-            <circle cx="1035" cy="150" r="8" fill="#ff3d8b" />
+            <circle cx="1035" cy="150" r="8" fill="#3d7bff" />
             <text x="1035" y="226" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#24224d">LIVE</text>
             <text x="1035" y="248" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontSize="17" fill="#24224d">TONIGHT</text>
             <text x="1035" y="268" textAnchor="middle" fontFamily="var(--font-mono), monospace" fontSize="9" fill="#4a4590">OPEN MIC · 8PM</text>
@@ -379,7 +379,7 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
           </g>
         )}
         {has("neon") && (
-          <rect x="1206" y="142" width="348" height="170" rx="26" fill="none" stroke="#ffb3d4" strokeWidth="2" opacity="0.7" filter="url(#os-neon)" />
+          <rect x="1206" y="142" width="348" height="170" rx="26" fill="none" stroke="#a9c2ff" strokeWidth="2" opacity="0.7" filter="url(#os-neon)" />
         )}
         <g data-obj="wall" className={active === "wall" ? "is-active" : undefined}>
           <RecordWall mastered={Math.min(3, state.mastered ?? 2)} streak={state.streak} />
@@ -395,8 +395,8 @@ export default function RoomScene({ active, state = {}, reflections = true }: Pr
               const y = 18 + Math.sin(seg * Math.PI) * 36;
               return (
                 <g key={i}>
-                  <circle cx={x} cy={y + 10} r="12" fill="#ffb3d4" opacity="0.18" />
-                  <circle cx={x} cy={y + 10} r="4.5" fill={i % 3 === 0 ? "#ff8fc0" : "#ffd6e8"} />
+                  <circle cx={x} cy={y + 10} r="12" fill="#a9c2ff" opacity="0.18" />
+                  <circle cx={x} cy={y + 10} r="4.5" fill={i % 3 === 0 ? "#8fb2ff" : "#d6e3ff"} />
                 </g>
               );
             })}

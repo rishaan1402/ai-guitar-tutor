@@ -31,7 +31,7 @@ interface Props {
 
 const NOW = 0.8; // now line at 80% of the height
 
-const LANE_COLORS: Record<number, string> = { 6: "#ff5a5f", 5: "#ff3d8b", 4: "#c3c0e6", 3: "#2ee6d6", 2: "#7da2c9", 1: "#c49be0" };
+const LANE_COLORS: Record<number, string> = { 6: "#ff5a5f", 5: "#3d7bff", 4: "#c3c0e6", 3: "#2ee6d6", 2: "#7da2c9", 1: "#c49be0" };
 
 export default function Highway({ segments, changes, totalBeats, strum, getPosition, isHolding, judged, lookahead = 6, lead = false, beatsPerBar = 4 }: Props) {
   const wrap = useRef<HTMLDivElement>(null);

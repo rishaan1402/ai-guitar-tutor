@@ -31,7 +31,7 @@ const DOT_R = 5;
 
 // Warm, distinct per finger; kept clear of the green/red used for scoring
 const FINGER_COLORS: Record<number, string> = {
-  1: "#ff3d8b",
+  1: "#3d7bff",
   2: "#2ee6d6",
   3: "#c3c0e6",
   4: "#ff878c",

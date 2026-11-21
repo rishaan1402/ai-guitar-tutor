@@ -262,11 +262,11 @@ function DecorField({ className, variant }: { className?: string; variant: "hero
         ctx.stroke();
         for (const [x, y] of nodePts) {
           const g = ctx.createRadialGradient(x, y, 0, x, y, 16);
-          g.addColorStop(0, `rgba(255,190,225,${0.5 * pulse})`);
-          g.addColorStop(1, "rgba(255,190,225,0)");
+          g.addColorStop(0, `rgba(186,206,255,${0.5 * pulse})`);
+          g.addColorStop(1, "rgba(186,206,255,0)");
           ctx.fillStyle = g;
           ctx.fillRect(x - 16, y - 16, 32, 32);
-          ctx.fillStyle = "rgba(255,230,242,0.95)";
+          ctx.fillStyle = "rgba(226,236,255,0.95)";
           ctx.beginPath();
           ctx.arc(x, y, 2.2, 0, Math.PI * 2);
           ctx.fill();

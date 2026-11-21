@@ -314,7 +314,7 @@ export default function MicrophoneRecorder({
                 ? "#4fece0"
                 : peakGood || t < 1.5
                 ? "rgba(243,242,255,0.5)"
-                : "#ff7fb5";
+                : "#85aaff";
             ctx.fillRect(startX + i * (BAR_PX + GAP_PX), cssH - h, barW, h);
           }
         }

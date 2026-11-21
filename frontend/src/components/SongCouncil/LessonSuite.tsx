@@ -83,7 +83,7 @@ function StudyStage({
     lesson.overall_difficulty === "beginner"
       ? "#2ee6d6"
       : lesson.overall_difficulty === "intermediate"
-      ? "#ff3d8b"
+      ? "#3d7bff"
       : "#ff5a5f";
 
   return (
@@ -196,7 +196,7 @@ function StudyStage({
         <button
           onClick={onComplete}
           className="btn-gradient px-8 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200"
-          style={{ background: "linear-gradient(135deg, #f0216f, #14c4b6)" }}
+          style={{ background: "linear-gradient(135deg, #2860f0, #14c4b6)" }}
         >
           I&apos;ve studied this →
         </button>
@@ -251,7 +251,7 @@ function PracticeStage({
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${(attemptedCount / available.length) * 100}%`,
-                background: "linear-gradient(90deg, #f0216f, #14c4b6)",
+                background: "linear-gradient(90deg, #2860f0, #14c4b6)",
               }}
             />
           </div>

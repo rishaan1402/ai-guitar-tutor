@@ -56,7 +56,7 @@ export function IntegratedLessonView({
     lesson.overall_difficulty === "beginner"
       ? "#2ee6d6"
       : lesson.overall_difficulty === "intermediate"
-      ? "#ff3d8b"
+      ? "#3d7bff"
       : "#ff5a5f";
 
   // Get context for selected chord

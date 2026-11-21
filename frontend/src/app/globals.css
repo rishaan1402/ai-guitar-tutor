@@ -13,7 +13,7 @@
   /* .os-force-dark keeps a scene on the night stage in either theme (the studio room) */
   :root, .os-force-dark {
     /* ===== Stage Lights (dark, the default) ===== */
-    --acc-50: 255 240 246; --acc-100: 255 214 232; --acc-200: 255 173 208; --acc-300: 255 127 181; --acc-400: 255 61 139; --acc-500: 240 33 111; --acc-600: 200 18 90; --acc-700: 154 14 71; --acc-800: 110 11 52; --acc-900: 74 8 36; --acc-950: 42 4 19;
+    --acc-50: 239 244 255; --acc-100: 219 230 255; --acc-200: 186 206 255; --acc-300: 133 170 255; --acc-400: 61 123 255; --acc-500: 40 96 240; --acc-600: 28 74 205; --acc-700: 22 57 160; --acc-800: 18 44 120; --acc-900: 13 31 84; --acc-950: 7 17 48;
     --ok-50: 233 255 253; --ok-100: 196 251 246; --ok-200: 140 245 236; --ok-300: 79 236 224; --ok-400: 46 230 214; --ok-500: 20 196 182; --ok-600: 14 156 145; --ok-700: 13 122 114; --ok-800: 14 92 87; --ok-900: 13 70 66; --ok-950: 5 37 35;
     --live-50: 255 241 241; --live-100: 255 222 223; --live-200: 255 188 190; --live-300: 255 135 140; --live-400: 255 90 95; --live-500: 240 58 66; --live-600: 202 37 47; --live-700: 160 28 37; --live-800: 120 22 30; --live-900: 84 16 22; --live-950: 46 8 12;
     --neu-50: 244 243 255; --neu-100: 230 228 251; --neu-200: 207 203 240; --neu-300: 174 170 216; --neu-400: 142 138 184; --neu-500: 111 107 152; --neu-600: 85 81 120; --neu-700: 60 57 90; --neu-800: 38 36 61; --neu-900: 23 22 42; --neu-950: 13 12 28;
@@ -21,14 +21,14 @@
     --ink-950: 11 10 26; --ink-900: 18 17 42; --ink-800: 26 24 56; --ink-700: 35 33 73; --ink-600: 46 43 92;
     --text: 243 242 255; --text-muted: 195 192 230; --text-dim: 143 140 184;
     /* legacy comma channels for rgba(var(--x), a) in inline styles */
-    --accent-rgb: 255, 61, 139; --accent-soft-rgb: 255, 127, 181; --sage-rgb: 46, 230, 214; --sage-soft-rgb: 79, 236, 224;
+    --accent-rgb: 61, 123, 255; --accent-soft-rgb: 133, 170, 255; --sage-rgb: 46, 230, 214; --sage-soft-rgb: 79, 236, 224;
     --cream-rgb: 243, 242, 255; --amp-rgb: 255, 90, 95; --violet-rgb: 138, 92, 255;
     --bg-primary: #0b0a1a; --bg-secondary: #12112a; --ink-rgb: 11, 10, 26; --surface-rgb: 22, 21, 48;
     --background: 244 44% 7%; --foreground: 245 100% 97%; --card: 244 42% 10%; --card-foreground: 245 100% 97%;
-    --popover: 244 42% 11%; --popover-foreground: 245 100% 97%; --primary: 336 100% 62%; --primary-foreground: 244 44% 7%;
+    --popover: 244 42% 11%; --popover-foreground: 245 100% 97%; --primary: 221 100% 62%; --primary-foreground: 244 44% 7%;
     --secondary: 174 79% 54%; --secondary-foreground: 244 44% 7%; --muted: 244 36% 14%; --muted-foreground: 245 30% 70%;
     --accent: 244 36% 16%; --accent-foreground: 245 100% 97%; --destructive: 358 100% 68%; --destructive-foreground: 0 0% 100%;
-    --border: 245 100% 97% / 0.1; --input: 244 36% 13%; --ring: 336 100% 62%;
+    --border: 245 100% 97% / 0.1; --input: 244 36% 13%; --ring: 221 100% 62%;
     --glass-bg: rgba(var(--cream-rgb), 0.035);
     --glass-border: rgba(var(--cream-rgb), 0.1);
     --glass-hover-bg: rgba(var(--cream-rgb), 0.06);
@@ -54,21 +54,21 @@
 
 /* ===== Stage Lights by day (light theme) ===== */
 :root[data-theme="light"] {
-    --acc-50: 74 8 36; --acc-100: 110 11 52; --acc-200: 154 14 71; --acc-300: 190 16 84; --acc-400: 230 32 111; --acc-500: 210 22 98; --acc-600: 255 90 155; --acc-700: 255 150 190; --acc-800: 255 200 222; --acc-900: 255 226 238; --acc-950: 255 241 247;
+    --acc-50: 7 17 48; --acc-100: 13 31 84; --acc-200: 18 44 120; --acc-300: 22 57 160; --acc-400: 37 99 235; --acc-500: 30 84 215; --acc-600: 90 140 255; --acc-700: 150 185 255; --acc-800: 200 218 255; --acc-900: 226 236 255; --acc-950: 241 246 255;
     --ok-50: 5 50 46; --ok-100: 8 70 66; --ok-200: 10 95 90; --ok-300: 12 125 117; --ok-400: 14 160 150; --ok-500: 18 180 168; --ok-600: 60 210 198; --ok-700: 120 230 220; --ok-800: 180 242 236; --ok-900: 215 249 246; --ok-950: 235 253 251;
     --live-50: 84 16 22; --live-100: 120 22 30; --live-200: 160 28 37; --live-300: 190 33 44; --live-400: 220 48 58; --live-500: 230 60 70; --live-600: 255 110 115; --live-700: 255 160 163; --live-800: 255 200 202; --live-900: 255 226 227; --live-950: 255 242 242;
     --neu-50: 13 12 28; --neu-100: 23 22 42; --neu-200: 38 36 61; --neu-300: 60 57 90; --neu-400: 85 81 120; --neu-500: 111 107 152; --neu-600: 142 138 184; --neu-700: 174 170 216; --neu-800: 207 203 240; --neu-900: 230 228 251; --neu-950: 244 243 255;
     --vio-50: 19 7 52; --vio-100: 33 14 86; --vio-200: 50 22 125; --vio-300: 70 32 170; --vio-400: 110 64 240; --vio-500: 130 92 255; --vio-600: 160 130 255; --vio-700: 190 170 255; --vio-800: 215 205 255; --vio-900: 235 230 255; --vio-950: 246 243 255;
     --ink-950: 246 245 255; --ink-900: 236 235 250; --ink-800: 225 223 245; --ink-700: 211 208 238; --ink-600: 194 190 229;
     --text: 23 21 46; --text-muted: 74 71 112; --text-dim: 117 114 154;
-    --accent-rgb: 230, 32, 111; --accent-soft-rgb: 190, 16, 84; --sage-rgb: 14, 160, 150; --sage-soft-rgb: 12, 125, 117;
+    --accent-rgb: 37, 99, 235; --accent-soft-rgb: 22, 57, 160; --sage-rgb: 14, 160, 150; --sage-soft-rgb: 12, 125, 117;
     --cream-rgb: 23, 21, 46; --amp-rgb: 220, 48, 58; --violet-rgb: 110, 64, 240;
     --bg-primary: #f6f5ff; --bg-secondary: #ecebfa; --ink-rgb: 246, 245, 255; --surface-rgb: 255, 255, 255;
     --background: 246 100% 98%; --foreground: 246 37% 13%; --card: 0 0% 100%; --card-foreground: 246 37% 13%;
-    --popover: 0 0% 100%; --popover-foreground: 246 37% 13%; --primary: 336 80% 51%; --primary-foreground: 0 0% 100%;
+    --popover: 0 0% 100%; --popover-foreground: 246 37% 13%; --primary: 221 83% 53%; --primary-foreground: 0 0% 100%;
     --secondary: 175 84% 34%; --secondary-foreground: 0 0% 100%; --muted: 246 60% 95%; --muted-foreground: 246 20% 37%;
     --accent: 246 60% 93%; --accent-foreground: 246 37% 13%; --destructive: 356 72% 53%; --destructive-foreground: 0 0% 100%;
-    --border: 246 37% 13% / 0.12; --input: 246 60% 95%; --ring: 336 80% 51%;
+    --border: 246 37% 13% / 0.12; --input: 246 60% 95%; --ring: 221 83% 53%;
     color-scheme: light;
 }
 

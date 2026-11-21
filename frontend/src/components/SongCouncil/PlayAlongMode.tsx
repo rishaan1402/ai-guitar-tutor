@@ -242,10 +242,10 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       const isCurrent = i === clampedIdx;
       const result = blockResultsRef.current[i];
 
-      let fillColor = "rgba(255,61,139,0.22)";
-      if (isCurrent) fillColor = "rgba(255,61,139,0.50)";
+      let fillColor = "rgba(61,123,255,0.22)";
+      if (isCurrent) fillColor = "rgba(61,123,255,0.50)";
       if (result === "great") fillColor = "rgba(46,230,214,0.30)";
-      else if (result === "ok") fillColor = "rgba(255,61,139,0.28)";
+      else if (result === "ok") fillColor = "rgba(61,123,255,0.28)";
       else if (result === "miss") fillColor = "rgba(255,90,95,0.22)";
 
       ctx.fillStyle = fillColor;
@@ -253,9 +253,9 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       ctx.fill();
 
       ctx.strokeStyle = result === "great" ? "#2ee6d6"
-        : result === "ok" ? "#ff3d8b"
+        : result === "ok" ? "#3d7bff"
         : result === "miss" ? "#ff5a5f"
-        : isCurrent ? "#ff7fb5" : "rgba(255,61,139,0.35)";
+        : isCurrent ? "#85aaff" : "rgba(61,123,255,0.35)";
       ctx.lineWidth = isCurrent ? 2 : 1;
       ctx.stroke();
 
@@ -334,7 +334,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
   const matchCount = liveNotes.filter((n) => expectedNotes.includes(n)).length;
   const isOnChord = expectedNotes.length > 0 && matchCount >= Math.ceil(expectedNotes.length * 0.4);
 
-  const flashColor = flashResult === "GREAT!" ? "#2ee6d6" : flashResult === "OK" ? "#ff3d8b" : "#ff5a5f";
+  const flashColor = flashResult === "GREAT!" ? "#2ee6d6" : flashResult === "OK" ? "#3d7bff" : "#ff5a5f";
 
   if (availableChords.length === 0) {
     return (
