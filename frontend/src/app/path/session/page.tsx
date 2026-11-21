@@ -8,6 +8,7 @@ import ChordCheck from "@/components/path/ChordCheck";
 import LessonVideoPlayer from "@/components/LessonVideoPlayer";
 import ChordDiagram from "@/components/ChordDiagram";
 import ChordLesson from "@/components/chords/ChordLesson";
+import ChordTips from "@/components/chords/ChordTips";
 import { libraryKey, shapeFor } from "@/lib/chords/shape";
 import { EarStep, PlayStep, QuizStep, ReadStep, RhythmStep } from "@/components/path/steps/Steps";
 import { ALL_SESSIONS, levelOf, sessionAfter, sessionById, trackOf, type PathSession } from "@/lib/path/curriculum";
@@ -176,6 +177,7 @@ function Learn({ chord, points, onNext }: { chord: string; points: string[]; onN
         <p className="label-mono text-amber-400">New chord · {prettySymbol(chord)}</p>
         <ChordLesson symbol={chord} fingering={shape} autoPlay />
         <PointList points={points} />
+        <ChordTips symbol={chord} fingering={shape} />
         <button onClick={onNext} className="sticky bottom-3 z-10 h-12 w-full rounded-full bg-amber-400 font-semibold text-ink-950 shadow-lg shadow-black/40">I&apos;ve got the shape →</button>
       </div>
     );

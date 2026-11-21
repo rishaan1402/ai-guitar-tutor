@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChordLesson from "@/components/chords/ChordLesson";
 import ChordCheck from "@/components/path/ChordCheck";
+import ChordTips from "@/components/chords/ChordTips";
+import BuiltChordTake from "@/components/chords/BuiltChordTake";
 import { shapeFor, type ChordShape } from "@/lib/chords/shape";
 import { describe, parseSymbol } from "@/lib/chords/quality";
 
@@ -73,6 +75,7 @@ function LearnChord() {
           {shape && (
             <>
               <ChordLesson symbol={symbol} fingering={shape.fingering} autoPlay />
+              <ChordTips symbol={symbol} fingering={shape.fingering} />
               {spec && (
                 <p className="text-sm text-cream/60">
                   {describe(spec)}: {spec.noteNames.join(", ")}.{" "}
@@ -90,6 +93,7 @@ function LearnChord() {
                   <ChordCheck chord={symbol} onPass={() => setChecked(true)} />
                 )}
               </div>
+              <BuiltChordTake symbol={symbol} fingering={shape.fingering} libraryKey={shape.key} />
             </>
           )}
         </div>

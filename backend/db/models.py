@@ -519,3 +519,18 @@ class SongSheet(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now, onupdate=_now
     )
+
+
+class ChordTip(Base):
+    """Coaching tips for one chord shape, written once and shared by everyone."""
+
+    __tablename__ = "chord_tips"
+    __table_args__ = (UniqueConstraint("symbol", "frets", name="uq_chord_tip_shape"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    symbol: Mapped[str] = mapped_column(String(24), nullable=False)
+    # the shape, strings 6..1, e.g. "x,3,2,0,3,3"
+    frets: Mapped[str] = mapped_column(String(40), nullable=False)
+    tips: Mapped[list[str]] = mapped_column(JSON, default=list)
+    source: Mapped[str] = mapped_column(String(12), nullable=False, default="template")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

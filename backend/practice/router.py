@@ -13,8 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth.dependencies import get_current_user, get_current_user_optional
 from auth.rate_limit import RateLimiter, client_ip
 from db.engine import get_db
-from db.models import CoachReport, GrooveRun, PathProgress, User, UserGoal
-from practice import coach, game, grooves, theory
+from db.models import ChordTip, CoachReport, GrooveRun, PathProgress, User, UserGoal
+from practice import chordtips, coach, game, grooves, theory
 from practice.profile import build_profile
 
 router = APIRouter(prefix="/api", tags=["practice"])
@@ -208,3 +208,26 @@ async def weekly_report(request: Request, user: User = Depends(get_current_user)
 async def game_status(tz: Optional[str] = Query(default=None, max_length=64), user: User = Depends(get_current_user),
                       db: AsyncSession = Depends(get_db)):
     return await game.game_state(db, user, tz)
+
+
+# ------------------------------------------------------------------ chord builder
+
+@router.post("/chords/tips")
+async def chord_tips(body: chordtips.ChordShapeIn, request: Request,
+                     user: Optional[User] = Depends(get_current_user_optional),
+                     db: AsyncSession = Depends(get_db)):
+    """Coaching tips for a chord shape built in the app. Stored once per shape and shared."""
+    key = body.frets_key()
+    row = (await db.execute(select(ChordTip).where(ChordTip.symbol == body.symbol, ChordTip.frets == key))).scalar_one_or_none()
+    if row is not None:
+        return {"tips": row.tips, "source": row.source, "shared": True}
+    _limit(request, user)  # only new shapes cost an AI call
+    tips = await chordtips.ai_tips(body)
+    source = "ai" if tips else "template"
+    tips = tips or chordtips.template_tips(body)
+    db.add(ChordTip(symbol=body.symbol, frets=key, tips=tips, source=source))
+    try:
+        await db.commit()
+    except Exception:  # someone else stored the same shape a moment ago
+        await db.rollback()
+    return {"tips": tips, "source": source, "shared": False}
