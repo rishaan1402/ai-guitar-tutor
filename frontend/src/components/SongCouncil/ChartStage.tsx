@@ -69,9 +69,15 @@ function SectionLessonCard({
                 {isNew && <span className="ml-1.5 text-[10px] uppercase text-amber-300">new</span>}
               </button>
             ) : (
-              <span key={c} className="h-8 px-3 inline-flex items-center rounded-lg border border-white/5 text-sm text-gray-400" title="No mic lesson for this chord yet">
+              <Link
+                key={c}
+                href={`/chords/learn?c=${encodeURIComponent(c)}`}
+                className="h-8 px-3 inline-flex items-center rounded-lg border border-amber-400/30 text-sm text-gray-100 hover:bg-white/5"
+                title={`Learn ${c}: the chord builder makes a lesson for it`}
+              >
                 {c}
-              </span>
+                <span className="ml-1.5 text-[10px] uppercase text-amber-300">{isNew ? "new · " : ""}build</span>
+              </Link>
             );
           })}
         </div>

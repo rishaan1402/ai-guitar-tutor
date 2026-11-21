@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { PracticeChord, ChordFingering } from "@/lib/api";
 import ChordDiagram from "@/components/ChordDiagram";
+import Link from "next/link";
 
 interface EnhancedPracticeChordCardProps {
   chord: PracticeChord;
@@ -108,18 +109,26 @@ export default function EnhancedPracticeChordCard({
           </div>
         )}
 
-        {/* Not-in-app badge */}
+        {/* no video lesson: the chord builder makes one */}
+
         {!chord.available_in_app && (
-          <span
-            className="text-xs px-2 py-0.5 rounded-full"
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "rgba(255,255,255,0.4)",
-            }}
+
+          <Link
+
+            href={`/chords/learn?c=${encodeURIComponent(chord.symbol)}`}
+
+            onClick={(e) => e.stopPropagation()}
+
+            className="btn-gradient block w-full rounded-lg px-3 py-1.5 text-center text-xs font-semibold text-white"
+
+            title={`Build a lesson for ${chord.symbol}`}
+
           >
-            not in app
-          </span>
+
+            Learn it (built lesson)
+
+          </Link>
+
         )}
 
         {chord.available_in_app && chord.chord_key && (
