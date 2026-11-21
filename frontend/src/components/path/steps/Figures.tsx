@@ -3,9 +3,8 @@
 /** Pictures and sounds inside lessons: fretboard maps, tab, chord shapes, listen buttons. */
 import { useEffect, useState } from "react";
 import ChordDiagram from "@/components/ChordDiagram";
-import { loadFingering } from "@/components/SongSheet/ChordPanel";
+import { fingeringFor } from "@/lib/chords/shape";
 import type { ChordFingering } from "@/lib/api";
-import { toAppChordKey } from "@/lib/chordpro";
 import type { Dot, Figure } from "@/lib/path/steps";
 import { playChord, playNotes } from "@/lib/path/synth";
 
@@ -30,8 +29,7 @@ export function FigureView({ figure }: { figure: Figure }) {
 function ChordFigure({ chord }: { chord: string }) {
   const [shape, setShape] = useState<ChordFingering | null>(null);
   useEffect(() => {
-    const key = toAppChordKey(chord);
-    if (key) loadFingering(key).then(setShape).catch(() => {});
+    fingeringFor(chord).then(setShape).catch(() => {});
   }, [chord]);
   if (!shape) return <div className="flex h-40 w-32 items-center justify-center rounded-2xl border border-cream/10 font-display text-2xl text-cream">{chord}</div>;
   return (

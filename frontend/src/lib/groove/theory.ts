@@ -3,6 +3,7 @@
  * and MIDI notes for the backing band to voice it.
  */
 import { parseChord } from "../chordpro";
+import { parseSymbol } from "../chords/quality";
 
 const NOTE_PC: Record<string, number> = {
   C: 0, "C#": 1, Db: 1, D: 2, "D#": 3, Eb: 3, E: 4, F: 5, "F#": 6, Gb: 6,
@@ -35,6 +36,9 @@ export interface ChordNotes {
 }
 
 export function chordNotes(symbol: string): ChordNotes | null {
+  // the full chord vocabulary (sus, add9, 9ths, dim7, slash chords...)
+  const spec = parseSymbol(symbol);
+  if (spec) return { symbol, root: spec.bass ?? spec.root, pcs: spec.pcs };
   const c = parseChord(symbol);
   if (!c) return null;
   const root = NOTE_PC[c.root];

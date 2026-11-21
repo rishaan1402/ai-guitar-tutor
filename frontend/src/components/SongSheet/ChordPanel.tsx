@@ -1,4 +1,5 @@
 "use client";
+import { fingeringFor } from "@/lib/chords/shape";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -31,8 +32,7 @@ export default function ChordPanel({ chords, activeChord, onSelect }: Props) {
     let cancelled = false;
     Promise.all(
       chords.map(async (c) => {
-        const key = toAppChordKey(c);
-        return [c, key ? await loadFingering(key) : null] as const;
+        return [c, await fingeringFor(c)] as const;
       }),
     ).then((pairs) => {
       if (!cancelled) setFingerings(Object.fromEntries(pairs));
@@ -46,7 +46,8 @@ export default function ChordPanel({ chords, activeChord, onSelect }: Props) {
     if (activeChord) refs.current[activeChord]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [activeChord]);
 
-  const unsupported = chords.filter((c) => !toAppChordKey(c));
+  // chords the shape finder can't read or play (rare: unknown symbols)
+  const unsupported = chords.filter((c) => c in fingerings && !fingerings[c]);
 
   return (
     <div>
@@ -84,10 +85,14 @@ export default function ChordPanel({ chords, activeChord, onSelect }: Props) {
                 >
                   Practice →
                 </Link>
-              ) : key && !(chord in fingerings) ? (
+              ) : fingering ? (
+                <Link href={`/chords/learn?c=${encodeURIComponent(chord)}`} className="text-[11px] text-amber-300 hover:text-amber-200">
+                  Learn it →
+                </Link>
+              ) : !(chord in fingerings) ? (
                 <span className="text-[11px] text-gray-600" aria-hidden>…</span>
               ) : (
-                <span className="text-[11px] text-gray-600">No lesson</span>
+                <span className="text-[11px] text-gray-600">No shape</span>
               )}
             </div>
           );
@@ -95,7 +100,7 @@ export default function ChordPanel({ chords, activeChord, onSelect }: Props) {
       </div>
       {unsupported.length > 0 && (
         <p className="text-xs text-gray-500 mt-3">
-          {unsupported.join(", ")} {unsupported.length === 1 ? "has" : "have"} no lesson yet. Turn on{" "}
+          {unsupported.join(", ")} {unsupported.length === 1 ? "isn't a chord" : "aren't chords"} we can read yet. Turn on{" "}
           <span className="text-gray-300">Simplify</span> to swap in chords you can practise here.
         </p>
       )}

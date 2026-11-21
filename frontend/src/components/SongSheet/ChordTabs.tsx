@@ -1,10 +1,10 @@
 "use client";
+import { fingeringFor } from "@/lib/chords/shape";
 
 import { useEffect, useState } from "react";
 import type { ChordFingering } from "@/lib/api";
 import { shapeFor } from "@/lib/chordShape";
 import { chordTab, type TabPattern } from "@/lib/chordTab";
-import { toAppChordKey } from "@/lib/chordpro";
 import { loadFingering } from "./ChordPanel";
 
 const PATTERNS: { key: TabPattern; label: string }[] = [
@@ -28,8 +28,7 @@ export default function ChordTabs({ chords, fontSize = 14 }: Props) {
     let cancelled = false;
     Promise.all(
       chords.map(async (c) => {
-        const key = toAppChordKey(c);
-        return [c, key ? await loadFingering(key) : null] as const;
+        return [c, await fingeringFor(c)] as const;
       }),
     ).then((pairs) => {
       if (!cancelled) setFingerings(Object.fromEntries(pairs));

@@ -8,8 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Highway from "./Highway";
 import ChordDiagram from "@/components/ChordDiagram";
-import { loadFingering } from "@/components/SongSheet/ChordPanel";
-import { toAppChordKey } from "@/lib/chordpro";
+import { fingeringFor } from "@/lib/chords/shape";
 import { prettySymbol } from "@/lib/chordShape";
 import { openMic, micErrorMessage, MIC_CONSTRAINTS } from "@/lib/mic";
 import { generateGroove, saveGrooveRun, type ChordFingering } from "@/lib/api";
@@ -71,7 +70,7 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
   useEffect(() => {
     let live = true;
     if (groove.kind === "lead") return;
-    Promise.all(chordsIn(groove).map(async (c) => [c, await loadFingering(toAppChordKey(c) ?? "").catch(() => null)] as const)).then(
+    Promise.all(chordsIn(groove).map(async (c) => [c, await fingeringFor(c)] as const)).then(
       (pairs) => live && setShapes(Object.fromEntries(pairs)),
     );
     return () => {
