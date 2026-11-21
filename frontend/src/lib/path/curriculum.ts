@@ -8,11 +8,65 @@ import { CHORDS_TRACK } from "./tracks/chords";
 import { LEAD_TRACK } from "./tracks/lead";
 import { THEORY_TRACK } from "./tracks/theory";
 import { STYLES_TRACK } from "./tracks/styles";
-import { chordsIn, type PathLevel, type PathSession, type PathTrack } from "./steps";
+import { chordsIn, read, S, type PathLevel, type PathSession, type PathTrack, type Question, type Step } from "./steps";
 
 export type { PathLevel, PathSession, PathTrack, Step } from "./steps";
 
-export const TRACKS: PathTrack[] = [CHORDS_TRACK, LEAD_TRACK, THEORY_TRACK, STYLES_TRACK];
+/** Id of a level's check session. */
+export const checkId = (levelId: string) => `${levelId}-check`;
+export const isCheck = (sessionId: string) => sessionId.endsWith("-check");
+
+/**
+ * A level check, built from what the level taught: up to six of its quiz
+ * questions, its last Groove (usually the gig) in keep-time mode, and one
+ * hands-on drill. It recommends what to do next; it never locks anything.
+ */
+export function levelCheck(level: PathLevel): PathSession | null {
+  const steps = level.sessions.flatMap((s) => s.steps);
+  const questions: Question[] = steps.flatMap((st) => (st.kind === "quiz" ? st.questions : []));
+  const pick = questions.filter((_, i) => i % Math.max(1, Math.ceil(questions.length / 6)) === 0).slice(0, 6);
+  const grooves = steps.filter((st) => st.kind === "groove");
+  const drills = steps.filter((st) => ["play", "echo", "fretgame", "ear", "rhythm"].includes(st.kind));
+  const chords = steps.flatMap((st) => (st.kind === "learn" ? [st.chord] : []));
+  const out: Step[] = [];
+  if (pick.length >= 2) out.push({ kind: "quiz", title: "What you know", questions: pick });
+  // the level's newest chord, played for the app again
+  if (chords.length) out.push({ kind: "check", chord: chords[chords.length - 1] });
+  // the last one or two hands-on drills (two when there's no quiz)
+  out.push(...drills.slice(pick.length >= 2 ? -1 : -2));
+  const gig = grooves[grooves.length - 1];
+  if (gig && gig.kind === "groove") out.push({ ...gig, mode: "play", label: "Keep time" });
+  if (out.length < 2) return null;
+  return S(
+    checkId(level.id),
+    "Level check",
+    "A short check of this level. It recommends what's next; nothing is locked.",
+    read("Level check", `A quick check of **${level.title}**: ${out.map((st) => (st.kind === "quiz" ? "a few questions" : st.kind === "groove" ? "the level's song, keeping time with the band" : st.kind === "check" ? `playing ${st.chord} for the app` : "a hands-on drill")).join(", ")}.
+
+It isn't a gate: whatever you score, every lesson stays open. It tells you whether you're ready for the next level, or which lessons to revisit first.`),
+    ...out,
+  );
+}
+
+const withChecks = (t: PathTrack): PathTrack => ({
+  ...t,
+  levels: t.levels.map((l) => {
+    const c = levelCheck(l);
+    return c ? { ...l, sessions: [...l.sessions, c] } : l;
+  }),
+});
+
+export const TRACKS: PathTrack[] = [CHORDS_TRACK, LEAD_TRACK, THEORY_TRACK, STYLES_TRACK].map(withChecks);
+
+/** After a level check: ready for the next level, or the lessons worth revisiting first. */
+export function checkAdvice(levelId: string, stars: number, done: Record<string, number>): { ready: boolean; next: PathLevel | null; review: PathSession[] } {
+  const track = TRACKS.find((t) => t.levels.some((l) => l.id === levelId));
+  const idx = track ? track.levels.findIndex((l) => l.id === levelId) : -1;
+  const level = track?.levels[idx];
+  const next = track && idx >= 0 ? track.levels[idx + 1] ?? null : null;
+  const review = (level?.sessions ?? []).filter((s) => !isCheck(s.id) && (done[s.id] ?? 0) < 2);
+  return { ready: stars >= 2, next, review };
+}
 
 export const LEVELS: PathLevel[] = TRACKS.flatMap((t) => t.levels);
 

@@ -344,5 +344,55 @@ Quote the **vocal melody**. Leave **silence**. Play **for the song**, not for yo
           groove(lead("gig-final-solo", "Final solo: A minor", [["4:7", "-", "3:5", "3:7"], ["2:5", "-", "2:8", "-"], ["1:5", "1:8", "1:10", "-"], ["1:12", "-", "-", "-"], ["2:10", "1:12", "2:10", "2:8"], ["3:9", "-", "3:7", "-"], ["2:5", "3:7", "3:5", "-"], ["4:7", "-", "-", "-"]], { style: "rock", bpm: 80, loops: 1 }), "follow")),
       ],
     },
+    {
+      id: "lead-9",
+      title: "Lead 9 · Technique lab",
+      blurb: "Legato, bend accuracy, chord-tone targeting, sweeps and tapping, with speed ladders.",
+      sessions: [
+        S("l9-legato", "Legato runs", "Smooth lines with fewer picks.",
+          read("Legato", `**Legato** players pick the first note on each string and hammer or pull the rest. The fretting hand does the work; the result is smooth and fast.
+
+Keys to clean legato:
+- **Hammer hard, from close**: fingers stay a centimetre from the string.
+- **Pull off sideways**, plucking the string as the finger leaves.
+- **Even volume**: picked and hammered notes should sound the same.`, tab(`B|--5h8p5----------|
+G|---------7p5h7----|`, "Pentatonic legato")),
+          play("Legato run", "Pick only the first note on each string.", notes("2:5 2:8 2:5 3:7 3:5 3:7")),
+          ladder("Legato ladder", "Faster each clean run.", lead("ladder-legato", "Legato ladder", [["2:5", "2:8", "2:5", "3:7"], ["3:5", "3:7", "3:5", "4:7"]], { style: "rock", bpm: 70, loops: 2 }), 70, 110)),
+        S("l9-bends", "Bend accuracy", "Whole steps, half steps, in tune.",
+          read("Bending in tune", `Bends are only expressive if they're **in tune**. Check each one against its target fret: a whole-step bend at fret 7 must sound exactly like fret 9.
+
+- **Half-step** bends are subtle: blues players love them on the minor 3rd.
+- **Whole-step** bends are the rock standard.
+- Practise slowly with the app listening: it only counts the bend when the pitch arrives.`),
+          play("Bend to pitch", "Whole step on G 7, whole step on B 8, half step on B 8, whole step on e 5.", notes("3:7b2 2:8b2 2:8b1 1:5b2"))),
+        S("l9-targets", "Target the chord tones", "Make the changes heard in your solo.",
+          read("Chord tones", `Pros don't just run a scale over changes: they **land on chord tones** (root, 3rd, 5th, 7th) at the moment each chord arrives. Over **Dm7 G7 Cmaj7**:
+- Dm7: aim for **F** or **C**
+- G7: aim for **B** or **F** (its 3rd and 7th)
+- Cmaj7: land on **E** or **B**
+
+Use the C major scale around the 5th to 8th frets and steer each phrase onto those notes.`, fret("5:3R 5:5 4:2 4:3 4:5 3:2 3:4 3:5R 2:3 2:5 2:6 1:3 1:5", "C major around frets 2–6", 1, 7)),
+          improvise("ii–V–I jam", "Land on a chord tone when each chord arrives; end on C.", { bars: [["Dm7"], ["G7"], ["Cmaj7"], ["Cmaj7"]], bpm: 88, style: "ballad", scale: "C D E F G A B", home: "C", loops: 3 })),
+        S("l9-sweep", "Sweep picking", "Arpeggios in one motion.",
+          read("Sweeps", `A **sweep** plays one note per string in a single down (or up) motion, like a slow strum. The fretting hand lifts each note as soon as the next sounds, so they don't ring together.
+
+Start with a **three-string A minor sweep** (D, G, B strings): 7, 5, 5. Go painfully slow; the motion is everything.`, tab(`e|-------5-------|
+B|-----5---5-----|
+G|---5-------5---|
+D|-7-----------7-|`, "A minor sweep, down then up")),
+          play("Am sweep", "Down then up, one note per string.", notes("4:7 3:5 2:5 1:5 2:5 3:5 4:7")),
+          ladder("Sweep ladder", "Clean and even before fast.", lead("ladder-sweep", "Sweep ladder", [["4:7", "3:5", "2:5", "1:5"], ["2:5", "3:5", "4:7", "-"]], { style: "rock", bpm: 60, loops: 2 }), 60, 96)),
+        S("l9-tapping", "Two-hand tapping", "The picking hand on the fretboard.",
+          read("Tapping", `**Tap** a note with your picking-hand middle finger (keep the pick tucked in your palm), **pull off** to a fretted note, then **hammer** another. On the high e: tap 12, pull to 5, hammer 8, pull to 5.
+
+Mute the unused strings with the side of your picking hand; tapping rings everything.`, tab(`e|-12p5h8p5-12p5h8p5-|`, "Classic tapping triplet")),
+          play("Tap it", "Tap 12, pull to 5, hammer 8, pull to 5.", notes("1:12 1:5 1:8 1:5")),
+          ladder("Tapping ladder", "Even triplets first.", lead("ladder-tapping", "Tapping ladder", [["1:12", "1:5", "1:8", "1:5"], ["1:12", "1:5", "1:8", "1:5"]], { style: "rock", bpm: 70, loops: 2 }), 70, 110)),
+        S("l9-gig", "Gig: Fast minor jam", "Everything at speed.",
+          echo("Warm-up licks", "Play these back at speed.", ["1:8 1:5 2:8 2:5 3:7", "3:7 3:5 4:7 4:5 5:7", "2:8 2:5 3:7 2:5 1:5"]),
+          improvise("Fast jam", "Legato runs, bends and a sweep or two; end on A.", { bars: [["Am"], ["F"], ["G"], ["Am"]], bpm: 104, scale: "A C D E G", home: "A", loops: 3, figure: fret(PENT1, "Box 1", 4, 9) })),
+      ],
+    },
   ],
 };

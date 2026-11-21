@@ -5,6 +5,7 @@ import { chordNotes } from "../groove/theory";
 import { chordTemplate } from "../groove/detect";
 import { parseNote } from "../groove/lead";
 import { toAppChordKey } from "../chordpro";
+import { buildFingering } from "../chords/voicing";
 
 describe("curriculum", () => {
   it("is deep: four tracks and over a hundred sessions", () => {
@@ -17,7 +18,7 @@ describe("curriculum", () => {
       expect(s.steps.length, s.id).toBeGreaterThan(0);
       for (const st of s.steps) {
         if (st.kind === "quiz") for (const qn of st.questions) expect(qn.options[qn.answer], `${s.id}: ${qn.q}`).toBeDefined();
-        if (st.kind === "learn") expect(toAppChordKey(st.chord), `${s.id}: ${st.chord} has a lesson`).toBeTruthy();
+        if (st.kind === "learn") expect(toAppChordKey(st.chord) || buildFingering(st.chord), `${s.id}: ${st.chord} has a lesson or a built shape`).toBeTruthy();
         if (st.kind === "play") expect(st.targets.length, s.id).toBeGreaterThan(0);
         if (st.kind === "rhythm") expect([6, 8, 12, 16]).toContain(st.pattern.length);
         if (st.kind === "ear") expect(st.options.length).toBeGreaterThan(1);
@@ -52,7 +53,8 @@ describe("curriculum", () => {
     const ids = ALL_SESSIONS.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(id).toMatch(/^[a-z0-9-]{2,40}$/);
-    const grooveIds = ALL_SESSIONS.flatMap((s) => s.steps.flatMap((st) => (st.kind === "groove" ? [st.groove.id] : [])));
+    // level checks replay their level's gig, so they're left out here
+    const grooveIds = ALL_SESSIONS.filter((s) => !s.id.endsWith("-check")).flatMap((s) => s.steps.flatMap((st) => (st.kind === "groove" ? [st.groove.id] : [])));
     expect(new Set(grooveIds).size).toBe(grooveIds.length);
   });
 
@@ -60,7 +62,8 @@ describe("curriculum", () => {
     expect(nextSession({}).id).toBe("b1-start");
     expect(nextSession({ "b1-start": 3, "b1-em": 3, "b1-am": 1 }).id).toBe("b1-e");
     expect(nextSession({}, "lead").id).toBe("l1-open");
-    expect(sessionAfter("l1-melodies")?.id).toBe("l2-alt");
+    expect(sessionAfter("l1-melodies")?.id).toBe("lead-1-check");
+    expect(sessionAfter("lead-1-check")?.id).toBe("l2-alt");
   });
 });
 
@@ -86,5 +89,24 @@ describe("newer exercises in the curriculum", () => {
       }
     }
     for (const k of ["echo", "ladder", "improvise", "fretgame"]) expect(kinds.has(k), k).toBe(true);
+  });
+});
+
+describe("level checks", () => {
+  it("every level with enough material ends in a check that doesn't block anything", async () => {
+    const { checkAdvice, isCheck } = await import("./curriculum");
+    const levels = TRACKS.flatMap((t) => t.levels);
+    const checks = levels.filter((l) => isCheck(l.sessions[l.sessions.length - 1].id));
+    expect(checks.length).toBeGreaterThanOrEqual(Math.floor(levels.length * 0.8));
+    for (const l of checks) {
+      const c = l.sessions[l.sessions.length - 1];
+      expect(c.steps[0].kind).toBe("read");
+      expect(c.steps.length).toBeGreaterThanOrEqual(3);
+    }
+    const a = checkAdvice("basics-1", 1, { "b1-em": 3 });
+    expect(a.ready).toBe(false);
+    expect(a.next?.id).toBe("basics-2");
+    expect(a.review.map((s) => s.id)).not.toContain("b1-em");
+    expect(checkAdvice("basics-1", 3, {}).ready).toBe(true);
   });
 });
