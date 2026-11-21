@@ -17,9 +17,9 @@ interface Props {
 const RINGS = [70, 112, 152, 190];
 
 const NOTE_STYLE = {
-  hit: { stroke: "rgba(134,176,146,0.9)", fill: "rgba(134,176,146,0.18)", text: "#dfece2" },
-  miss: { stroke: "rgba(222,122,92,0.9)", fill: "rgba(222,122,92,0.12)", text: "#f6c9b9" },
-  idle: { stroke: "rgba(243,234,216,0.45)", fill: "rgba(243,234,216,0.05)", text: "#f3ead8" },
+  hit: { stroke: "rgba(var(--sage-rgb),0.9)", fill: "rgba(var(--sage-rgb),0.18)", text: "#dfece2" },
+  miss: { stroke: "rgba(var(--amp-rgb),0.9)", fill: "rgba(var(--amp-rgb),0.12)", text: "#f6c9b9" },
+  idle: { stroke: "rgba(var(--cream-rgb),0.45)", fill: "rgba(var(--cream-rgb),0.05)", text: "rgb(var(--text))" },
 } as const;
 
 /**
@@ -32,8 +32,8 @@ export default function OrbitRings({ center, centerCaption, notes, className }: 
       <defs>
         <radialGradient id="orbit-core" cx="50%" cy="45%" r="55%">
           <stop offset="0%" stopColor="#ffe9c2" stopOpacity="0.95" />
-          <stop offset="35%" stopColor="#e8a54b" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#e8a54b" stopOpacity="0" />
+          <stop offset="35%" stopColor="rgb(var(--acc-400))" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="rgb(var(--acc-400))" stopOpacity="0" />
         </radialGradient>
       </defs>
 
@@ -43,16 +43,16 @@ export default function OrbitRings({ center, centerCaption, notes, className }: 
           key={r}
           r={r}
           fill="none"
-          stroke="rgba(243,234,216,0.16)"
+          stroke="rgba(var(--cream-rgb),0.16)"
           strokeWidth={i === 0 ? 1.2 : 0.8}
           strokeDasharray={i === 2 ? "2 6" : undefined}
         />
       ))}
-      <circle r={RINGS[0] - 18} fill="none" stroke="rgba(232,165,75,0.4)" strokeWidth={0.8} style={{ transformOrigin: "center", animation: "ring-breathe 4s ease-in-out infinite" }} />
+      <circle r={RINGS[0] - 18} fill="none" stroke="rgba(var(--accent-rgb),0.4)" strokeWidth={0.8} style={{ transformOrigin: "center", animation: "ring-breathe 4s ease-in-out infinite" }} />
 
       {/* Glowing centre: the chord */}
       <circle r={62} fill="url(#orbit-core)" />
-      <text y={centerCaption ? 6 : 14} textAnchor="middle" fill="#1c1206" fontSize={44} fontWeight={700} style={{ fontFamily: "var(--font-display)" }}>
+      <text y={centerCaption ? 6 : 14} textAnchor="middle" fill="rgb(var(--ink-950))" fontSize={44} fontWeight={700} style={{ fontFamily: "var(--font-display)" }}>
         {center}
       </text>
       {centerCaption && (

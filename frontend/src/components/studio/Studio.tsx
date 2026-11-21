@@ -306,17 +306,17 @@ export default function Studio() {
         >
           <div
             className="pointer-events-none absolute inset-x-0 -top-px z-10 h-[14%]"
-            style={{ background: "linear-gradient(to bottom, #0c0a09, transparent)" }}
+            style={{ background: "linear-gradient(to bottom, rgb(var(--ink-950)), transparent)" }}
           />
           <div
             className="pointer-events-none absolute inset-x-0 -bottom-px z-10 h-[16%]"
-            style={{ background: "linear-gradient(to top, #0c0a09, transparent)" }}
+            style={{ background: "linear-gradient(to top, rgb(var(--ink-950)), transparent)" }}
           />
           {/* on screens wider than the room, its side walls fade into the background */}
           {SW * view.z < vp.w - 2 && (
             <>
-              <div className="pointer-events-none absolute inset-y-0 -left-px z-10 w-[7%]" style={{ background: "linear-gradient(to right, #0c0a09, transparent)" }} />
-              <div className="pointer-events-none absolute inset-y-0 -right-px z-10 w-[7%]" style={{ background: "linear-gradient(to left, #0c0a09, transparent)" }} />
+              <div className="pointer-events-none absolute inset-y-0 -left-px z-10 w-[7%]" style={{ background: "linear-gradient(to right, rgb(var(--ink-950)), transparent)" }} />
+              <div className="pointer-events-none absolute inset-y-0 -right-px z-10 w-[7%]" style={{ background: "linear-gradient(to left, rgb(var(--ink-950)), transparent)" }} />
             </>
           )}
           <RoomScene
@@ -336,7 +336,7 @@ export default function Studio() {
                 else select(o.id);
               }}
               className={`absolute rounded-2xl outline-none transition-[box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-amber-300/80 ${
-                hover === o.id && !focus ? "shadow-[0_0_0_2px_rgba(232,165,75,0.55),0_0_40px_rgba(232,165,75,0.25)]" : ""
+                hover === o.id && !focus ? "shadow-[0_0_0_2px_rgba(var(--accent-rgb),0.55),0_0_40px_rgba(var(--accent-rgb),0.25)]" : ""
               }`}
               style={{ left: o.x * s, top: o.y * s, width: o.w * s, height: o.h * s }}
             >
@@ -377,9 +377,9 @@ export default function Studio() {
           viewBox="0 0 34 46"
         >
           {/* a pick, point down: its tip is the cursor */}
-          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill={hover ? "#e8a54b" : "#d8c9a8"} stroke="#0c0a09" strokeWidth="2" />
-          <path d="M8 10 C 11 6, 23 6, 26 10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="17" cy="45" r="2" fill="#0c0a09" opacity="0.6" />
+          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill={hover ? "rgb(var(--acc-400))" : "#d8c9a8"} stroke="rgb(var(--ink-950))" strokeWidth="2" />
+          <path d="M8 10 C 11 6, 23 6, 26 10" fill="none" stroke="rgba(var(--cream-rgb),0.45)" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="17" cy="45" r="2" fill="rgb(var(--ink-950))" opacity="0.6" />
         </svg>
       )}
 
@@ -510,8 +510,8 @@ function DailyRing({ done, total, tasks }: { done: number; total: number; tasks:
         className="flex h-[34px] items-center gap-1.5 rounded-full border border-cream/10 bg-ink-950/70 pl-1 pr-3 backdrop-blur"
       >
         <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-          <circle cx="16" cy="16" r={r} fill="none" stroke="rgba(243,234,216,0.12)" strokeWidth="4" />
-          <circle cx="16" cy="16" r={r} fill="none" stroke={done >= total ? "#a3c6ab" : "#e8a54b"} strokeWidth="4" strokeLinecap="round"
+          <circle cx="16" cy="16" r={r} fill="none" stroke="rgba(var(--cream-rgb),0.12)" strokeWidth="4" />
+          <circle cx="16" cy="16" r={r} fill="none" stroke={done >= total ? "rgb(var(--ok-300))" : "rgb(var(--acc-400))"} strokeWidth="4" strokeLinecap="round"
             strokeDasharray={`${(done / total) * c} ${c}`} transform="rotate(-90 16 16)" />
         </svg>
         <span className="text-sm font-semibold text-cream">{done}/{total}</span>

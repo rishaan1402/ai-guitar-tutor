@@ -9,7 +9,7 @@ export function LogoMark({ className }: { className?: string }) {
       {[11, 13, 15, 17, 19, 21].map((x, i) => (
         <line key={x} x1={x} y1="3" x2={x} y2="29" stroke="currentColor" strokeWidth={1.1 - i * 0.1} opacity={0.9} />
       ))}
-      <circle cx="16" cy="16" r="2.2" fill="#e8a54b" />
+      <circle cx="16" cy="16" r="2.2" fill="rgb(var(--acc-400))" />
     </svg>
   );
 }

@@ -33,20 +33,20 @@ export default function LessonSuiteNav({
         const isActive = stage === s.key;
         const isDone = completedStages.has(s.key);
 
-        let borderColor = "rgba(255,255,255,0.1)";
-        let bg = "rgba(255,255,255,0.04)";
-        let textColor = "rgba(255,255,255,0.5)";
+        let borderColor = "rgba(var(--cream-rgb),0.1)";
+        let bg = "rgba(var(--cream-rgb),0.04)";
+        let textColor = "rgba(var(--cream-rgb),0.5)";
         let boxShadow = "none";
 
         if (isActive) {
           borderColor = "rgba(var(--accent-rgb),0.7)";
           bg = "rgba(var(--accent-rgb),0.15)";
-          textColor = "#f4d69f";
+          textColor = "rgb(var(--acc-200))";
           boxShadow = "0 0 12px rgba(var(--accent-rgb),0.4)";
         } else if (isDone) {
-          borderColor = "rgba(134,176,146,0.5)";
-          bg = "rgba(134,176,146,0.08)";
-          textColor = "#86efac";
+          borderColor = "rgba(var(--sage-rgb),0.5)";
+          bg = "rgba(var(--sage-rgb),0.08)";
+          textColor = "rgb(var(--ok-300))";
         }
 
         return (
@@ -54,7 +54,7 @@ export default function LessonSuiteNav({
             {idx > 0 && (
               <span
                 className="text-xs hidden sm:block"
-                style={{ color: "rgba(255,255,255,0.2)" }}
+                style={{ color: "rgba(var(--cream-rgb),0.2)" }}
                 aria-hidden="true"
               >
                 →
@@ -76,12 +76,12 @@ export default function LessonSuiteNav({
               <span>{s.emoji}</span>
               <span>{s.label}</span>
               {isDone && !isActive && (
-                <span style={{ color: "#86efac", marginLeft: "2px" }}>✓</span>
+                <span style={{ color: "rgb(var(--ok-300))", marginLeft: "2px" }}>✓</span>
               )}
               {isActive && (
                 <span
                   className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: "#f4d69f", marginLeft: "2px" }}
+                  style={{ background: "rgb(var(--acc-200))", marginLeft: "2px" }}
                   aria-hidden="true"
                 />
               )}

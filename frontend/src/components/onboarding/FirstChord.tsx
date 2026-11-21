@@ -65,7 +65,7 @@ export default function FirstChord({ stream, signedIn, onFinished }: Props) {
         <Link
           href={next}
           onClick={onFinished}
-          className="rounded-xl bg-amber-400 text-[#1c1206] px-5 py-2.5 text-sm font-semibold hover:bg-amber-300"
+          className="rounded-xl bg-amber-400 text-[rgb(var(--ink-950))] px-5 py-2.5 text-sm font-semibold hover:bg-amber-300"
         >
           {signedIn ? "Go to your practice hub →" : "Start practising →"}
         </Link>

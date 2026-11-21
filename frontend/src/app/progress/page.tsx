@@ -84,16 +84,16 @@ function ChordMasteryMatrix({ chords }: { chords: any[] }) {
               style={{
                 borderColor:
                   chord.best_score >= 0.8
-                    ? "rgba(134,176,146,0.5)"
+                    ? "rgba(var(--sage-rgb),0.5)"
                     : chord.best_score >= 0.5
-                    ? "rgba(232,165,75,0.5)"
-                    : "rgba(232,96,79,0.5)",
+                    ? "rgba(var(--accent-rgb),0.5)"
+                    : "rgba(var(--amp-rgb),0.5)",
                 background:
                   chord.best_score >= 0.8
-                    ? "rgba(134,176,146,0.1)"
+                    ? "rgba(var(--sage-rgb),0.1)"
                     : chord.best_score >= 0.5
-                    ? "rgba(232,165,75,0.1)"
-                    : "rgba(232,96,79,0.1)",
+                    ? "rgba(var(--accent-rgb),0.1)"
+                    : "rgba(var(--amp-rgb),0.1)",
               }}
             >
               <p className="font-semibold text-sm text-white">{formatChord(chord.chord_name)}</p>

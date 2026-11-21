@@ -54,7 +54,7 @@ export default function MicPermission({ onGranted, onWithoutMic }: Props) {
             type="button"
             onClick={ask}
             disabled={busy}
-            className="rounded-xl bg-amber-400 text-[#1c1206] px-4 py-2 text-sm font-semibold hover:bg-amber-300 disabled:opacity-50"
+            className="rounded-xl bg-amber-400 text-[rgb(var(--ink-950))] px-4 py-2 text-sm font-semibold hover:bg-amber-300 disabled:opacity-50"
           >
             Try again
           </button>

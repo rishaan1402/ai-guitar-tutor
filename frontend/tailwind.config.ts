@@ -1,63 +1,22 @@
 import type { Config } from "tailwindcss";
 
-const AMBER = {
-  50: "#fdf7ec",
-  100: "#faecd0",
-  200: "#f4d69f",
-  300: "#efc27a",
-  400: "#e8a54b",
-  500: "#d98b2b",
-  600: "#b86e1f",
-  700: "#93531c",
-  800: "#78431d",
-  900: "#63381b",
-  950: "#381c0b",
-};
+/**
+ * "Stage Lights": every colour is a theme variable ("R G B" channels set in
+ * globals.css for the dark default and the light theme), so one switch
+ * recolours the whole app and Tailwind's /opacity modifiers still work.
+ * The old names stay (amber = the accent, sage = success, amp = live/error)
+ * so existing utilities follow the new palette.
+ */
+const v = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
+const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const scale = (name: string) => Object.fromEntries(STEPS.map((k) => [k, v(`${name}-${k}`)]));
 
-const SAGE = {
-  50: "#f2f7f3",
-  100: "#dfece2",
-  200: "#c0d9c6",
-  300: "#a3c6ab",
-  400: "#86b092",
-  500: "#6a9576",
-  600: "#527a5e",
-  700: "#41614b",
-  800: "#344d3d",
-  900: "#2a3e32",
-  950: "#15211a",
-};
-
-// Amp-grille red, full scale (errors, "live", energy)
-const AMP = {
-  50: "#fdf2f0",
-  100: "#fbe0dc",
-  200: "#f6bcb4",
-  300: "#f08a7e",
-  400: "#e8604f",
-  500: "#d9483b",
-  600: "#b5372c",
-  700: "#8c2a22",
-  800: "#6b211b",
-  900: "#4f1914",
-  950: "#2a0c09",
-};
-
-// Warm greys from the cream text colour, so every legacy text-gray-*/bg-gray-*
-// utility sits in the studio palette instead of reading cool blue-grey.
-const WARM_GRAY = {
-  50: "#faf6ee",
-  100: "#f3ead8",
-  200: "#e4d9c4",
-  300: "#cbbfa8",
-  400: "#a99d89",
-  500: "#8a7f6e",
-  600: "#6b6255",
-  700: "#4d463d",
-  800: "#2f2a25",
-  900: "#1c1916",
-  950: "#0f0d0b",
-};
+const ACCENT = scale("acc"); // magenta spotlight
+const OK = scale("ok"); // cyan: you nailed it
+const LIVE = scale("live"); // red: live, errors
+const NEUTRAL = scale("neu"); // violet-grey
+const VIOLET = scale("vio"); // second spotlight
+const INK = { 950: v("ink-950"), 900: v("ink-900"), 800: v("ink-800"), 700: v("ink-700"), 600: v("ink-600") };
 
 const config: Config = {
   darkMode: ["class"],
@@ -109,41 +68,29 @@ const config: Config = {
         // (text-purple-300, bg-cyan-500/20, ...) picks up the redesign.
         // Legacy palette names resolve into the studio palette so older
         // components can't drift off-brand.
-        gray: WARM_GRAY,
-        emerald: SAGE,
-        green: SAGE,
-        blue: SAGE,
-        red: AMP,
-        yellow: AMBER,
-        orange: AMBER,
-        purple: AMBER,
-        violet: AMBER,
-        amber: AMBER,
-        cyan: SAGE,
-        sage: SAGE,
+        // "white" is the main text colour: near-white on Stage Lights, ink by day
+        white: v("text"),
+        gray: NEUTRAL,
+        emerald: OK,
+        green: OK,
+        blue: OK,
+        red: LIVE,
+        yellow: ACCENT,
+        orange: ACCENT,
+        purple: VIOLET,
+        violet: VIOLET,
+        amber: ACCENT,
+        cyan: OK,
+        sage: OK,
         cream: {
-          DEFAULT: "#f3ead8",
-          muted: "#cbbfa8",
-          dim: "#8f8574",
+          DEFAULT: v("text"),
+          muted: v("text-muted"),
+          dim: v("text-dim"),
         },
-        // "Studio at night": warm near-black walls and floor. (Kept the `moss`
-        // name so existing utilities follow the palette change.)
-        moss: {
-          950: "#0c0a09",
-          900: "#14110f",
-          800: "#1c1815",
-          700: "#27211d",
-          600: "#352d27",
-        },
-        ink: {
-          950: "#0c0a09",
-          900: "#14110f",
-          800: "#1c1815",
-          700: "#27211d",
-          600: "#352d27",
-        },
-        // Amp-grille red: one bold accent for energy and "live" states.
-        amp: AMP,
+        // backgrounds, darkest to lightest (inverted in the light theme)
+        moss: INK,
+        ink: INK,
+        amp: LIVE,
       },
       fontFamily: {
         sans: ["var(--font-body)", "system-ui", "sans-serif"],
@@ -193,11 +140,12 @@ const config: Config = {
       // ── Shadows / glows ───────────────────────────────────────────────
       boxShadow: {
         glass:       "0 4px 30px rgba(0,0,0,0.1)",
-        "glow-sm":   "0 0 12px rgba(232,165,75,0.28)",
-        "glow-md":   "0 0 28px rgba(232,165,75,0.35)",
-        "glow-cyan": "0 0 20px rgba(134,176,146,0.35)",
-        "glow-green":"0 0 15px rgba(34,197,94,0.3)",
-        "glow-red":  "0 0 20px rgba(239,68,68,0.4)",
+        "glow-sm":   "0 0 12px rgb(var(--acc-400) / 0.35)",
+        "glow-md":   "0 0 28px rgb(var(--acc-400) / 0.45)",
+        "glow-cyan": "0 0 20px rgb(var(--ok-400) / 0.4)",
+        "glow-green":"0 0 15px rgb(var(--ok-400) / 0.35)",
+        "glow-red":  "0 0 20px rgb(var(--live-400) / 0.45)",
+        "glow-violet": "0 0 24px rgb(var(--vio-400) / 0.45)",
       },
       backdropBlur: {
         glass: "16px",

@@ -115,7 +115,7 @@ export function FretboardVisualizer({
             y1={TOP_MARGIN + i * FRET_SPACING}
             x2={LEFT_MARGIN + FRETBOARD_W}
             y2={TOP_MARGIN + i * FRET_SPACING}
-            stroke="rgba(255,255,255,0.15)"
+            stroke="rgba(var(--cream-rgb),0.15)"
             strokeWidth={1}
           />
         ))}
@@ -128,7 +128,7 @@ export function FretboardVisualizer({
             y1={TOP_MARGIN}
             x2={stringX(i + 1)}
             y2={TOP_MARGIN + FRETBOARD_H}
-            stroke="rgba(255,255,255,0.2)"
+            stroke="rgba(var(--cream-rgb),0.2)"
             strokeWidth={1}
           />
         ))}
@@ -145,15 +145,15 @@ export function FretboardVisualizer({
           const isMissing = missingNotes.includes(note);
           const isExtra = extraNotes.includes(note);
 
-          let fillColor = "#efc27a"; // amber - untested
-          let strokeColor = "rgba(239,194,122,0.5)";
+          let fillColor = "rgb(var(--acc-300))"; // amber - untested
+          let strokeColor = "rgba(var(--accent-soft-rgb),0.5)";
 
           if (isDetected && !isMissing) {
-            fillColor = "#86b092"; // green - correct
-            strokeColor = "rgba(134,176,146,0.7)";
+            fillColor = "rgb(var(--ok-400))"; // green - correct
+            strokeColor = "rgba(var(--sage-rgb),0.7)";
           } else if (isMissing) {
-            fillColor = "rgba(232,96,79,0.2)"; // red with transparency
-            strokeColor = "#e8604f";
+            fillColor = "rgba(var(--amp-rgb),0.2)"; // red with transparency
+            strokeColor = "rgb(var(--live-400))";
           }
 
           return (
@@ -215,7 +215,7 @@ export function FretboardVisualizer({
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize="14"
-              fill="rgba(232,96,79,0.6)"
+              fill="rgba(var(--amp-rgb),0.6)"
               fontWeight="bold"
             >
               ✕
@@ -227,11 +227,11 @@ export function FretboardVisualizer({
       {/* Legend */}
       <div className="grid grid-cols-2 gap-3 text-xs w-full">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full" style={{ background: "#86b092" }} />
+          <div className="w-3 h-3 rounded-full" style={{ background: "rgb(var(--ok-400))" }} />
           <span className="text-gray-300">Detected</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#e8604f" }} />
+          <div className="w-3 h-3 rounded-full border-2" style={{ borderColor: "rgb(var(--live-400))" }} />
           <span className="text-gray-300">Missing</span>
         </div>
       </div>

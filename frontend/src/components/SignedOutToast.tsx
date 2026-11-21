@@ -29,8 +29,8 @@ export default function SignedOutToast({ nonce, signInHref }: { nonce: number; s
       toastOptions={{
         style: {
           background: "rgba(20,22,20,0.96)",
-          color: "#f3ead8",
-          border: "1px solid rgba(239,194,122,0.35)",
+          color: "rgb(var(--text))",
+          border: "1px solid rgba(var(--accent-soft-rgb),0.35)",
         },
       }}
     />

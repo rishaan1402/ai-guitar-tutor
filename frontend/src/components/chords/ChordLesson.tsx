@@ -120,33 +120,33 @@ export default function ChordLesson({ symbol, fingering, autoPlay = false }: { s
     <div className="rounded-[22px] border border-cream/10 bg-ink-900/60 p-3">
       <div className="grid items-center gap-3 landscape:grid-cols-[auto_1fr]">
         <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto h-auto w-full max-w-[240px] short:max-w-[180px]" role="img" aria-label={`${symbol} chord shape`}>
-          <text x={W / 2} y={20} textAnchor="middle" fontSize="20" fontWeight="800" fill="#f3ead8">{symbol}</text>
+          <text x={W / 2} y={20} textAnchor="middle" fontSize="20" fontWeight="800" fill="rgb(var(--text))">{symbol}</text>
           {/* nut or position */}
           {top === 1 ? (
-            <rect x={left - 2} y={y0 - 4} width={gap * 5 + 4} height={5} fill="#f3ead8" rx="1" />
+            <rect x={left - 2} y={y0 - 4} width={gap * 5 + 4} height={5} fill="rgb(var(--text))" rx="1" />
           ) : (
-            <text x={left - 10} y={y0 + rowH * 0.6} textAnchor="end" fontSize="12" fill="#e8a54b">{top}fr</text>
+            <text x={left - 10} y={y0 + rowH * 0.6} textAnchor="end" fontSize="12" fill="rgb(var(--acc-400))">{top}fr</text>
           )}
           {Array.from({ length: 6 }, (_, k) => (
-            <line key={k} x1={left} x2={left + gap * 5} y1={y0 + k * rowH} y2={y0 + k * rowH} stroke="rgba(243,234,216,0.3)" strokeWidth="1.5" />
+            <line key={k} x1={left} x2={left + gap * 5} y1={y0 + k * rowH} y2={y0 + k * rowH} stroke="rgba(var(--cream-rgb),0.3)" strokeWidth="1.5" />
           ))}
           {[6, 5, 4, 3, 2, 1].map((s) => (
             <g key={s} onClick={() => { const p = positions.find((q) => q.string === s); if (p && !p.action) { playNotes([midiOf(p)]); setRinging(s); setTimeout(() => setRinging(null), 600); } }} style={{ cursor: "pointer" }}>
               <rect x={x(s) - 12} y={y0 - 30} width={24} height={rowH * 5 + 34} fill="transparent" />
-              <line x1={x(s)} x2={x(s)} y1={y0} y2={y0 + rowH * 5} stroke={ringing === s ? "#e8a54b" : "rgba(243,234,216,0.55)"} strokeWidth={ringing === s ? 3 : 0.8 + s * 0.25} className="transition-[stroke] duration-150" />
+              <line x1={x(s)} x2={x(s)} y1={y0} y2={y0 + rowH * 5} stroke={ringing === s ? "rgb(var(--acc-400))" : "rgba(var(--cream-rgb),0.55)"} strokeWidth={ringing === s ? 3 : 0.8 + s * 0.25} className="transition-[stroke] duration-150" />
             </g>
           ))}
           {/* open / muted markers */}
           {positions.map((p) =>
             p.action === "mute" ? (
-              <text key={`m${p.string}`} x={x(p.string)} y={y0 - 12} textAnchor="middle" fontSize="13" fill="#e8604f" opacity={placed.has(p) || i >= beats.length - 1 ? 1 : 0.25}>×</text>
+              <text key={`m${p.string}`} x={x(p.string)} y={y0 - 12} textAnchor="middle" fontSize="13" fill="rgb(var(--live-400))" opacity={placed.has(p) || i >= beats.length - 1 ? 1 : 0.25}>×</text>
             ) : p.fret === 0 ? (
-              <circle key={`o${p.string}`} cx={x(p.string)} cy={y0 - 16} r="5" fill="none" stroke="#a3c6ab" strokeWidth="1.6" opacity={placed.has(p) || i >= beats.length - 1 ? 1 : 0.25} />
+              <circle key={`o${p.string}`} cx={x(p.string)} cy={y0 - 16} r="5" fill="none" stroke="rgb(var(--ok-300))" strokeWidth="1.6" opacity={placed.has(p) || i >= beats.length - 1 ? 1 : 0.25} />
             ) : null,
           )}
           {/* barres */}
           {barres.map((b, k) => (
-            <rect key={k} x={x(b.from) - 10} y={yFret(b.fret) - 10} width={x(b.to) - x(b.from) + 20} height={20} rx="10" fill="#e8a54b" className="animate-enter-fast" />
+            <rect key={k} x={x(b.from) - 10} y={yFret(b.fret) - 10} width={x(b.to) - x(b.from) + 20} height={20} rx="10" fill="rgb(var(--acc-400))" className="animate-enter-fast" />
           ))}
           {/* fingers */}
           {positions.filter((p) => !p.action && (p.fret ?? 0) > 0).map((p) => {
@@ -154,14 +154,14 @@ export default function ChordLesson({ symbol, fingering, autoPlay = false }: { s
             const isNew = beat.place.includes(p);
             return (
               <g key={`f${p.string}`} style={{ opacity: on ? 1 : 0, transition: "opacity 220ms" }}>
-                <circle cx={x(p.string)} cy={yFret(p.fret!)} r={isNew ? 13 : 11} fill={isNew ? "#e8a54b" : "#f3ead8"} stroke="#0c0a09" strokeWidth="1.5" className="transition-all duration-200" />
-                <text x={x(p.string)} y={yFret(p.fret!) + 4.5} textAnchor="middle" fontSize="12" fontWeight="700" fill="#0c0a09">{p.finger ?? ""}</text>
+                <circle cx={x(p.string)} cy={yFret(p.fret!)} r={isNew ? 13 : 11} fill={isNew ? "rgb(var(--acc-400))" : "rgb(var(--text))"} stroke="rgb(var(--ink-950))" strokeWidth="1.5" className="transition-all duration-200" />
+                <text x={x(p.string)} y={yFret(p.fret!) + 4.5} textAnchor="middle" fontSize="12" fontWeight="700" fill="rgb(var(--ink-950))">{p.finger ?? ""}</text>
               </g>
             );
           })}
           {/* note names under the strings */}
           {positions.map((p) => (
-            <text key={`n${p.string}`} x={x(p.string)} y={y0 + rowH * 5 + 16} textAnchor="middle" fontSize="10" fill={p.action ? "rgba(243,234,216,0.2)" : "rgba(243,234,216,0.6)"} fontFamily="monospace">
+            <text key={`n${p.string}`} x={x(p.string)} y={y0 + rowH * 5 + 16} textAnchor="middle" fontSize="10" fill={p.action ? "rgba(var(--cream-rgb),0.2)" : "rgba(var(--cream-rgb),0.6)"} fontFamily="monospace">
               {p.action ? "" : p.note}
             </text>
           ))}

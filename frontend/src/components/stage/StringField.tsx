@@ -71,7 +71,7 @@ function perfProbe(label: string) {
   const el = document.createElement("div");
   el.setAttribute("aria-hidden", "true");
   el.style.cssText =
-    "position:fixed;left:8px;bottom:8px;z-index:9999;font:11px/1.3 ui-monospace,monospace;color:#f3ead8;background:rgba(0,0,0,.65);padding:4px 6px;border-radius:6px;pointer-events:none";
+    "position:fixed;left:8px;bottom:8px;z-index:9999;font:11px/1.3 ui-monospace,monospace;color:#f3f2ff;background:rgba(0,0,0,.65);padding:4px 6px;border-radius:6px;pointer-events:none";
   document.body.appendChild(el);
   let lastPaint = 0;
   return {
@@ -262,11 +262,11 @@ function DecorField({ className, variant }: { className?: string; variant: "hero
         ctx.stroke();
         for (const [x, y] of nodePts) {
           const g = ctx.createRadialGradient(x, y, 0, x, y, 16);
-          g.addColorStop(0, `rgba(255,236,200,${0.5 * pulse})`);
-          g.addColorStop(1, "rgba(255,236,200,0)");
+          g.addColorStop(0, `rgba(255,190,225,${0.5 * pulse})`);
+          g.addColorStop(1, "rgba(255,190,225,0)");
           ctx.fillStyle = g;
           ctx.fillRect(x - 16, y - 16, 32, 32);
-          ctx.fillStyle = "rgba(255,246,228,0.95)";
+          ctx.fillStyle = "rgba(255,230,242,0.95)";
           ctx.beginPath();
           ctx.arc(x, y, 2.2, 0, Math.PI * 2);
           ctx.fill();
@@ -472,7 +472,7 @@ function ListenField({ className, targets, energyRef, extraRef, state, verdicts,
       ctx.lineWidth = 1;
       for (let k = 0; k <= FRETS_SHOWN; k++) {
         const x = g.fretX(k);
-        ctx.strokeStyle = k === 0 && startFret === 1 ? "rgba(243,234,216,0.32)" : "rgba(243,234,216,0.08)";
+        ctx.strokeStyle = k === 0 && startFret === 1 ? "rgba(243,242,255,0.32)" : "rgba(243,242,255,0.08)";
         ctx.lineWidth = k === 0 && startFret === 1 ? 3 : 1;
         ctx.beginPath();
         ctx.moveTo(x, g.top - 8);
@@ -480,7 +480,7 @@ function ListenField({ className, targets, energyRef, extraRef, state, verdicts,
         ctx.stroke();
       }
       if (startFret > 1) {
-        ctx.fillStyle = "rgba(243,234,216,0.45)";
+        ctx.fillStyle = "rgba(243,242,255,0.45)";
         ctx.font = `600 10px ${font}`;
         ctx.fillText(`${startFret}fr`, g.fretX(0.15), g.bottom + 14);
       }

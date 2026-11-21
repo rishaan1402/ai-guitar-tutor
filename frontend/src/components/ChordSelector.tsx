@@ -71,7 +71,7 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }
                   aria-label={`${formatChord(c)}${isNext ? " — next up" : ""}${status === "mastered" ? " — mastered" : ""}`}
                   className={`group relative flex h-20 w-full flex-col items-center justify-center rounded-2xl border transition-all duration-fast disabled:opacity-50 ${
                     isNext
-                      ? "border-amber-400 bg-amber-400/10 shadow-[0_0_30px_-8px_rgba(232,165,75,0.6)]"
+                      ? "border-amber-400 bg-amber-400/10 shadow-[0_0_30px_-8px_rgba(var(--accent-rgb),0.6)]"
                       : status === "mastered"
                         ? "border-sage-400/40 bg-sage-400/5"
                         : "border-cream/10 hover:border-cream/30"

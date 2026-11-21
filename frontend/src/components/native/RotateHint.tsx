@@ -15,8 +15,8 @@ export default function RotateHint() {
   return (
     <div className="os-rotate fixed inset-0 z-[100] hidden flex-col items-center justify-center gap-5 bg-ink-950 p-8 text-center" role="dialog" aria-label="Turn your phone sideways">
       <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true" className="os-rotate-phone">
-        <rect x="26" y="10" width="36" height="68" rx="7" fill="none" stroke="#e8a54b" strokeWidth="4" />
-        <circle cx="44" cy="70" r="3" fill="#e8a54b" />
+        <rect x="26" y="10" width="36" height="68" rx="7" fill="none" stroke="rgb(var(--acc-400))" strokeWidth="4" />
+        <circle cx="44" cy="70" r="3" fill="rgb(var(--acc-400))" />
       </svg>
       <p className="font-display text-2xl uppercase text-cream">Turn your phone sideways</p>
       <p className="max-w-xs text-cream/60">Open Strings is played in landscape, like holding a guitar.</p>

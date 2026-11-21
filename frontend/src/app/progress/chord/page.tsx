@@ -108,10 +108,10 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
                 height: `${attempt.score * 100}%`,
                 background:
                   attempt.score >= 0.8
-                    ? "rgba(134,176,146,0.6)"
+                    ? "rgba(var(--sage-rgb),0.6)"
                     : attempt.score >= 0.5
-                    ? "rgba(232,165,75,0.6)"
-                    : "rgba(232,96,79,0.6)",
+                    ? "rgba(var(--accent-rgb),0.6)"
+                    : "rgba(var(--amp-rgb),0.6)",
               }}
               title={`Attempt ${idx + 1}: ${(attempt.score * 100).toFixed(0)}%`}
             />
@@ -148,9 +148,9 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
                 key={note}
                 className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold"
                 style={{
-                  background: "rgba(232,96,79,0.2)",
-                  border: "1px solid rgba(232,96,79,0.4)",
-                  color: "#fca5a5",
+                  background: "rgba(var(--amp-rgb),0.2)",
+                  border: "1px solid rgba(var(--amp-rgb),0.4)",
+                  color: "rgb(var(--live-200))",
                 }}
               >
                 {note} <span className="text-xs ml-1 opacity-70">({count}x)</span>
@@ -174,16 +174,16 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
                 style={{
                   background:
                     attempt.score >= 0.8
-                      ? "rgba(134,176,146,0.1)"
+                      ? "rgba(var(--sage-rgb),0.1)"
                       : attempt.score >= 0.5
-                      ? "rgba(232,165,75,0.1)"
-                      : "rgba(232,96,79,0.1)",
+                      ? "rgba(var(--accent-rgb),0.1)"
+                      : "rgba(var(--amp-rgb),0.1)",
                   borderColor:
                     attempt.score >= 0.8
-                      ? "rgba(134,176,146,0.3)"
+                      ? "rgba(var(--sage-rgb),0.3)"
                       : attempt.score >= 0.5
-                      ? "rgba(232,165,75,0.3)"
-                      : "rgba(232,96,79,0.3)",
+                      ? "rgba(var(--accent-rgb),0.3)"
+                      : "rgba(var(--amp-rgb),0.3)",
                 }}
               >
                 <div className="flex items-start justify-between">
@@ -201,10 +201,10 @@ function ChordDetailContent({ chordName }: { chordName: string }) {
                     style={{
                       color:
                         attempt.score >= 0.8
-                          ? "#86efac"
+                          ? "rgb(var(--ok-300))"
                           : attempt.score >= 0.5
-                          ? "#fcd34d"
-                          : "#fca5a5",
+                          ? "rgb(var(--acc-300))"
+                          : "rgb(var(--live-200))",
                     }}
                   >
                     {(attempt.score * 100).toFixed(0)}%

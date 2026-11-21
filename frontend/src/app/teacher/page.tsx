@@ -72,7 +72,7 @@ export default function TeacherPage() {
         {/* Tab switcher */}
         <div
           className="flex gap-1 mb-6 rounded-lg p-1 w-fit"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ background: "rgba(var(--cream-rgb),0.04)", border: "1px solid rgba(var(--cream-rgb),0.08)" }}
         >
           {(["students", "analytics"] as const).map((t) => (
             <button

@@ -12,9 +12,9 @@ interface Props {
 }
 
 function colorForScore(score: number): string {
-  if (score >= 0.8) return "#86b092";
-  if (score >= 0.5) return "#e8a54b";
-  return "#e8604f";
+  if (score >= 0.8) return "rgb(var(--ok-400))";
+  if (score >= 0.5) return "rgb(var(--acc-400))";
+  return "rgb(var(--live-400))";
 }
 
 export default function ScoreRing({
@@ -92,7 +92,7 @@ export default function ScoreRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          stroke="rgba(var(--cream-rgb),0.08)"
           strokeWidth={strokeWidth}
         />
         {/* Foreground arc */}

@@ -71,7 +71,7 @@ export default function Intro() {
             <div
               className={`mx-12 h-px w-full origin-center sm:mx-16 ${phase === "strum" ? "os-intro-strum" : ""}`}
               style={{
-                background: i === 3 ? "linear-gradient(90deg, transparent, #e8a54b 15%, #ffcf8a 50%, #e8a54b 85%, transparent)" : "linear-gradient(90deg, transparent, rgba(243,234,216,0.55) 15%, rgba(243,234,216,0.8) 50%, rgba(243,234,216,0.55) 85%, transparent)",
+                background: i === 3 ? "linear-gradient(90deg, transparent, rgb(var(--acc-400)) 15%, rgb(var(--acc-200)) 50%, rgb(var(--acc-400)) 85%, transparent)" : "linear-gradient(90deg, transparent, rgba(var(--cream-rgb),0.55) 15%, rgba(var(--cream-rgb),0.8) 50%, rgba(var(--cream-rgb),0.55) 85%, transparent)",
                 height: `${2.4 - i * 0.3}px`,
                 animationDelay: `${i * 45}ms`,
                 transform: phase === "show" ? "scaleX(0.08)" : "scaleX(1)",

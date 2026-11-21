@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import Logo from "@/components/brand/Logo";
 import SoundToggle from "@/components/brand/SoundToggle";
+import ThemeToggle from "@/components/brand/ThemeToggle";
 
 const LINKS = [
   { href: "#room", label: "The room" },
@@ -31,6 +32,7 @@ export function MarketingNav() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <ThemeToggle />
           <SoundToggle />
           {loading ? (
             <div className="h-9 w-28 rounded-full skeleton" />

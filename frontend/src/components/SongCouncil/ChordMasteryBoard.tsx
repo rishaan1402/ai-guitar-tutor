@@ -61,7 +61,7 @@ export function ChordMasteryBoard({
               style={{
                 background: "rgba(var(--accent-rgb),0.2)",
                 border: "1px solid rgba(var(--accent-soft-rgb),0.5)",
-                color: "#f4d69f",
+                color: "rgb(var(--acc-200))",
               }}
             >
               Showing: {activeSection}
@@ -77,13 +77,13 @@ export function ChordMasteryBoard({
       {available.length > 0 && (
         <div
           className="w-full h-2 rounded-full overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.08)" }}
+          style={{ background: "rgba(var(--cream-rgb),0.08)" }}
         >
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
               width: `${(attemptedCount / available.length) * 100}%`,
-              background: "linear-gradient(90deg, #d98b2b, #6a9576)",
+              background: "linear-gradient(90deg, rgb(var(--acc-500)), rgb(var(--ok-500)))",
             }}
           />
         </div>

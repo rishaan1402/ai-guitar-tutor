@@ -72,7 +72,7 @@ export default function Room({ state, badges = {}, hide = [], hrefs = {}, blurbs
         ref={wrap}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
-        className="os-room-frame relative overflow-hidden rounded-[28px] border border-cream/10 bg-ink-950 shadow-[0_40px_120px_-40px_rgba(232,165,75,0.25)]"
+        className="os-room-frame relative overflow-hidden rounded-[28px] border border-cream/10 bg-ink-950 shadow-[0_40px_120px_-40px_rgba(var(--accent-rgb),0.25)]"
       >
         {/* panorama: fixed height on phones, full width on desktop */}
         <div ref={pan} className="os-room-pan overflow-x-auto overflow-y-hidden md:overflow-hidden" tabIndex={-1}>
@@ -90,7 +90,7 @@ export default function Room({ state, badges = {}, hide = [], hrefs = {}, blurbs
                 aria-label={`${o.label} — ${o.blurb}`}
               >
                 {/* phones: a pulsing dot invites a tap (the list below names everything) */}
-                <span className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_0_6px_rgba(232,165,75,0.25)] os-hotspot md:hidden" />
+                <span className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_0_6px_rgba(var(--accent-rgb),0.25)] os-hotspot md:hidden" />
                 <span
                   className={`pointer-events-none absolute left-1/2 hidden -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full border px-3 py-1 label-mono transition-all duration-base ease-out-expo md:block ${
                     active === o.id

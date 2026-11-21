@@ -5,60 +5,38 @@
 @tailwind utilities;
 
 /* ============================================
-   "STUDIO AT NIGHT" DESIGN TOKENS (Open Strings)
+   "STAGE LIGHTS" DESIGN TOKENS (Open Strings)
    Warm near-black room, tungsten-amber light,
    amp-red for live/energy, sage for "you nailed it".
    ============================================ */
 @layer base {
   :root {
-    --background: 24 14% 4%;
-    --foreground: 40 45% 90%;
-
-    --card: 24 14% 6%;
-    --card-foreground: 40 45% 90%;
-
-    --popover: 24 14% 7%;
-    --popover-foreground: 40 45% 90%;
-
-    --primary: 35 77% 60%;          /* amber-400 */
-    --primary-foreground: 30 60% 7%;
-
-    --secondary: 137 18% 55%;       /* sage-400 */
-    --secondary-foreground: 150 14% 4%;
-
-    --muted: 24 10% 11%;
-    --muted-foreground: 38 14% 62%;
-
-    --accent: 24 12% 13%;
-    --accent-foreground: 40 45% 90%;
-
-    --destructive: 6 70% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 40 20% 90% / 0.09;
-    --input: 24 10% 10%;
-    --ring: 35 77% 60%;
-
-    --radius: 0.625rem;
-
-    /* Raw channels for rgba(var(--x), alpha) in inline styles */
-    --accent-rgb: 232, 165, 75;
-    --accent-soft-rgb: 240, 194, 122;
-    --sage-rgb: 134, 176, 146;
-    --sage-soft-rgb: 178, 207, 184;
-    --cream-rgb: 243, 234, 216;
-    --amp-rgb: 217, 72, 59;
-
-    --bg-primary: #0c0a09;
-    --bg-secondary: #14110f;
-    --glass-bg: rgba(var(--cream-rgb), 0.028);
-    --glass-border: rgba(var(--cream-rgb), 0.085);
-    --glass-hover-bg: rgba(var(--cream-rgb), 0.05);
-    --glass-hover-border: rgba(var(--cream-rgb), 0.18);
-    --panel-bg: rgba(var(--cream-rgb), 0.022);
-    --panel-border: rgba(var(--cream-rgb), 0.075);
-    --glow-purple: rgba(var(--accent-rgb), 0.26);
-    --glow-cyan: rgba(var(--sage-rgb), 0.32);
+    /* ===== Stage Lights (dark, the default) ===== */
+    --acc-50: 255 240 246; --acc-100: 255 214 232; --acc-200: 255 173 208; --acc-300: 255 127 181; --acc-400: 255 61 139; --acc-500: 240 33 111; --acc-600: 200 18 90; --acc-700: 154 14 71; --acc-800: 110 11 52; --acc-900: 74 8 36; --acc-950: 42 4 19;
+    --ok-50: 233 255 253; --ok-100: 196 251 246; --ok-200: 140 245 236; --ok-300: 79 236 224; --ok-400: 46 230 214; --ok-500: 20 196 182; --ok-600: 14 156 145; --ok-700: 13 122 114; --ok-800: 14 92 87; --ok-900: 13 70 66; --ok-950: 5 37 35;
+    --live-50: 255 241 241; --live-100: 255 222 223; --live-200: 255 188 190; --live-300: 255 135 140; --live-400: 255 90 95; --live-500: 240 58 66; --live-600: 202 37 47; --live-700: 160 28 37; --live-800: 120 22 30; --live-900: 84 16 22; --live-950: 46 8 12;
+    --neu-50: 244 243 255; --neu-100: 230 228 251; --neu-200: 207 203 240; --neu-300: 174 170 216; --neu-400: 142 138 184; --neu-500: 111 107 152; --neu-600: 85 81 120; --neu-700: 60 57 90; --neu-800: 38 36 61; --neu-900: 23 22 42; --neu-950: 13 12 28;
+    --vio-50: 245 240 255; --vio-100: 232 222 255; --vio-200: 210 190 255; --vio-300: 180 148 255; --vio-400: 138 92 255; --vio-500: 112 64 240; --vio-600: 90 44 210; --vio-700: 70 32 170; --vio-800: 50 22 125; --vio-900: 33 14 86; --vio-950: 19 7 52;
+    --ink-950: 11 10 26; --ink-900: 18 17 42; --ink-800: 26 24 56; --ink-700: 35 33 73; --ink-600: 46 43 92;
+    --text: 243 242 255; --text-muted: 195 192 230; --text-dim: 143 140 184;
+    /* legacy comma channels for rgba(var(--x), a) in inline styles */
+    --accent-rgb: 255, 61, 139; --accent-soft-rgb: 255, 127, 181; --sage-rgb: 46, 230, 214; --sage-soft-rgb: 79, 236, 224;
+    --cream-rgb: 243, 242, 255; --amp-rgb: 255, 90, 95; --violet-rgb: 138, 92, 255;
+    --bg-primary: #0b0a1a; --bg-secondary: #12112a;
+    --background: 244 44% 7%; --foreground: 245 100% 97%; --card: 244 42% 10%; --card-foreground: 245 100% 97%;
+    --popover: 244 42% 11%; --popover-foreground: 245 100% 97%; --primary: 336 100% 62%; --primary-foreground: 244 44% 7%;
+    --secondary: 174 79% 54%; --secondary-foreground: 244 44% 7%; --muted: 244 36% 14%; --muted-foreground: 245 30% 70%;
+    --accent: 244 36% 16%; --accent-foreground: 245 100% 97%; --destructive: 358 100% 68%; --destructive-foreground: 0 0% 100%;
+    --border: 245 100% 97% / 0.1; --input: 244 36% 13%; --ring: 336 100% 62%;
+    --glass-bg: rgba(var(--cream-rgb), 0.035);
+    --glass-border: rgba(var(--cream-rgb), 0.1);
+    --glass-hover-bg: rgba(var(--cream-rgb), 0.06);
+    --glass-hover-border: rgba(var(--cream-rgb), 0.2);
+    --panel-bg: rgba(var(--cream-rgb), 0.03);
+    --panel-border: rgba(var(--cream-rgb), 0.09);
+    --glow-purple: rgba(var(--violet-rgb), 0.35);
+    --glow-cyan: rgba(var(--sage-rgb), 0.35);
+    --radius: 0.875rem;
 
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
@@ -71,6 +49,26 @@
     --dur-story: 1100ms;
     --stagger: 60ms;
   }
+}
+
+/* ===== Stage Lights by day (light theme) ===== */
+:root[data-theme="light"] {
+    --acc-50: 74 8 36; --acc-100: 110 11 52; --acc-200: 154 14 71; --acc-300: 190 16 84; --acc-400: 230 32 111; --acc-500: 210 22 98; --acc-600: 255 90 155; --acc-700: 255 150 190; --acc-800: 255 200 222; --acc-900: 255 226 238; --acc-950: 255 241 247;
+    --ok-50: 5 50 46; --ok-100: 8 70 66; --ok-200: 10 95 90; --ok-300: 12 125 117; --ok-400: 14 160 150; --ok-500: 18 180 168; --ok-600: 60 210 198; --ok-700: 120 230 220; --ok-800: 180 242 236; --ok-900: 215 249 246; --ok-950: 235 253 251;
+    --live-50: 84 16 22; --live-100: 120 22 30; --live-200: 160 28 37; --live-300: 190 33 44; --live-400: 220 48 58; --live-500: 230 60 70; --live-600: 255 110 115; --live-700: 255 160 163; --live-800: 255 200 202; --live-900: 255 226 227; --live-950: 255 242 242;
+    --neu-50: 13 12 28; --neu-100: 23 22 42; --neu-200: 38 36 61; --neu-300: 60 57 90; --neu-400: 85 81 120; --neu-500: 111 107 152; --neu-600: 142 138 184; --neu-700: 174 170 216; --neu-800: 207 203 240; --neu-900: 230 228 251; --neu-950: 244 243 255;
+    --vio-50: 19 7 52; --vio-100: 33 14 86; --vio-200: 50 22 125; --vio-300: 70 32 170; --vio-400: 110 64 240; --vio-500: 130 92 255; --vio-600: 160 130 255; --vio-700: 190 170 255; --vio-800: 215 205 255; --vio-900: 235 230 255; --vio-950: 246 243 255;
+    --ink-950: 246 245 255; --ink-900: 236 235 250; --ink-800: 225 223 245; --ink-700: 211 208 238; --ink-600: 194 190 229;
+    --text: 23 21 46; --text-muted: 74 71 112; --text-dim: 117 114 154;
+    --accent-rgb: 230, 32, 111; --accent-soft-rgb: 190, 16, 84; --sage-rgb: 14, 160, 150; --sage-soft-rgb: 12, 125, 117;
+    --cream-rgb: 23, 21, 46; --amp-rgb: 220, 48, 58; --violet-rgb: 110, 64, 240;
+    --bg-primary: #f6f5ff; --bg-secondary: #ecebfa;
+    --background: 246 100% 98%; --foreground: 246 37% 13%; --card: 0 0% 100%; --card-foreground: 246 37% 13%;
+    --popover: 0 0% 100%; --popover-foreground: 246 37% 13%; --primary: 336 80% 51%; --primary-foreground: 0 0% 100%;
+    --secondary: 175 84% 34%; --secondary-foreground: 0 0% 100%; --muted: 246 60% 95%; --muted-foreground: 246 20% 37%;
+    --accent: 246 60% 93%; --accent-foreground: 246 37% 13%; --destructive: 356 72% 53%; --destructive-foreground: 0 0% 100%;
+    --border: 246 37% 13% / 0.12; --input: 246 60% 95%; --ring: 336 80% 51%;
+    color-scheme: light;
 }
 
 /* ============================================
@@ -88,6 +86,7 @@
 html {
   background: var(--bg-primary);
   color-scheme: dark;
+  transition: background-color 240ms ease;
   /* Safe areas (camera cutouts, rounded corners, home indicator). Capacitor's Android
      app also reports them as --safe-area-inset-*; use whichever is larger. */
   --sa-l: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
@@ -245,7 +244,7 @@ body::after {
 .field-input {
   width: 100%;
   background: rgba(var(--cream-rgb), 0.03);
-  color: #f3ead8;
+  color: rgb(var(--text));
   border: 1px solid var(--glass-border);
   border-radius: 0.5rem;
   padding: 0.65rem 0.85rem;
@@ -282,8 +281,8 @@ body::after {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: #e8a54b;
-  color: #1c1206;
+  background: rgb(var(--acc-400));
+  color: rgb(var(--ink-950));
   border: none;
   border-radius: 999px;
   padding: 0.7rem 1.5rem;
@@ -295,7 +294,7 @@ body::after {
   transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s ease, filter 0.2s ease;
 }
 .btn-gradient:hover {
-  background: #efc27a;
+  background: rgb(var(--acc-300));
   box-shadow: 0 0 0 1px rgba(255, 220, 160, 0.35) inset, 0 14px 40px -10px rgba(var(--accent-rgb), 0.75);
   transform: translateY(-1px);
 }
@@ -313,7 +312,7 @@ body::after {
   justify-content: center;
   gap: 0.5rem;
   background: transparent;
-  color: #f3ead8;
+  color: rgb(var(--text));
   border: 1px solid rgba(var(--cream-rgb), 0.28);
   border-radius: 0.5rem;
   padding: 0.7rem 1.4rem;
@@ -343,14 +342,14 @@ body::after {
   border-color: rgba(var(--sage-rgb), 0.55);
 }
 
-.glow-red    { box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+.glow-red    { box-shadow: 0 0 20px rgba(var(--amp-rgb), 0.4); }
 .glow-yellow { box-shadow: 0 0 20px rgba(234, 179, 8, 0.4); }
-.glow-green  { box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
+.glow-green  { box-shadow: 0 0 15px rgba(var(--sage-rgb), 0.3); }
 
 /* Headline colour: candlelit cream into amber */
 /* Headings are plain cream now (the amber is saved for the words that matter). */
 .gradient-text {
-  color: #f3ead8;
+  color: rgb(var(--text));
 }
 
 .gradient-text-warm {
@@ -452,8 +451,8 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 }
 
 @keyframes recording-pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
-  50%       { box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); }
+  0%, 100% { box-shadow: 0 0 5px rgba(var(--amp-rgb), 0.3); }
+  50%       { box-shadow: 0 0 25px rgba(var(--amp-rgb), 0.6); }
 }
 
 @keyframes step-pulse {
@@ -485,13 +484,13 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 }
 
 @keyframes note-match-pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.3); }
-  50%       { box-shadow: 0 0 20px rgba(34, 197, 94, 0.7); }
+  0%, 100% { box-shadow: 0 0 5px rgba(var(--sage-rgb), 0.3); }
+  50%       { box-shadow: 0 0 20px rgba(var(--sage-rgb), 0.7); }
 }
 
 @keyframes note-miss-pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
-  50%       { box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
+  0%, 100% { box-shadow: 0 0 5px rgba(var(--amp-rgb), 0.3); }
+  50%       { box-shadow: 0 0 20px rgba(var(--amp-rgb), 0.6); }
 }
 
 @keyframes stage-unlock {
@@ -501,8 +500,8 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 }
 
 @keyframes quiz-correct {
-  0%, 100% { box-shadow: 0 0 0 rgba(34, 197, 94, 0); }
-  50%       { box-shadow: 0 0 16px rgba(34, 197, 94, 0.5); }
+  0%, 100% { box-shadow: 0 0 0 rgba(var(--sage-rgb), 0); }
+  50%       { box-shadow: 0 0 16px rgba(var(--sage-rgb), 0.5); }
 }
 
 @keyframes orbit-spin {
@@ -614,7 +613,7 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 }
 .os-room:not([data-active=""]) [data-obj]:not(.is-active) { opacity: 0.62; }
 .os-room [data-obj].is-active {
-  filter: brightness(1.18) drop-shadow(0 0 22px rgba(232, 165, 75, 0.55));
+  filter: brightness(1.18) drop-shadow(0 0 22px rgba(var(--accent-rgb), 0.55));
 }
 @keyframes os-led { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 .os-led-pulse { animation: os-led 1.2s ease-in-out infinite; }
@@ -634,7 +633,7 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
   20%, 24% { opacity: 0.35; }
 }
 .os-neon { animation: os-neon-on 6s steps(1, end) infinite; }
-@keyframes os-hotspot { 0%, 100% { box-shadow: 0 0 0 4px rgba(232,165,75,0.3); } 50% { box-shadow: 0 0 0 10px rgba(232,165,75,0); } }
+@keyframes os-hotspot { 0%, 100% { box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.3); } 50% { box-shadow: 0 0 0 10px rgba(var(--accent-rgb),0); } }
 .os-hotspot { animation: os-hotspot 1.8s ease-out infinite; }
 @media (prefers-reduced-motion: reduce) { .os-neon, .os-hotspot { animation: none; } }
 @keyframes os-intro-strum {

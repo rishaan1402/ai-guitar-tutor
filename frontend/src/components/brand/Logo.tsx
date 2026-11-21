@@ -29,7 +29,7 @@ export function LogoMark({ size = 28, className, ringing = false }: MarkProps) {
           x2={x}
           y1="1.5"
           y2="28.5"
-          stroke={i === 2 ? "var(--logo-lit, #e8a54b)" : "currentColor"}
+          stroke={i === 2 ? "var(--logo-lit, rgb(var(--acc-400)))" : "currentColor"}
           strokeOpacity={i === 2 ? 1 : 0.55}
           strokeWidth={i < 3 ? 1.3 - i * 0.15 : 0.9}
           strokeLinecap="round"

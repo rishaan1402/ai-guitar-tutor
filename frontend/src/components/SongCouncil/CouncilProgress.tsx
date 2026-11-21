@@ -36,7 +36,7 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
           <div
             className="w-16 h-16 rounded-full"
             style={{
-              background: "conic-gradient(from 0deg, #d98b2b, #527a5e, #6a9576, transparent)",
+              background: "conic-gradient(from 0deg, rgb(var(--acc-500)), #527a5e, rgb(var(--ok-500)), transparent)",
               animation: "spin 1.2s linear infinite",
             }}
           />
@@ -57,15 +57,15 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                     className="w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all duration-500"
                     style={{
                       background: done
-                        ? "rgba(134,176,146,0.25)"
+                        ? "rgba(var(--sage-rgb),0.25)"
                         : active_
                         ? "rgba(var(--accent-rgb),0.3)"
-                        : "rgba(255,255,255,0.05)",
+                        : "rgba(var(--cream-rgb),0.05)",
                       border: done
-                        ? "1px solid rgba(134,176,146,0.5)"
+                        ? "1px solid rgba(var(--sage-rgb),0.5)"
                         : active_
                         ? "1px solid rgba(var(--accent-rgb),0.6)"
-                        : "1px solid rgba(255,255,255,0.1)",
+                        : "1px solid rgba(var(--cream-rgb),0.1)",
                       boxShadow: active_ ? "0 0 16px rgba(var(--accent-rgb),0.4)" : "none",
                       animation: active_ ? "step-pulse 2s ease-in-out infinite" : "none",
                     }}
@@ -75,7 +75,7 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                   <span
                     className="text-xs text-center max-w-20"
                     style={{
-                      color: done ? "#86b092" : active_ ? "#efc27a" : "rgba(255,255,255,0.35)",
+                      color: done ? "rgb(var(--ok-400))" : active_ ? "rgb(var(--acc-300))" : "rgba(var(--cream-rgb),0.35)",
                     }}
                   >
                     {step.label}
@@ -86,8 +86,8 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
                     className="h-px w-8 transition-all duration-700"
                     style={{
                       background: done
-                        ? "rgba(134,176,146,0.5)"
-                        : "rgba(255,255,255,0.1)",
+                        ? "rgba(var(--sage-rgb),0.5)"
+                        : "rgba(var(--cream-rgb),0.1)",
                     }}
                   />
                 )}
@@ -96,7 +96,7 @@ export default function CouncilProgress({ active }: CouncilProgressProps) {
           })}
         </div>
 
-        <p className="mt-6 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+        <p className="mt-6 text-xs" style={{ color: "rgba(var(--cream-rgb),0.3)" }}>
           This usually takes 6–10 seconds
         </p>
       </div>
