@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import logging
 import math
 import os
@@ -28,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audio_engine import ChordEvaluator
 from feedback_engine import FeedbackGenerator
 from lesson_service import LessonService
+from lesson_service.service import Lesson
 from tutor_agent import grade_attempt
 from tutor_agent.agent import HISTORY_LIMIT
 from council.router import router as council_router
@@ -216,12 +218,58 @@ _anon_submit_limiter = RateLimiter(max_hits=60, window_seconds=60)
 _user_submit_limiter = RateLimiter(max_hits=120, window_seconds=60)
 
 
+_NOTE_RE = re.compile(r"^[A-G][#b]?$")
+_BUILT_SYMBOL_RE = re.compile(r"^[A-G][#b]?[A-Za-z0-9#b+°ø()/\-]{0,14}$")
+
+
+def _built_lesson(symbol: str, notes_csv: str, positions_json: Optional[str]):
+    """A one-off lesson for a chord built in the app: its notes and (optionally) its shape."""
+    symbol = symbol.strip()
+    notes = [n.strip() for n in notes_csv.split(",") if n.strip()]
+    if not _BUILT_SYMBOL_RE.match(symbol) or not 1 <= len(notes) <= 7 or not all(_NOTE_RE.match(n) for n in notes):
+        raise HTTPException(status_code=422, detail="That chord couldn't be read.")
+    positions: list[dict[str, Any]] = []
+    if positions_json:
+        try:
+            raw = json.loads(positions_json)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=422, detail="Bad chord shape.")
+        if not isinstance(raw, list) or len(raw) > 6:
+            raise HTTPException(status_code=422, detail="Bad chord shape.")
+        for p in raw:
+            if not isinstance(p, dict) or not isinstance(p.get("string"), int) or not 1 <= p["string"] <= 6:
+                raise HTTPException(status_code=422, detail="Bad chord shape.")
+            clean: dict[str, Any] = {"string": p["string"]}
+            if p.get("action") == "mute":
+                clean["action"] = "mute"
+            else:
+                fret = p.get("fret")
+                if not isinstance(fret, int) or not 0 <= fret <= 24:
+                    raise HTTPException(status_code=422, detail="Bad chord shape.")
+                clean["fret"] = fret
+                if isinstance(p.get("finger"), int) and 1 <= p["finger"] <= 4:
+                    clean["finger"] = p["finger"]
+                if isinstance(p.get("note"), str) and _NOTE_RE.match(p["note"]):
+                    clean["note"] = p["note"]
+            positions.append(clean)
+    lesson = Lesson(
+        chord_name=symbol,
+        lesson_video_path=None,
+        reference_audio_path=None,  # type: ignore[arg-type]  # graded from its notes alone
+        metadata={"chord": symbol, "display_name": symbol, "notes": notes, "built": True},
+    )
+    return lesson, positions
+
+
 @app.post("/submit_audio")
 async def submit_audio(
     request: Request,
     audio: UploadFile = File(...),
     chord_name: str = Form(..., max_length=40),
     previous_scores: Optional[str] = Form(None),
+    # a chord built in the app (not in the lesson library): its notes and shape
+    chord_notes: Optional[str] = Form(None, max_length=60),
+    chord_positions: Optional[str] = Form(None, max_length=1500),
     user=Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
@@ -238,6 +286,11 @@ async def submit_audio(
     limiter.hit(key)
 
     lesson = lesson_service.get_lesson(chord_name)
+    built = False
+    built_positions: list[dict[str, Any]] = []
+    if lesson is None and chord_notes:
+        lesson, built_positions = _built_lesson(chord_name, chord_notes, chord_positions)
+        built = True
     if lesson is None:
         raise HTTPException(status_code=404, detail=f"No lesson found for '{chord_name}'.")
     prior = _parse_previous_scores(previous_scores)
@@ -274,7 +327,7 @@ async def submit_audio(
             tmp_path,
             attempt=len(prior) + 1,
             previous_scores=prior,
-            fingering_positions=_fingerings_by_chord.get(chord_key, {}).get("positions", []),
+            fingering_positions=built_positions or _fingerings_by_chord.get(chord_key, {}).get("positions", []),
             user_context=user_context,
             chord_lookup=lesson_service.find_chord_by_notes,
             chord_lookup_by_strengths=lesson_service.find_chord_by_strengths,
@@ -293,7 +346,8 @@ async def submit_audio(
 
     # Persist chord attempt for authenticated users. Attempts where nothing was
     # actually graded (no sound, decode errors) are not recorded as 0% takes.
-    if user_id is not None and issue not in UNGRADED_ISSUES:
+    # built chords aren't in the progress history yet (it's keyed by library lessons)
+    if user_id is not None and issue not in UNGRADED_ISSUES and not built:
         if isinstance(eval_data, dict) and eval_data.get("score") is not None:
             from db.models import ChordAttempt
             feedback_text = result.get("feedback", "")
@@ -314,7 +368,7 @@ async def submit_audio(
     if isinstance(eval_data, dict):
         result["analysis"] = feedback_generator.generate_analysis_summary(eval_data)
         missing = eval_data.get("missing_notes", [])
-        fingering_data = _fingerings_by_chord.get(chord_key, {})
+        fingering_data = {"positions": built_positions} if built_positions else _fingerings_by_chord.get(chord_key, {})
         if missing and fingering_data:
             result["fingering_tips"] = feedback_generator.generate_fingering_tips(
                 missing, fingering_data.get("positions", [])

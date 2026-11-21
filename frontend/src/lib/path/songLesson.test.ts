@@ -30,3 +30,12 @@ describe("song lessons", () => {
     expect(grooves[grooves.length - 1].label).toBe("Whole song");
   });
 });
+
+describe("song lessons with chords outside the library", () => {
+  it("teaches built chords like Cadd9 and Dsus4 instead of skipping them", () => {
+    const chart2 = `{title: Colours}\n{start_of_grid: Verse}\n| G . | Cadd9 . | Dsus4 . | D . |\n{end_of_grid}`;
+    const s = buildSongSession("colours", { title: "Colours", chart: chart2 }, new Set(["G", "D"]));
+    const learned = s.steps.filter((x) => x.kind === "learn").map((x) => (x as { chord: string }).chord);
+    expect(learned).toEqual(["Cadd9", "Dsus4"]);
+  });
+});

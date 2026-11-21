@@ -5,7 +5,7 @@
  * Saved on this device so you can come back to it from the Lessons page.
  */
 import { parseChordPro } from "../chordpro";
-import { toAppChordKey } from "../chordpro";
+import { buildFingering } from "../chords/voicing";
 import { songGrooves, base } from "../groove/fromChart";
 import { strumSlots, type Groove } from "../groove/groove";
 import { chordTemplate } from "../groove/detect";
@@ -123,7 +123,8 @@ export function buildSongSession(slug: string, src: SongLessonSource, known: Set
   // 2. new chords, in the order they appear
   const inSong: string[] = [];
   for (const c of allBars.flat()) if (!inSong.includes(c)) inSong.push(c);
-  const fresh = inSong.filter((c) => !known.has(c) && toAppChordKey(c)).slice(0, MAX_NEW);
+  // every chord the app can read gets taught: library chords with their video, the rest built
+  const fresh = inSong.filter((c) => !known.has(c) && buildFingering(c)).slice(0, MAX_NEW);
   for (const c of fresh) steps.push(...chord(c, `${c} appears in this song. Get the shape clean before the band comes in.`, "Strum once and let every string ring; fix any buzzing notes."));
 
   // 3. the strum

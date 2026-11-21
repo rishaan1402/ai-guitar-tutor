@@ -152,6 +152,8 @@ export async function submitAudio(
   audioBlob: Blob,
   chordName: string,
   previousScores: number[] = [],
+  /** A chord built in the app (not in the lesson library): graded from its notes and shape. */
+  built?: { notes: string[]; positions: FretPosition[] },
 ): Promise<Record<string, unknown>> {
   if (audioBlob.size > MAX_UPLOAD_MB * 1024 * 1024) {
     throw new Error(submitErrorMessage(new ApiError("", 413)));
@@ -161,6 +163,10 @@ export async function submitAudio(
   // Sending the chord and earlier scores keeps scoring stateless on the server
   form.append("chord_name", chordName);
   form.append("previous_scores", JSON.stringify(previousScores));
+  if (built) {
+    form.append("chord_notes", built.notes.join(","));
+    form.append("chord_positions", JSON.stringify(built.positions));
+  }
   const opts: RequestInit = { method: "POST", body: form };
   try {
     return await request("/submit_audio", opts, { auth: "optional" });
@@ -227,6 +233,28 @@ export interface ChordFingering {
 
 export function getFingering(chord: string): Promise<ChordFingering> {
   return request(`/fingering/${encodeURIComponent(chord)}`);
+}
+
+export interface ChordTipsResponse {
+  tips: string[];
+  source: "ai" | "template";
+  /** Someone built this shape before: the tips came from the shared store. */
+  shared: boolean;
+}
+
+/** Coaching tips for a chord shape built in the app (written once per shape, shared by everyone). */
+export function getChordTips(symbol: string, fingering: ChordFingering): Promise<ChordTipsResponse> {
+  const byString = new Map(fingering.positions.map((p) => [p.string, p]));
+  const frets = [6, 5, 4, 3, 2, 1].map((s) => {
+    const p = byString.get(s);
+    return !p || p.action === "mute" ? -1 : p.fret ?? 0;
+  });
+  const fingers = [6, 5, 4, 3, 2, 1].map((s) => byString.get(s)?.finger ?? 0);
+  return request("/api/chords/tips", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ symbol, frets, fingers, notes: fingering.notes }),
+  }, { auth: "optional" });
 }
 
 // ---------------------------------------------------------------------------

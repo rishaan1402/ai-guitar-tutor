@@ -8,6 +8,7 @@
  * from jumps in broadband energy. Everything here is pure and testable.
  */
 import { chordNotes } from "./theory";
+import { parseSymbol } from "../chords/quality";
 
 /** 12-bin pitch-class profile from an AnalyserNode-style dB spectrum. */
 export function chromaFromSpectrum(db: Float32Array, sampleRate: number, fftSize: number, minHz = 75, maxHz = 2000): Float32Array {
@@ -121,8 +122,25 @@ export const EXPECTED_BONUS = 0.08;
  */
 export function matchesExpected(heard: string, expected: string): boolean {
   if (heard === expected) return true;
-  const base = (s: string) => s.replace(/(maj7|m7b5|m7|7)$/, (q) => (q.startsWith("m7") ? "m" : ""));
-  return base(heard) === base(expected);
+  const h = parseSymbol(heard), e = parseSymbol(expected);
+  if (!h || !e) {
+    const base = (s: string) => s.replace(/(maj7|m7b5|m7|7)$/, (q) => (q.startsWith("m7") ? "m" : ""));
+    return base(heard) === base(expected);
+  }
+  // same root, same bass, same core (major / minor / sus / dim / aug): colour notes
+  // like 7ths, 9ths and 6ths can hide in one strum
+  return h.root === e.root && h.bass === e.bass && chordCore(h.quality.tones, h.quality.id) === chordCore(e.quality.tones, e.quality.id);
+}
+
+/** The core sound of a chord type, ignoring colour notes. */
+function chordCore(tones: number[], id: string): string {
+  if (id === "dim" || id === "dim7") return "dim";
+  if (id === "aug" || id === "aug7") return "aug";
+  if (tones.includes(4)) return "major";
+  if (tones.includes(3)) return "minor";
+  if (tones.includes(5)) return "sus4";
+  if (tones.includes(2)) return "sus2";
+  return "power";
 }
 
 /** Mean power of a dB spectrum in a band, in dB (a loudness proxy for onsets and silence). */

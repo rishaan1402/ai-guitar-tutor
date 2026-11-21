@@ -7,14 +7,15 @@ import GroovePlayer from "@/components/groove/GroovePlayer";
 import ChordCheck from "@/components/path/ChordCheck";
 import LessonVideoPlayer from "@/components/LessonVideoPlayer";
 import ChordDiagram from "@/components/ChordDiagram";
-import { loadFingering } from "@/components/SongSheet/ChordPanel";
+import ChordLesson from "@/components/chords/ChordLesson";
+import ChordTips from "@/components/chords/ChordTips";
+import { libraryKey, shapeFor } from "@/lib/chords/shape";
 import { EarStep, PlayStep, QuizStep, ReadStep, RhythmStep } from "@/components/path/steps/Steps";
 import { ALL_SESSIONS, levelOf, sessionAfter, sessionById, trackOf, type PathSession } from "@/lib/path/curriculum";
 import { chordsIn, SCORED, sessionStars, type Step } from "@/lib/path/steps";
 import { loadPathProgress, recordSession } from "@/lib/path/progress";
 import { buildSongSession, loadSongLesson } from "@/lib/path/songLesson";
 import { getAudioUrl, getVideoUrl, type ChordFingering } from "@/lib/api";
-import { toAppChordKey } from "@/lib/chordpro";
 import { prettySymbol } from "@/lib/chordShape";
 
 export default function SessionPage() {
@@ -158,12 +159,29 @@ function Session({ session, isSong }: { session: PathSession; isSong: boolean })
 }
 
 function Learn({ chord, points, onNext }: { chord: string; points: string[]; onNext: () => void }) {
-  const key = toAppChordKey(chord);
+  const key = libraryKey(chord);
   const [shape, setShape] = useState<ChordFingering | null>(null);
+  const [built, setBuilt] = useState(false);
   useEffect(() => {
-    if (key) loadFingering(key).then(setShape).catch(() => {});
-  }, [key]);
+    shapeFor(chord).then((s) => {
+      if (!s) return;
+      setShape(s.fingering);
+      setBuilt(s.built);
+    });
+  }, [chord]);
   const videoPath = useMemo(() => (key ? getVideoUrl(key) : null), [key]);
+  // chords without a lesson video get the animated lesson, built for them
+  if (built && shape) {
+    return (
+      <div className="space-y-4">
+        <p className="label-mono text-amber-400">New chord · {prettySymbol(chord)}</p>
+        <ChordLesson symbol={chord} fingering={shape} autoPlay />
+        <PointList points={points} />
+        <ChordTips symbol={chord} fingering={shape} />
+        <button onClick={onNext} className="sticky bottom-3 z-10 h-12 w-full rounded-full bg-amber-400 font-semibold text-ink-950 shadow-lg shadow-black/40">I&apos;ve got the shape →</button>
+      </div>
+    );
+  }
   return (
     <div className="space-y-4">
       <p className="label-mono text-amber-400">New chord · {prettySymbol(chord)}</p>
@@ -171,17 +189,23 @@ function Learn({ chord, points, onNext }: { chord: string; points: string[]; onN
         {key && videoPath && <LessonVideoPlayer videoPath={videoPath} audioUrl={getAudioUrl(key)} chordName={key} />}
         <div className="flex gap-4 short:gap-3">
           {shape && <div className="w-32 shrink-0 short:w-24"><ChordDiagram fingering={shape} caption={chord} fluid /></div>}
-          <ul className="flex-1 space-y-2 text-[15px] text-cream/80 short:space-y-1 short:text-sm">
-            {points.map((p) => (
-              <li key={p} className="flex gap-2">
-                <span className="text-amber-400">•</span>
-                <span>{p}</span>
-              </li>
-            ))}
-          </ul>
+          <PointList points={points} />
         </div>
       </div>
       <button onClick={onNext} className="sticky bottom-3 z-10 h-12 w-full rounded-full bg-amber-400 font-semibold text-ink-950 shadow-lg shadow-black/40">I&apos;ve got the shape →</button>
     </div>
+  );
+}
+
+function PointList({ points }: { points: string[] }) {
+  return (
+    <ul className="flex-1 space-y-2 text-[15px] text-cream/80 short:space-y-1 short:text-sm">
+      {points.map((p) => (
+        <li key={p} className="flex gap-2">
+          <span className="text-amber-400">•</span>
+          <span>{p}</span>
+        </li>
+      ))}
+    </ul>
   );
 }

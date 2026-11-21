@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { listChords } from "@/lib/api";
 import { BEGINNER_PATH, chordSymbol, formatChord } from "@/lib/chordName";
 import { pluck } from "@/lib/sound";
@@ -54,7 +55,7 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }
       <section aria-labelledby="path-title">
         <div className="flex items-baseline justify-between gap-3">
           <h3 id="path-title" className="label-mono text-amber-300">Start here — the first eight</h3>
-          <span className="label-mono text-cream/40">one click to start</span>
+          <Link href="/chords/learn" className="label-mono text-amber-300 underline-offset-4 hover:underline">Can&apos;t find your chord? Build it →</Link>
         </div>
         <ol className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8">
           {path.map((c, i) => {

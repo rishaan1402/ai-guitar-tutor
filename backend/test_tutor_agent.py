@@ -60,7 +60,7 @@ def test_full_session_flow_mocked() -> None:
     evaluator = MagicMock(spec=ChordEvaluator)
     call_count = {"n": 0}
 
-    def mock_evaluate(audio_path: str, expected_notes: list[str]) -> EvaluationResult:
+    def mock_evaluate(audio_path: str, expected_notes: list[str], reference_path=None) -> EvaluationResult:
         call_count["n"] += 1
         if call_count["n"] == 1:
             return EvaluationResult(
