@@ -54,10 +54,10 @@ export function IntegratedLessonView({
 
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#2ee6d6"
+      ? "#86b092"
       : lesson.overall_difficulty === "intermediate"
-      ? "#3d7bff"
-      : "#ff5a5f";
+      ? "#e8a54b"
+      : "#e8604f";
 
   // Get context for selected chord
   const selectedContext: SongCouncilContext | null = selectedChordKey
@@ -113,7 +113,7 @@ export function IntegratedLessonView({
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="gradient-text text-3xl font-bold">{lesson.song_title}</h2>
-            <p className="text-sm mt-1" style={{ color: "rgba(var(--cream-rgb),0.5)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
               {lesson.artist}
             </p>
           </div>
@@ -173,7 +173,7 @@ export function IntegratedLessonView({
           style={{
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
-            color: "rgba(var(--cream-rgb),0.8)",
+            color: "rgba(255,255,255,0.8)",
                       }}
         >
           <RichText text={lesson.chairman_summary} />
@@ -247,9 +247,9 @@ export function IntegratedLessonView({
             <div
               className="p-4 rounded-xl text-center text-sm font-medium"
               style={{
-                background: "rgba(var(--sage-rgb),0.1)",
-                border: "1px solid rgba(var(--sage-rgb),0.3)",
-                color: "#4fece0",
+                background: "rgba(134,176,146,0.1)",
+                border: "1px solid rgba(134,176,146,0.3)",
+                color: "#86efac",
               }}
             >
               🎉 All chords practiced! Take the quiz or jump to play-along.

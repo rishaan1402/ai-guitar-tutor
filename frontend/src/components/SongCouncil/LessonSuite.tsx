@@ -43,12 +43,12 @@ function Section({
       >
         <span className="flex items-center gap-2 font-semibold text-sm">
           <span>{icon}</span>
-          <span style={{ color: "#c3c0e6" }}>{title}</span>
+          <span style={{ color: "#e2e8f0" }}>{title}</span>
         </span>
         <span
           className="text-xs transition-transform duration-200"
           style={{
-            color: "rgba(var(--cream-rgb),0.4)",
+            color: "rgba(255,255,255,0.4)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             display: "inline-block",
           }}
@@ -59,7 +59,7 @@ function Section({
       {open && (
         <div
           className="px-4 pb-4 text-sm leading-relaxed fade-in-up"
-          style={{ color: "rgba(var(--cream-rgb),0.7)" }}
+          style={{ color: "rgba(255,255,255,0.7)" }}
         >
           <RichText text={content} />
         </div>
@@ -81,10 +81,10 @@ function StudyStage({
 }) {
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#2ee6d6"
+      ? "#86b092"
       : lesson.overall_difficulty === "intermediate"
-      ? "#3d7bff"
-      : "#ff5a5f";
+      ? "#e8a54b"
+      : "#e8604f";
 
   return (
     <div className="space-y-4 animate-stage-unlock">
@@ -93,7 +93,7 @@ function StudyStage({
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="gradient-text text-2xl font-bold">{lesson.song_title}</h2>
-            <p className="text-sm mt-1" style={{ color: "rgba(var(--cream-rgb),0.5)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
               {lesson.artist}
             </p>
           </div>
@@ -153,7 +153,7 @@ function StudyStage({
           style={{
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
-            color: "rgba(var(--cream-rgb),0.8)",
+            color: "rgba(255,255,255,0.8)",
                       }}
         >
           <RichText text={lesson.chairman_summary} />
@@ -162,20 +162,20 @@ function StudyStage({
         {/* Song structure map */}
         {lesson.song_sections && lesson.song_sections.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-1">
-            <span className="text-xs mr-1" style={{ color: "rgba(var(--cream-rgb),0.35)" }}>
+            <span className="text-xs mr-1" style={{ color: "rgba(255,255,255,0.35)" }}>
               Structure:
             </span>
             {lesson.song_sections.map((section, i) => (
               <span key={i} className="flex items-center gap-1">
                 {i > 0 && (
-                  <span style={{ color: "rgba(var(--cream-rgb),0.2)", fontSize: "10px" }}>→</span>
+                  <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "10px" }}>→</span>
                 )}
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{
-                    background: "rgba(var(--cream-rgb),0.06)",
-                    border: "1px solid rgba(var(--cream-rgb),0.12)",
-                    color: "rgba(var(--cream-rgb),0.6)",
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "rgba(255,255,255,0.6)",
                   }}
                 >
                   {section.name}
@@ -196,7 +196,7 @@ function StudyStage({
         <button
           onClick={onComplete}
           className="btn-gradient px-8 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200"
-          style={{ background: "linear-gradient(135deg, #2860f0, #14c4b6)" }}
+          style={{ background: "linear-gradient(135deg, #d98b2b, #6a9576)" }}
         >
           I&apos;ve studied this →
         </button>
@@ -234,10 +234,10 @@ function PracticeStage({
       {/* Progress bar */}
       <div className="glass-card p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold" style={{ color: "rgba(var(--cream-rgb),0.7)" }}>
+          <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.7)" }}>
             🎸 Chords to Practice
           </span>
-          <span className="text-xs" style={{ color: "rgba(var(--cream-rgb),0.4)" }}>
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
             {attemptedCount}/{available.length} practiced
           </span>
         </div>
@@ -245,13 +245,13 @@ function PracticeStage({
         {available.length > 0 && (
           <div
             className="w-full h-1.5 rounded-full mb-4 overflow-hidden"
-            style={{ background: "rgba(var(--cream-rgb),0.08)" }}
+            style={{ background: "rgba(255,255,255,0.08)" }}
           >
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${(attemptedCount / available.length) * 100}%`,
-                background: "linear-gradient(90deg, #2860f0, #14c4b6)",
+                background: "linear-gradient(90deg, #d98b2b, #6a9576)",
               }}
             />
           </div>
@@ -274,9 +274,9 @@ function PracticeStage({
           <div
             className="mt-4 p-3 rounded-xl text-center text-sm font-medium animate-quiz-correct"
             style={{
-              background: "rgba(var(--sage-rgb),0.1)",
-              border: "1px solid rgba(var(--sage-rgb),0.3)",
-              color: "#4fece0",
+              background: "rgba(134,176,146,0.1)",
+              border: "1px solid rgba(134,176,146,0.3)",
+              color: "#86efac",
             }}
           >
             🎉 Practice complete! Head to Perform when you&apos;re ready.

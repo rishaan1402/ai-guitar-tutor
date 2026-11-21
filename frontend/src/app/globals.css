@@ -5,30 +5,30 @@
 @tailwind utilities;
 
 /* ============================================
-   "STAGE LIGHTS" DESIGN TOKENS (Open Strings)
+   "STUDIO AT NIGHT" DESIGN TOKENS (Open Strings)
    Warm near-black room, tungsten-amber light,
    amp-red for live/energy, sage for "you nailed it".
    ============================================ */
 @layer base {
   /* .os-force-dark keeps a scene on the night stage in either theme (the studio room) */
   :root, .os-force-dark {
-    /* ===== Stage Lights (dark, the default) ===== */
-    --acc-50: 239 244 255; --acc-100: 219 230 255; --acc-200: 186 206 255; --acc-300: 133 170 255; --acc-400: 61 123 255; --acc-500: 40 96 240; --acc-600: 28 74 205; --acc-700: 22 57 160; --acc-800: 18 44 120; --acc-900: 13 31 84; --acc-950: 7 17 48;
-    --ok-50: 233 255 253; --ok-100: 196 251 246; --ok-200: 140 245 236; --ok-300: 79 236 224; --ok-400: 46 230 214; --ok-500: 20 196 182; --ok-600: 14 156 145; --ok-700: 13 122 114; --ok-800: 14 92 87; --ok-900: 13 70 66; --ok-950: 5 37 35;
-    --live-50: 255 241 241; --live-100: 255 222 223; --live-200: 255 188 190; --live-300: 255 135 140; --live-400: 255 90 95; --live-500: 240 58 66; --live-600: 202 37 47; --live-700: 160 28 37; --live-800: 120 22 30; --live-900: 84 16 22; --live-950: 46 8 12;
-    --neu-50: 244 243 255; --neu-100: 230 228 251; --neu-200: 207 203 240; --neu-300: 174 170 216; --neu-400: 142 138 184; --neu-500: 111 107 152; --neu-600: 85 81 120; --neu-700: 60 57 90; --neu-800: 38 36 61; --neu-900: 23 22 42; --neu-950: 13 12 28;
-    --vio-50: 245 240 255; --vio-100: 232 222 255; --vio-200: 210 190 255; --vio-300: 180 148 255; --vio-400: 138 92 255; --vio-500: 112 64 240; --vio-600: 90 44 210; --vio-700: 70 32 170; --vio-800: 50 22 125; --vio-900: 33 14 86; --vio-950: 19 7 52;
-    --ink-950: 11 10 26; --ink-900: 18 17 42; --ink-800: 26 24 56; --ink-700: 35 33 73; --ink-600: 46 43 92;
-    --text: 243 242 255; --text-muted: 195 192 230; --text-dim: 143 140 184;
+    /* ===== Studio at night (dark, the default) ===== */
+    --acc-50: 253 247 236; --acc-100: 250 236 208; --acc-200: 244 214 159; --acc-300: 239 194 122; --acc-400: 232 165 75; --acc-500: 217 139 43; --acc-600: 184 110 31; --acc-700: 147 83 28; --acc-800: 120 67 29; --acc-900: 99 56 27; --acc-950: 56 28 11;
+    --ok-50: 242 247 243; --ok-100: 223 236 226; --ok-200: 192 217 198; --ok-300: 163 198 171; --ok-400: 134 176 146; --ok-500: 106 149 118; --ok-600: 82 122 94; --ok-700: 65 97 75; --ok-800: 52 77 61; --ok-900: 42 62 50; --ok-950: 21 33 26;
+    --live-50: 253 242 240; --live-100: 251 224 220; --live-200: 246 188 180; --live-300: 240 138 126; --live-400: 232 96 79; --live-500: 217 72 59; --live-600: 181 55 44; --live-700: 140 42 34; --live-800: 107 33 27; --live-900: 79 25 20; --live-950: 42 12 9;
+    --neu-50: 250 246 238; --neu-100: 243 234 216; --neu-200: 228 217 196; --neu-300: 203 191 168; --neu-400: 169 157 137; --neu-500: 138 127 110; --neu-600: 107 98 85; --neu-700: 77 70 61; --neu-800: 47 42 37; --neu-900: 28 25 22; --neu-950: 15 13 11;
+    --vio-50: 253 247 236; --vio-100: 250 236 208; --vio-200: 244 214 159; --vio-300: 239 194 122; --vio-400: 232 165 75; --vio-500: 217 139 43; --vio-600: 184 110 31; --vio-700: 147 83 28; --vio-800: 120 67 29; --vio-900: 99 56 27; --vio-950: 56 28 11;
+    --ink-950: 12 10 9; --ink-900: 20 17 15; --ink-800: 28 24 21; --ink-700: 39 33 29; --ink-600: 53 45 39;
+    --text: 243 234 216; --text-muted: 203 191 168; --text-dim: 143 133 116;
     /* legacy comma channels for rgba(var(--x), a) in inline styles */
-    --accent-rgb: 61, 123, 255; --accent-soft-rgb: 133, 170, 255; --sage-rgb: 46, 230, 214; --sage-soft-rgb: 79, 236, 224;
-    --cream-rgb: 243, 242, 255; --amp-rgb: 255, 90, 95; --violet-rgb: 138, 92, 255;
-    --bg-primary: #0b0a1a; --bg-secondary: #12112a; --ink-rgb: 11, 10, 26; --surface-rgb: 22, 21, 48;
-    --background: 244 44% 7%; --foreground: 245 100% 97%; --card: 244 42% 10%; --card-foreground: 245 100% 97%;
-    --popover: 244 42% 11%; --popover-foreground: 245 100% 97%; --primary: 221 100% 62%; --primary-foreground: 244 44% 7%;
-    --secondary: 174 79% 54%; --secondary-foreground: 244 44% 7%; --muted: 244 36% 14%; --muted-foreground: 245 30% 70%;
-    --accent: 244 36% 16%; --accent-foreground: 245 100% 97%; --destructive: 358 100% 68%; --destructive-foreground: 0 0% 100%;
-    --border: 245 100% 97% / 0.1; --input: 244 36% 13%; --ring: 221 100% 62%;
+    --accent-rgb: 232, 165, 75; --accent-soft-rgb: 240, 194, 122; --sage-rgb: 134, 176, 146; --sage-soft-rgb: 178, 207, 184;
+    --cream-rgb: 243, 234, 216; --amp-rgb: 217, 72, 59; --violet-rgb: 232, 165, 75;
+    --bg-primary: #0c0a09; --bg-secondary: #14110f; --ink-rgb: 12, 10, 9; --surface-rgb: 20, 17, 15;
+    --background: 24 14% 4%; --foreground: 40 45% 90%; --card: 24 14% 6%; --card-foreground: 40 45% 90%;
+    --popover: 24 14% 7%; --popover-foreground: 40 45% 90%; --primary: 35 77% 60%; --primary-foreground: 30 60% 7%;
+    --secondary: 137 18% 55%; --secondary-foreground: 150 14% 4%; --muted: 24 10% 11%; --muted-foreground: 38 14% 62%;
+    --accent: 24 12% 13%; --accent-foreground: 40 45% 90%; --destructive: 6 70% 55%; --destructive-foreground: 0 0% 100%;
+    --border: 40 20% 90% / 0.09; --input: 24 10% 10%; --ring: 35 77% 60%;
     --glass-bg: rgba(var(--cream-rgb), 0.035);
     --glass-border: rgba(var(--cream-rgb), 0.1);
     --glass-hover-bg: rgba(var(--cream-rgb), 0.06);
@@ -37,7 +37,7 @@
     --panel-border: rgba(var(--cream-rgb), 0.09);
     --glow-purple: rgba(var(--violet-rgb), 0.35);
     --glow-cyan: rgba(var(--sage-rgb), 0.35);
-    --radius: 0.875rem;
+    --radius: 0.625rem;
 
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
@@ -52,23 +52,23 @@
   }
 }
 
-/* ===== Stage Lights by day (light theme) ===== */
+/* ===== Studio by day (light theme): warm paper, deep amber ===== */
 :root[data-theme="light"] {
-    --acc-50: 7 17 48; --acc-100: 13 31 84; --acc-200: 18 44 120; --acc-300: 22 57 160; --acc-400: 37 99 235; --acc-500: 30 84 215; --acc-600: 90 140 255; --acc-700: 150 185 255; --acc-800: 200 218 255; --acc-900: 226 236 255; --acc-950: 241 246 255;
-    --ok-50: 5 50 46; --ok-100: 8 70 66; --ok-200: 10 95 90; --ok-300: 12 125 117; --ok-400: 14 160 150; --ok-500: 18 180 168; --ok-600: 60 210 198; --ok-700: 120 230 220; --ok-800: 180 242 236; --ok-900: 215 249 246; --ok-950: 235 253 251;
-    --live-50: 84 16 22; --live-100: 120 22 30; --live-200: 160 28 37; --live-300: 190 33 44; --live-400: 220 48 58; --live-500: 230 60 70; --live-600: 255 110 115; --live-700: 255 160 163; --live-800: 255 200 202; --live-900: 255 226 227; --live-950: 255 242 242;
-    --neu-50: 13 12 28; --neu-100: 23 22 42; --neu-200: 38 36 61; --neu-300: 60 57 90; --neu-400: 85 81 120; --neu-500: 111 107 152; --neu-600: 142 138 184; --neu-700: 174 170 216; --neu-800: 207 203 240; --neu-900: 230 228 251; --neu-950: 244 243 255;
-    --vio-50: 19 7 52; --vio-100: 33 14 86; --vio-200: 50 22 125; --vio-300: 70 32 170; --vio-400: 110 64 240; --vio-500: 130 92 255; --vio-600: 160 130 255; --vio-700: 190 170 255; --vio-800: 215 205 255; --vio-900: 235 230 255; --vio-950: 246 243 255;
-    --ink-950: 246 245 255; --ink-900: 236 235 250; --ink-800: 225 223 245; --ink-700: 211 208 238; --ink-600: 194 190 229;
-    --text: 23 21 46; --text-muted: 74 71 112; --text-dim: 117 114 154;
-    --accent-rgb: 37, 99, 235; --accent-soft-rgb: 22, 57, 160; --sage-rgb: 14, 160, 150; --sage-soft-rgb: 12, 125, 117;
-    --cream-rgb: 23, 21, 46; --amp-rgb: 220, 48, 58; --violet-rgb: 110, 64, 240;
-    --bg-primary: #f6f5ff; --bg-secondary: #ecebfa; --ink-rgb: 246, 245, 255; --surface-rgb: 255, 255, 255;
-    --background: 246 100% 98%; --foreground: 246 37% 13%; --card: 0 0% 100%; --card-foreground: 246 37% 13%;
-    --popover: 0 0% 100%; --popover-foreground: 246 37% 13%; --primary: 221 83% 53%; --primary-foreground: 0 0% 100%;
-    --secondary: 175 84% 34%; --secondary-foreground: 0 0% 100%; --muted: 246 60% 95%; --muted-foreground: 246 20% 37%;
-    --accent: 246 60% 93%; --accent-foreground: 246 37% 13%; --destructive: 356 72% 53%; --destructive-foreground: 0 0% 100%;
-    --border: 246 37% 13% / 0.12; --input: 246 60% 95%; --ring: 221 83% 53%;
+    --acc-50: 56 28 11; --acc-100: 99 56 27; --acc-200: 120 67 29; --acc-300: 147 83 28; --acc-400: 184 110 31; --acc-500: 184 110 31; --acc-600: 232 165 75; --acc-700: 239 194 122; --acc-800: 244 214 159; --acc-900: 250 236 208; --acc-950: 253 247 236;
+    --ok-50: 21 33 26; --ok-100: 42 62 50; --ok-200: 52 77 61; --ok-300: 65 97 75; --ok-400: 82 122 94; --ok-500: 82 122 94; --ok-600: 134 176 146; --ok-700: 163 198 171; --ok-800: 192 217 198; --ok-900: 223 236 226; --ok-950: 242 247 243;
+    --live-50: 42 12 9; --live-100: 79 25 20; --live-200: 107 33 27; --live-300: 140 42 34; --live-400: 181 55 44; --live-500: 181 55 44; --live-600: 232 96 79; --live-700: 240 138 126; --live-800: 246 188 180; --live-900: 251 224 220; --live-950: 253 242 240;
+    --neu-50: 15 13 11; --neu-100: 28 25 22; --neu-200: 47 42 37; --neu-300: 77 70 61; --neu-400: 107 98 85; --neu-500: 138 127 110; --neu-600: 169 157 137; --neu-700: 203 191 168; --neu-800: 228 217 196; --neu-900: 243 234 216; --neu-950: 250 246 238;
+    --vio-50: 56 28 11; --vio-100: 99 56 27; --vio-200: 120 67 29; --vio-300: 147 83 28; --vio-400: 184 110 31; --vio-500: 184 110 31; --vio-600: 232 165 75; --vio-700: 239 194 122; --vio-800: 244 214 159; --vio-900: 250 236 208; --vio-950: 253 247 236;
+    --ink-950: 250 246 238; --ink-900: 243 234 216; --ink-800: 235 224 201; --ink-700: 224 210 182; --ink-600: 210 194 162;
+    --text: 28 25 22; --text-muted: 77 70 61; --text-dim: 107 98 85;
+    --accent-rgb: 184, 110, 31; --accent-soft-rgb: 147, 83, 28; --sage-rgb: 82, 122, 94; --sage-soft-rgb: 65, 97, 75;
+    --cream-rgb: 28, 25, 22; --amp-rgb: 181, 55, 44; --violet-rgb: 184, 110, 31;
+    --bg-primary: #faf6ee; --bg-secondary: #f3ead8; --ink-rgb: 250, 246, 238; --surface-rgb: 255, 252, 245;
+    --background: 40 60% 96%; --foreground: 30 12% 10%; --card: 40 80% 98%; --card-foreground: 30 12% 10%;
+    --popover: 40 80% 98%; --popover-foreground: 30 12% 10%; --primary: 30 71% 42%; --primary-foreground: 0 0% 100%;
+    --secondary: 137 20% 40%; --secondary-foreground: 0 0% 100%; --muted: 40 40% 91%; --muted-foreground: 30 10% 35%;
+    --accent: 40 40% 89%; --accent-foreground: 30 12% 10%; --destructive: 6 61% 44%; --destructive-foreground: 0 0% 100%;
+    --border: 30 12% 10% / 0.12; --input: 40 40% 92%; --ring: 30 71% 42%;
     color-scheme: light;
 }
 
@@ -101,11 +101,9 @@ body {
   padding-left: var(--sa-l);
   padding-right: var(--sa-r);
   font-family: var(--font-body), system-ui, sans-serif;
-  /* stage lights: a magenta and a violet spotlight from above, cyan floor glow */
   background:
-    radial-gradient(ellipse 55% 85% at 14% -18%, rgba(var(--accent-rgb), 0.16), transparent 62%),
-    radial-gradient(ellipse 50% 80% at 88% -20%, rgba(var(--violet-rgb), 0.2), transparent 62%),
-    radial-gradient(ellipse 85% 45% at 50% 118%, rgba(var(--sage-rgb), 0.07), transparent 70%),
+    radial-gradient(ellipse 1100px 650px at 12% -15%, rgba(var(--accent-rgb), 0.10), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 105% 10%, rgba(var(--amp-rgb), 0.06), transparent 60%),
     var(--bg-primary);
   background-attachment: fixed;
   color: rgb(var(--text));
@@ -669,7 +667,7 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 
 
 /* ============================================
-   STAGE LIGHTS: signature styles and game feel
+   Signature styles and game feel
    ============================================ */
 
 /* primary actions are lit: magenta into violet, with a glow */
@@ -699,13 +697,7 @@ button:active:not(:disabled), a[class*="rounded"]:active { scale: 0.96; }
   }
 }
 
-/* big headings end in the spotlight colours */
-h1.font-display {
-  background: linear-gradient(95deg, rgb(var(--text)) 0%, rgb(var(--text)) 38%, rgb(var(--acc-300)) 72%, rgb(var(--vio-300)) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+
 
 input[type="range"], input[type="checkbox"] { accent-color: rgb(var(--acc-400)); }
 

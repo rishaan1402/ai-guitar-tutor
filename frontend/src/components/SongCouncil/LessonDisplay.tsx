@@ -33,12 +33,12 @@ function Section({ title, icon, content, defaultOpen = false }: SectionProps) {
       >
         <span className="flex items-center gap-2 font-semibold text-sm">
           <span>{icon}</span>
-          <span style={{ color: "#c3c0e6" }}>{title}</span>
+          <span style={{ color: "#e2e8f0" }}>{title}</span>
         </span>
         <span
           className="text-xs transition-transform duration-200"
           style={{
-            color: "rgba(var(--cream-rgb),0.4)",
+            color: "rgba(255,255,255,0.4)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             display: "inline-block",
           }}
@@ -49,7 +49,7 @@ function Section({ title, icon, content, defaultOpen = false }: SectionProps) {
       {open && (
         <div
           className="px-4 pb-4 text-sm leading-relaxed fade-in-up"
-          style={{ color: "rgba(var(--cream-rgb),0.7)" }}
+          style={{ color: "rgba(255,255,255,0.7)" }}
         >
           <RichText text={content} />
         </div>
@@ -70,10 +70,10 @@ export default function LessonDisplay({
 }: LessonDisplayProps) {
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#2ee6d6"
+      ? "#86b092"
       : lesson.overall_difficulty === "intermediate"
-      ? "#3d7bff"
-      : "#ff5a5f";
+      ? "#e8a54b"
+      : "#e8604f";
 
   return (
     <div className="w-full max-w-3xl mx-auto fade-in-up space-y-4">
@@ -82,7 +82,7 @@ export default function LessonDisplay({
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="gradient-text text-2xl font-bold">{lesson.song_title}</h2>
-            <p className="text-sm mt-1" style={{ color: "rgba(var(--cream-rgb),0.5)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
               {lesson.artist}
             </p>
           </div>
@@ -121,7 +121,7 @@ export default function LessonDisplay({
           style={{
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
-            color: "rgba(var(--cream-rgb),0.8)",
+            color: "rgba(255,255,255,0.8)",
                       }}
         >
           <RichText text={lesson.chairman_summary} />
@@ -130,16 +130,16 @@ export default function LessonDisplay({
         {/* Song structure map */}
         {lesson.song_sections && lesson.song_sections.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-1">
-            <span className="text-xs mr-1" style={{ color: "rgba(var(--cream-rgb),0.35)" }}>Structure:</span>
+            <span className="text-xs mr-1" style={{ color: "rgba(255,255,255,0.35)" }}>Structure:</span>
             {lesson.song_sections.map((section, i) => (
               <span key={i} className="flex items-center gap-1">
-                {i > 0 && <span style={{ color: "rgba(var(--cream-rgb),0.2)", fontSize: "10px" }}>→</span>}
+                {i > 0 && <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "10px" }}>→</span>}
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{
-                    background: "rgba(var(--cream-rgb),0.06)",
-                    border: "1px solid rgba(var(--cream-rgb),0.12)",
-                    color: "rgba(var(--cream-rgb),0.6)",
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "rgba(255,255,255,0.6)",
                   }}
                 >
                   {section.name}
@@ -152,7 +152,7 @@ export default function LessonDisplay({
 
       {/* Practice chords */}
       <div className="glass-card p-4">
-        <h3 className="text-sm font-semibold mb-3" style={{ color: "rgba(var(--cream-rgb),0.7)" }}>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: "rgba(255,255,255,0.7)" }}>
           🎸 Chords to Practice
         </h3>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
@@ -173,7 +173,7 @@ export default function LessonDisplay({
           <button
             onClick={onPlayAlong}
             className="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #14c4b6, #2860f0)" }}
+            style={{ background: "linear-gradient(135deg, #6a9576, #d98b2b)" }}
           >
             🎮 Play Along
           </button>

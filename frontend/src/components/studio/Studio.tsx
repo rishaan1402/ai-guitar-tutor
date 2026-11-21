@@ -392,15 +392,15 @@ export default function Studio() {
           height="46"
           viewBox="0 0 34 46"
         >
-          {/* a neon pick, point down: its tip is the cursor; it lights up over something you can open */}
+          {/* a pick, point down: its tip is the cursor; it lights up over something you can open */}
           <defs>
             <linearGradient id="os-pick" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor={hover ? "#85aaff" : "#b494ff"} />
-              <stop offset="0.55" stopColor={hover ? "#3d7bff" : "#8a5cff"} />
-              <stop offset="1" stopColor={hover ? "#8a5cff" : "#2ee6d6"} />
+              <stop offset="0" stopColor={hover ? "#f4d69f" : "#f3ead8"} />
+              <stop offset="0.55" stopColor={hover ? "#e8a54b" : "#d8c9a8"} />
+              <stop offset="1" stopColor={hover ? "#d98b2b" : "#b9a07a"} />
             </linearGradient>
           </defs>
-          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill="url(#os-pick)" stroke="rgb(var(--ink-950))" strokeWidth="2" style={{ filter: hover ? "drop-shadow(0 0 10px rgba(61,123,255,0.9))" : "drop-shadow(0 0 6px rgba(138,92,255,0.7))" }} />
+          <path d="M17 45 C 9 36, 1 24, 1 13 C 1 5, 8 1, 17 1 C 26 1, 33 5, 33 13 C 33 24, 25 36, 17 45 Z" fill="url(#os-pick)" stroke="rgb(var(--ink-950))" strokeWidth="2" style={{ filter: hover ? "drop-shadow(0 0 10px rgba(232,165,75,0.8))" : "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }} />
           <path d="M8 10 C 11 6, 23 6, 26 10" fill="none" stroke="rgba(var(--cream-rgb),0.45)" strokeWidth="2" strokeLinecap="round" />
           <circle cx="17" cy="45" r="2" fill="rgb(var(--ink-950))" opacity="0.6" />
         </svg>

@@ -31,7 +31,7 @@ interface Props {
 
 const NOW = 0.8; // now line at 80% of the height
 
-const LANE_COLORS: Record<number, string> = { 6: "#ff5a5f", 5: "#3d7bff", 4: "#c3c0e6", 3: "#2ee6d6", 2: "#7da2c9", 1: "#c49be0" };
+const LANE_COLORS: Record<number, string> = { 6: "#e8604f", 5: "#e8a54b", 4: "#e9d9b8", 3: "#86b092", 2: "#7da2c9", 1: "#c49be0" };
 
 export default function Highway({ segments, changes, totalBeats, strum, getPosition, isHolding, judged, lookahead = 6, lead = false, beatsPerBar = 4 }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
@@ -76,7 +76,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
   const next = segments[active + 1];
 
   return (
-    <div ref={wrap} className="relative h-full w-full overflow-hidden rounded-[22px] border border-cream/10 bg-[linear-gradient(to_bottom,rgb(var(--ink-950)),rgb(var(--ink-900)))]">
+    <div ref={wrap} className="relative h-full w-full overflow-hidden rounded-[22px] border border-cream/10 bg-[linear-gradient(to_bottom,#100d0b,#1a1410)]">
       {/* lanes */}
       {lead ? (
         [6, 5, 4, 3, 2, 1].map((st, k) => (
@@ -118,7 +118,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
                 height: Math.max(26, Math.min(s.beats, 1) * ppb - 4),
                 borderColor: LANE_COLORS[n.string],
                 background: isActive ? LANE_COLORS[n.string] : `${LANE_COLORS[n.string]}33`,
-                color: isActive ? "#0b0a1a" : "#f3f2ff",
+                color: isActive ? "#0c0a09" : "#f3ead8",
                 fontSize: Math.min(26, ppb * 0.5),
               }}
               aria-label={`String ${n.string}, fret ${n.fret}`}
@@ -180,7 +180,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
 
       {/* now line */}
       <div className="pointer-events-none absolute inset-x-0" style={{ top: yNow }}>
-        <div className={`h-[3px] ${holding ? "bg-amber-300 shadow-[0_0_24px_rgba(var(--accent-rgb),0.9)]" : "bg-amber-400/80 shadow-[0_0_14px_rgba(var(--accent-rgb),0.5)]"}`} />
+        <div className={`h-[3px] ${holding ? "bg-amber-300 shadow-[0_0_24px_rgba(232,165,75,0.9)]" : "bg-amber-400/80 shadow-[0_0_14px_rgba(232,165,75,0.5)]"}`} />
       </div>
       {holding && next && (
         <div className="pointer-events-none absolute inset-x-0 flex justify-center" style={{ top: yNow + 14 }}>
@@ -190,7 +190,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
         </div>
       )}
       {/* fade at the top so chords appear softly */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-ink-950 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#100d0b] to-transparent" />
     </div>
   );
 }
