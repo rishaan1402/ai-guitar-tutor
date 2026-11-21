@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import RoomScene from "@/components/room/RoomScene";
+import LevelUp from "@/components/game/LevelUp";
 import { ROOM_OBJECTS, SCENE_H, SCENE_W, type RoomObject, type RoomObjectId } from "@/components/room/roomObjects";
 import { useAuth } from "@/context/AuthContext";
 import { getGame, getPlan, getProgress, type PlanItem } from "@/lib/api";
@@ -48,6 +49,21 @@ export default function Studio() {
   const { data: plan } = useSWR(user ? "/api/plan/next" : null, getPlan, swrOpts);
   const { data: game } = useSWR(user ? "/api/game" : null, getGame, swrOpts);
   const next: PlanItem | undefined = plan?.items?.[0];
+  const [levelUp, setLevelUp] = useState<{ level: number; title: string; unlock: string | null } | null>(null);
+  useEffect(() => {
+    if (!game) return;
+    let last = 0;
+    try {
+      last = Number(localStorage.getItem("os:last-level")) || 0;
+      localStorage.setItem("os:last-level", String(game.level));
+    } catch {
+      /* storage blocked: no celebration, nothing breaks */
+    }
+    if (last > 0 && game.level > last) {
+      const unlock = game.upgrades.find((u) => u.level === game.level)?.label ?? null;
+      setLevelUp({ level: game.level, title: game.title, unlock });
+    }
+  }, [game]);
   const due = plan?.items?.filter((i) => i.type === "review").length ?? 0;
 
   const vp = useViewport();
@@ -383,6 +399,8 @@ export default function Studio() {
         </svg>
       )}
 
+      {levelUp && <LevelUp level={levelUp.level} title={levelUp.title} unlock={levelUp.unlock} onClose={() => setLevelUp(null)} />}
+
       {/* HUD */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 pl-[max(1rem,var(--sa-l))] pr-[max(1rem,var(--sa-r))] pt-[max(1rem,var(--sa-t))]">
         <button
@@ -398,7 +416,7 @@ export default function Studio() {
         </button>
         <div className="flex gap-2">
           {game && <DailyRing done={game.daily.done} total={game.daily.total} tasks={game.daily.tasks} />}
-          <Chip label="Streak" value={`${streak}🔥`} />
+          <Chip label="Streak" spoken={`${streak} day${streak === 1 ? "" : "s"}`} value={<>{streak}<span className={streak > 0 ? "os-flame ml-0.5" : "ml-0.5 grayscale"} aria-hidden="true">🔥</span></>} />
         </div>
       </div>
       {/* level + XP, and the coach */}
@@ -536,9 +554,9 @@ function labelFor(o: RoomObject): string {
   return o.id === "guitar" ? "Lessons" : o.id === "metronome" ? "Grooves" : o.label;
 }
 
-function Chip({ label, value }: { label: string; value: string }) {
+function Chip({ label, value, spoken }: { label: string; value: React.ReactNode; spoken?: string }) {
   return (
-    <div className="rounded-full border border-cream/10 bg-ink-950/70 px-3 py-1.5 backdrop-blur" aria-label={`${label}: ${value}`}>
+    <div className="rounded-full border border-cream/10 bg-ink-950/70 px-3 py-1.5 backdrop-blur" aria-label={`${label}: ${spoken ?? String(value)}`}>
       <span className="label-mono text-cream/50">{label} </span>
       <span className="font-semibold text-cream">{value}</span>
     </div>

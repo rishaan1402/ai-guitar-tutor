@@ -9,6 +9,7 @@ import LessonVideoPlayer from "@/components/LessonVideoPlayer";
 import ChordDiagram from "@/components/ChordDiagram";
 import ChordLesson from "@/components/chords/ChordLesson";
 import ChordTips from "@/components/chords/ChordTips";
+import Celebrate from "@/components/game/Celebrate";
 import { libraryKey, shapeFor } from "@/lib/chords/shape";
 import { EarStep, PlayStep, QuizStep, ReadStep, RhythmStep } from "@/components/path/steps/Steps";
 import { EchoStep, FretGameStep, ImproviseStep, LadderStep } from "@/components/path/steps/MoreSteps";
@@ -161,10 +162,8 @@ function Session({ session, isSong, isReview = false }: { session: PathSession; 
         {!step && !(level && isCheck(session.id)) && (
           <div className="mx-auto max-w-xl rounded-[26px] border border-cream/10 p-6 text-center">
             <p className="label-mono text-amber-400">{isSong ? "Song lesson complete" : isReview ? "Review done for today" : "Lesson complete"}</p>
-            <div className="mt-2 text-5xl" aria-label={`${final} of 3 stars`}>
-              {[0, 1, 2].map((k) => (
-                <span key={k} className={k < final ? "text-amber-400" : "text-cream/15"}>★</span>
-              ))}
+            <div className="mt-3">
+              <Celebrate stars={final} xp={final * 20} />
             </div>
             <p className="mt-3 text-cream/70">{final === 3 ? "Clean. That one's yours." : "Good work. Come back to it later to earn every star."}</p>
             <div className="mt-6 flex flex-col gap-2">
@@ -196,10 +195,8 @@ function CheckResult({ levelId, stars, onAgain }: { levelId: string; stars: numb
   return (
     <div className="mx-auto max-w-xl rounded-[26px] border border-cream/10 p-6 text-center">
       <p className="label-mono text-amber-400">Level check</p>
-      <div className="mt-2 text-5xl" aria-label={`${stars} of 3 stars`}>
-        {[0, 1, 2].map((k) => (
-          <span key={k} className={k < stars ? "text-amber-400" : "text-cream/15"}>★</span>
-        ))}
+      <div className="mt-3">
+        <Celebrate stars={stars} xp={stars * 20} />
       </div>
       {advice && (
         <>
