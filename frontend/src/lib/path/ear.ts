@@ -16,10 +16,49 @@ export interface EarRound {
   /** MIDI notes; `together` plays them as a chord. */
   notes: number[];
   together: boolean;
+  /** Progressions: chords played one after another. */
+  chords?: number[][];
 }
 
-export function makeRound(mode: "interval" | "quality" | "higher", options: string[], rnd: () => number = Math.random): EarRound {
+const DEGREE: Record<string, number> = { I: 0, II: 2, III: 4, IV: 5, V: 7, VI: 9, VII: 11 };
+
+/** One Roman numeral ("vi", "V7", "bVII", "ii°") as semitones from the key, and its chord tones. */
+export function numeralChord(numeral: string): { root: number; tones: number[] } | null {
+  const m = /^(b|♭)?([ivIV]+)(°|7|maj7)?$/.exec(numeral.trim());
+  if (!m) return null;
+  const roman = m[2];
+  const deg = DEGREE[roman.toUpperCase()];
+  if (deg === undefined) return null;
+  const root = (deg - (m[1] ? 1 : 0) + 12) % 12;
+  const minor = roman === roman.toLowerCase();
+  let tones = minor ? [0, 3, 7] : [0, 4, 7];
+  if (m[3] === "°") tones = [0, 3, 6];
+  if (m[3] === "7") tones = minor ? [0, 3, 7, 10] : [0, 4, 7, 10];
+  if (m[3] === "maj7") tones = [0, 4, 7, 11];
+  return { root, tones };
+}
+
+/** A progression like "I–V–vi–IV" voiced in a key (bass note, then the chord close above it). */
+export function voiceProgression(progression: string, keyRoot: number): number[][] | null {
+  const parts = progression.split(/[–\-\s]+/).filter(Boolean);
+  const out: number[][] = [];
+  for (const p of parts) {
+    const c = numeralChord(p);
+    if (!c) return null;
+    const bass = 40 + ((keyRoot + c.root - 40 + 120) % 12); // E2..D#3
+    const upper = c.tones.map((t) => 52 + ((keyRoot + c.root + t - 52 + 120) % 12)); // E3..D#4
+    out.push([bass, ...upper.sort((a, b) => a - b)]);
+  }
+  return out;
+}
+
+export function makeRound(mode: "interval" | "quality" | "higher" | "progression", options: string[], rnd: () => number = Math.random): EarRound {
   const answer = options[Math.floor(rnd() * options.length)];
+  if (mode === "progression") {
+    const key = Math.floor(rnd() * 12);
+    const chords = voiceProgression(answer, key) ?? [];
+    return { answer, notes: chords.flat(), together: true, chords };
+  }
   if (mode === "interval") {
     const root = 48 + Math.floor(rnd() * 12);
     return { answer, notes: [root, root + (INTERVALS[answer] ?? 7)], together: false };

@@ -4,7 +4,7 @@
  * neck, modes and arpeggios. The app listens to each note you play.
  */
 import { LEAD_RIFFS } from "../../groove/lead";
-import { ear, fret, groove, hear, lead, notes, play, q, quiz, read, S, tab, type PathTrack } from "../steps";
+import { ear, echo, fret, groove, hear, improvise, ladder, lead, notes, play, q, quiz, read, S, tab, type PathTrack } from "../steps";
 
 const riff = (id: string) => LEAD_RIFFS.find((r) => r.id === id)!;
 
@@ -77,6 +77,11 @@ D|-1-2-3-4------------------------|`, "Chromatic: one finger per fret")),
 
 This feels awkward on purpose: it trains fingers to move **independently**, which you need for chords and fast lines alike.`),
           play("Spider", "1 and 3 on the low E, 2 and 4 on the A string.", notes("6:1 5:2 6:3 5:4 5:1 4:2 5:3 4:4"))),
+        S("l2-ladder", "1-2-3-4 speed ladder", "Build speed the right way.",
+          read("Clean first, then fast", `Play the chromatic exercise with the band. Every clean run (2+ stars) raises the speed by **4 bpm**. Your best is saved: next time you start a rung below it.
+
+Relax: tension is the enemy of speed. If your shoulders rise, stop and breathe.`),
+          ladder("Chromatic ladder", "One finger per fret, alternate picking, as clean as you can.", lead("ladder-chromatic", "1-2-3-4 ladder", [["6:1", "6:2", "6:3", "6:4"], ["5:1", "5:2", "5:3", "5:4"], ["4:1", "4:2", "4:3", "4:4"], ["3:1", "3:2", "3:3", "3:4"]], { style: "rock", bpm: 60, loops: 1 }), 60, 100)),
         S("l2-practice", "How to practise", "Deliberate practice, slow and short.",
           read("Practise like a pro", `Hours don't make players; **focused minutes** do.
 
@@ -118,6 +123,18 @@ The **box 1** shape sits at the 5th fret: two notes per string. Amber dots are t
 B|------8-5---------|
 G|----------7-5-7---|`, "Classic descending lick")),
           groove(lead("p-pent-lick", "Pentatonic lick", [["1:8", "1:5", "2:8", "2:5"], ["3:7", "3:5", "3:7", "-"], ["1:8", "1:5", "2:8", "2:5"], ["3:7", "-", "4:7", "-"]], { style: "rock", bpm: 70 }))),
+        S("l3-echo", "Call and response", "The app plays a lick; you answer with it.",
+          read("Learning licks by ear", `Every great player learned by **copying what they heard**. The app plays a short pentatonic lick; you play it back. All the notes are in box 1.
+
+Listen twice, sing it, then find it. If you're stuck, tap *Show me the notes*.`, fret(PENT1, "A minor pentatonic, box 1", 4, 9)),
+          echo("Play it back", "Listen, then play the lick back. Any octave counts.", ["1:8 1:5 2:8", "2:5 3:7 3:5", "3:7 2:5 1:5", "1:5 2:8 2:5 3:7"])),
+        S("l3-jam", "Jam in A minor", "Your first real solo, scored.",
+          read("How a solo is scored", `The band plays **Am, G, F, G**. You solo with box 1. The app listens and scores three things:
+
+1. **Notes in the scale**: aim for over 90%.
+2. **Phrases**: leave space. Play an idea, rest, answer it.
+3. **Ending home**: finish on an **A**.`),
+          improvise("Jam", "Play short phrases with space between them; end on A.", { bars: [["Am"], ["G"], ["F"], ["G"]], bpm: 84, scale: "A C D E G", home: "A", loops: 3, figure: fret(PENT1, "Box 1", 4, 9) })),
         S("l3-gig", "Gig: solo over A minor", "Call and answer with the band.",
           read("Improvising", `Now **you** choose the notes. The band plays a minor groove; stay in box 1 and play short phrases. Try: two notes, rest; three notes, rest; then something longer that ends on an **A**.
 
@@ -194,6 +211,12 @@ Move between boxes with a **slide**: G string 7 → 9 takes you into box 2.`,
 
 And **call and response**: play a question (a rising phrase), then answer it (a falling phrase that ends on A).`),
           groove(lead("gig-blues-lead", "Blues answers", [["2:5", "2:8", "1:5", "-"], ["3:7", "3:5", "4:7", "-"], ["2:8", "2:5", "3:7", "3:5"], ["4:7", "-", "-", "-"]], { style: "rock", bpm: 72, loops: 3 }), "follow")),
+        S("l5-jam", "Blues jam", "Twelve bars of blues, your solo.",
+          read("Solo the blues", `A full 12-bar blues in A. Use the **blues scale** (box 1 plus the ♭5). Ideas:
+- Start with a phrase, then **repeat it** with a different ending.
+- Over the **E7** in bar 9, play a phrase that heads back to **A**.
+- Bend, slide, and leave space.`),
+          improvise("Blues jam", "Call and answer through all 12 bars; end on A.", { bars: [["A7"], ["A7"], ["A7"], ["A7"], ["D7"], ["D7"], ["A7"], ["A7"], ["E7"], ["D7"], ["A7"], ["E7"]], bpm: 80, scale: "A C D D# E G", home: "A", loops: 1, figure: fret("6:5R 6:8 5:5 5:6=b5 5:7 4:5 4:7R 3:5 3:7 3:8=b5 2:5 2:8 1:5R 1:8", "A blues scale", 4, 9) })),
         S("l5-double", "Double stops", "Two notes at once.",
           read("Double stops", `Play **two strings together** with one finger barring them, or two fingers. In box 1, barre the B and high e strings with your index at the 5th fret, or with your ring finger at the 8th. Chuck Berry built rock and roll on double stops.
 

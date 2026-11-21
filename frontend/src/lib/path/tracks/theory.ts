@@ -3,7 +3,7 @@
  * chords from scales, reading music, modes and harmony, and ear training,
  * always tied back to the guitar.
  */
-import { ear, fret, g, groove, hear, hearChord, notes, pcs, play, q, quiz, read, rhythm, S, tab, type PathTrack } from "../steps";
+import { ear, echo, fret, fretgame, g, groove, hear, hearChord, notes, pcs, play, q, quiz, read, rhythm, S, tab, type PathTrack } from "../steps";
 
 export const THEORY_TRACK: PathTrack = {
   id: "theory",
@@ -40,6 +40,10 @@ The **12th fret** is the octave: the names start over. Memorise the natural note
 With the low E and A strings memorised you can find **any barre chord or power chord root**.`,
             fret("5:0=A 5:2=B 5:3=C 5:5=D 5:7=E 5:8=F 5:10=G 5:12=A", "Natural notes on the A string", 0, 12)),
           play("A string run", "Play B C D E F G A up the A string.", notes("5:2 5:3 5:5 5:7 5:8 5:10 5:12"))),
+        S("t1-fretgame", "Fretboard game", "Name the note, fast.",
+          read("Speed matters", `Knowing notes isn't enough: you need them **instantly**. A fret lights up; tap its name. Aim for every answer right in under **3 seconds**.`),
+          fretgame("Low strings", "Name each note on the low E and A strings.", [6, 5], [0, 12], 12),
+          fretgame("The first five frets", "Now every string, frets 0 to 5.", [6, 5, 4, 3, 2, 1], [0, 5], 12)),
         S("t1-find", "Find it anywhere", "Any note, any string.",
           read("Use octaves and landmarks", `To find a note on the higher strings, use **octave shapes** from the low strings (see the Lead track) or landmarks:
 
@@ -92,6 +96,11 @@ Exercise: pick a note and find it on all six strings, in any order. Say its name
 Across the **G–B** pair, add one fret to every shape above.`,
             fret("5:3R=C 4:5=G 4:3=F 4:2=E", "From C: 4th (F), 5th (G), major 3rd (E)", 1, 6)),
           play("Build from C", "C, then its major 3rd (E), its 5th (G) and its octave (C).", notes("5:3 4:2 4:5 3:5"))),
+        S("t2-echo", "Play back melodies", "Hear it, find it.",
+          read("Ear to hands", `The app plays three notes from the C major scale on the G and B strings. Find them and play them back.
+
+Start by finding the **first note**; then ask: does the next one go **up or down**? A **step** or a **jump**?`),
+          echo("Three-note melodies", "Listen, then play it back (any octave).", ["3:5 3:7 2:5", "2:5 3:7 3:5", "3:5 2:5 2:8", "2:8 2:5 3:5", "3:7 2:5 2:6"])),
         S("t2-ear2", "Ear training: all the intervals", "The full set.",
           ear("Steps and leaps", "interval", ["minor 2nd", "major 2nd", "perfect 4th", "perfect 5th", "octave"], 10),
           ear("The full set", "interval", ["minor 3rd", "major 3rd", "perfect 4th", "tritone", "perfect 5th", "minor 7th", "octave"], 12)),
@@ -185,6 +194,15 @@ Classic progressions are just journeys: **I–IV–V–I** (rock and roll), **I�
 Feel it: play **G → C → D** and stop. You *need* to hear G again. That pull is the **dominant**.`, hearChord("D7 (V7 in G)", "D7")),
           groove(g("p-t4-145", "I–IV–V in G", [["G"], ["C"], ["D"], ["G"]], { style: "folk", bpm: 72, focus: ["D", "G"] })),
           groove(g("p-t4-pop", "I–V–vi–IV in C", [["C"], ["G"], ["Am"], ["F"]], { style: "pop", bpm: 76, strum: "D.DU.UDU", focus: ["Am", "F"] }))),
+        S("t4-progear", "Hear the progression", "Name four chords by ear.",
+          read("Progressions by ear", `Four common progressions sound different once you know what to listen for:
+- **I–IV–V–I**: classic, resolved, folk and rock and roll.
+- **I–V–vi–IV**: the pop anthem.
+- **vi–IV–I–V**: the same chords, starting sad.
+- **I–vi–IV–V**: the 1950s doo-wop loop.
+
+Listen for the **minor chord (vi)**: where does it fall?`),
+          ear("Which progression?", "progression", ["I–IV–V–I", "I–V–vi–IV", "vi–IV–I–V", "I–vi–IV–V"], 8)),
         S("t4-ear", "Hear major and minor", "The most important ear skill.",
           ear("Major or minor?", "quality", ["major", "minor"], 12),
           ear("Sevenths", "quality", ["major 7", "minor 7", "dominant 7", "half-diminished"], 12)),
@@ -337,6 +355,9 @@ Start with simple songs you love. Your first transcription takes hours; your hun
           quiz("Method",
             q("When working out chords, find what first?", ["The bass note", "The highest note", "The lyrics"], 0, "The bass usually gives the root of the chord."),
             q("Once you know the key, the chords are…", ["Usually from that key", "Random", "Always major"], 0, "Most songs stay mostly in the key's seven chords."))),
+        S("t7-dictation", "Melodic dictation", "Longer phrases, no notes shown.",
+          echo("Five-note phrases in G", "Listen and play back. The notes are in G major, around the 2nd to 5th frets.", ["4:5 4:2 5:5 4:2 4:4", "3:2 3:4 3:5 4:4 4:5", "4:5 3:2 3:4 3:2 4:5", "5:2 5:3 5:5 4:2 4:5"]),
+          ear("Harder progressions", "progression", ["ii–V–I", "I–bVII–IV–I", "I–iii–IV–V", "vi–ii–V–I"], 8)),
         S("t7-final", "Final exam: theory", "Everything in one go.",
           quiz("Final exam",
             q("Notes of an A major chord?", ["A C E", "A C♯ E", "A D E"], 1, "A major: A, major 3rd C♯, 5th E."),

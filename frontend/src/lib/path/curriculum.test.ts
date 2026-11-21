@@ -63,3 +63,28 @@ describe("curriculum", () => {
     expect(sessionAfter("l1-melodies")?.id).toBe("l2-alt");
   });
 });
+
+describe("newer exercises in the curriculum", () => {
+  it("ladders, echoes, jams, fretboard games and progression drills are all valid", async () => {
+    const { voiceProgression } = await import("./ear");
+    const kinds = new Set<string>();
+    for (const s of ALL_SESSIONS) {
+      for (const st of s.steps) {
+        kinds.add(st.kind);
+        if (st.kind === "ladder") {
+          expect(st.target, s.id).toBeGreaterThan(st.start);
+          expect(timeline(st.groove).changes.length, s.id).toBeGreaterThan(0);
+          for (const c of st.groove.bars.flat()) if (c !== "-") expect(st.groove.kind === "lead" ? parseNote(c) : chordTemplate(c), `${s.id}: ${c}`).toBeTruthy();
+        }
+        if (st.kind === "echo") for (const ph of st.phrases) expect(ph.length, s.id).toBeGreaterThanOrEqual(2);
+        if (st.kind === "improvise") {
+          for (const c of st.bars.flat()) expect(chordNotes(c), `${s.id}: ${c}`).toBeTruthy();
+          expect(st.scalePcs, s.id).toContain(st.homePc);
+        }
+        if (st.kind === "fretgame") expect(st.frets[1]).toBeGreaterThan(st.frets[0]);
+        if (st.kind === "ear" && st.mode === "progression") for (const o of st.options) expect(voiceProgression(o, 0), `${s.id}: ${o}`).toBeTruthy();
+      }
+    }
+    for (const k of ["echo", "ladder", "improvise", "fretgame"]) expect(kinds.has(k), k).toBe(true);
+  });
+});
