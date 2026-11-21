@@ -5,6 +5,7 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
+import InstallApp from "@/components/native/InstallApp";
 import Logo from "@/components/brand/Logo";
 
 export const metadata: Metadata = {
@@ -31,12 +32,15 @@ export default function DownloadPage() {
           <Logo size="md" />
         </Link>
 
-        <p className="label-mono mt-10 text-amber-400">Android · test build</p>
+        <p className="label-mono mt-10 text-amber-400">iPhone · iPad · Android · computer</p>
         <h1 className="mt-2 font-display text-h1 uppercase text-cream">Get the app</h1>
         <p className="mt-3 text-cream/70">
-          The practice room on your phone: every lesson built in, so they open instantly and work offline.
-          Your progress syncs with the website.
+          Install Open Strings straight from this website: its own icon, full screen, no app store. Or, on Android,
+          download the app with every lesson built in. Your progress syncs either way.
         </p>
+        <InstallApp variant="card" className="mt-8" />
+
+        <p className="label-mono mt-10 text-amber-400">Android · test build</p>
 
         <a
           href={APK_URL}
@@ -72,7 +76,7 @@ export default function DownloadPage() {
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Sign in with your email and password; Google sign-in inside the app is coming.</li>
             <li>To update, install a newer download over the top: nothing is lost.</li>
-            <li>iPhone: use this website in Safari for now (Share → Add to Home Screen).</li>
+            <li>iPhone and iPad: install from this website (Share → Add to Home Screen); see the top of this page.</li>
           </ul>
         </div>
 

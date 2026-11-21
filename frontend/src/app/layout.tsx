@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import NativeShell, { NATIVE_BOOT_SCRIPT } from "@/components/native/NativeShell";
 import RotateHint from "@/components/native/RotateHint";
+import PwaShell from "@/components/native/PwaShell";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 // Stage Lights type: a wide, bold geometric display face for big statements,
@@ -32,6 +33,12 @@ const body = Inter({
 export const metadata: Metadata = {
   title: { default: "Open Strings — the guitar practice room that listens", template: "%s · Open Strings" },
   description: "Play a chord. Open Strings listens to every string and tells you exactly what to fix — then turns any song into a chord chart, tabs and lessons.",
+  applicationName: "Open Strings",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icons/favicon-32.png", apple: "/icons/apple-touch-icon.png" },
+  // installed on an iPhone / iPad home screen: full screen, dark status bar
+  appleWebApp: { capable: true, title: "Open Strings", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -52,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans">
         <AuthProvider>
           <NativeShell />
+          <PwaShell />
           <RotateHint />
           {children}
         </AuthProvider>
