@@ -138,3 +138,34 @@ describe("micHelp", () => {
     expect(micErrorMessage(new DOMException("x", "NotFoundError"))).toMatch(/No microphone/);
   });
 });
+
+describe("free tuner (GuitarTuna style)", () => {
+  it("never moves on by itself: hears any string, ticks it, and keeps listening", async () => {
+    let s = initialTuner(null, OPEN_STRINGS, false);
+    let r = feed(s, Array(14).fill(at(110, 1))); // A in tune
+    expect(r.tuned).toEqual([1]);
+    expect(r.state.target).toBeNull();
+    r = feed(r.state, Array(14).fill(at(82.4069, -2)), 1000); // then low E
+    expect(r.state.tuned).toEqual([1, 0]);
+    r = feed(r.state, Array(6).fill(at(110, 2)), 2000); // back to A: still heard, still ticked
+    expect(r.state.index).toBe(1);
+    expect(r.state.tuned).toContain(1);
+  });
+  it("a tuned string that drifts loses its tick and can be tuned again", () => {
+    let r = feed(initialTuner(null, OPEN_STRINGS, false), Array(14).fill(at(110, 0)));
+    expect(r.state.tuned).toEqual([1]);
+    r = feed(r.state, Array(25).fill(at(110, 40)), 1000); // A goes 40 c sharp
+    expect(r.state.tuned).toEqual([]);
+    r = feed(r.state, Array(14).fill(at(110, -1)), 3000);
+    expect(r.tuned).toEqual([1]);
+  });
+  it("alternate tunings: drop D hears the low D as string 6", async () => {
+    const { TUNINGS, noteOf } = await import("../tuner");
+    const dropD = TUNINGS.find((t) => t.id === "drop-d")!;
+    expect(dropD.strings[0].name).toBe("D");
+    const r = feed(initialTuner(null, dropD.strings, false), Array(14).fill(73.42));
+    expect(r.state.tuned).toEqual([0]);
+    expect(noteOf(110)).toBe("A2");
+    expect(TUNINGS.every((t) => t.strings.length === 6)).toBe(true);
+  });
+});

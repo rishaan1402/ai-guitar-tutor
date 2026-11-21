@@ -107,6 +107,8 @@ export default function OnboardingFlow({ tuneOnly = false }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12 space-y-8 short:py-3 short:space-y-3">
+      {/* the standalone tuner is its own screen: no setup steps around it */}
+      {!(tuneOnly && step === "tune") && (<>
       <nav aria-label="Setup steps">
         <ol className="flex items-center justify-center gap-2 sm:gap-3">
           {shownSteps.map((s, i) => (
@@ -138,6 +140,7 @@ export default function OnboardingFlow({ tuneOnly = false }: Props) {
           {meta.title}
         </h1>
       </header>
+      </>)}
 
       <div className="glass-card min-h-[320px] short:min-h-0">
         {step === "permission" && (
@@ -157,7 +160,7 @@ export default function OnboardingFlow({ tuneOnly = false }: Props) {
           ))}
         {step === "tune" &&
           (analyser ? (
-            <Tuner analyser={analyser} sampleRate={sampleRate} onDone={afterTune} />
+            <Tuner analyser={analyser} sampleRate={sampleRate} onDone={afterTune} free={tuneOnly} />
           ) : (
             <p className="text-center text-gray-400">Couldn&apos;t open audio in this browser.</p>
           ))}
