@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { AppMenu } from "@/components/NavBar";
 import { useRouter, useSearchParams } from "next/navigation";
 import GroovePlayer from "@/components/groove/GroovePlayer";
 import { PRESET_GROOVES, presetById } from "@/lib/groove/groove";
@@ -92,7 +93,10 @@ function JamCorner() {
   const [style, setStyle] = useState("");
   return (
     <main className="min-h-[100dvh] bg-ink-950 px-4 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))]">
-      <Link href="/studio" className="label-mono text-cream/50">← Studio</Link>
+      <div className="flex items-center justify-between">
+        <Link href="/studio" className="label-mono text-cream/50">← Studio</Link>
+        <AppMenu />
+      </div>
       <p className="label-mono mt-6 text-amber-400">Jam corner</p>
       <h1 className="mt-1 font-display text-h1 uppercase text-cream">Grooves</h1>
       <p className="mt-2 max-w-prose text-cream/65">

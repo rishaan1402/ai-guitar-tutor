@@ -1,4 +1,5 @@
 "use client";
+import { AppMenu } from "@/components/NavBar";
 
 /**
  * The app's home: the 2.5D practice room, full screen (landscape).
@@ -442,6 +443,7 @@ export default function Studio() {
         ) : (
           <span />
         )}
+        <span className="flex items-center gap-2">
         <button
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => router.push("/coach")}
@@ -449,6 +451,10 @@ export default function Studio() {
         >
           <span aria-hidden="true">💬</span> Coach
         </button>
+        <span className="pointer-events-auto rounded-full border border-cream/10 bg-ink-950/70 backdrop-blur" onPointerDown={(e) => e.stopPropagation()}>
+          <AppMenu />
+        </span>
+        </span>
       </div>
 
       {/* room view: next step + hint */}
