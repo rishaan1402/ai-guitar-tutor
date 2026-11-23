@@ -14,6 +14,7 @@ try:
 except ImportError:
     pass
 import tempfile
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
@@ -45,7 +46,7 @@ from personalization.router import router as plan_router
 from meta.router import router as meta_router
 from practice.router import router as practice_router
 from db.engine import get_db
-from middleware import BodySizeLimitMiddleware
+from middleware import BodySizeLimitMiddleware, SecurityHeadersMiddleware
 from llm_budget import LLMBudgetMiddleware
 from auth.rate_limit import RateLimiter, client_ip
 
@@ -96,7 +97,22 @@ if _fingerings_path.exists():
 # FastAPI app
 # ---------------------------------------------------------------------------
 _ON_CLOUD_RUN = bool(os.environ.get("K_SERVICE"))
+
+
+@asynccontextmanager
+async def _lifespan(_app):
+    import asyncio
+    from maintenance import run_forever
+
+    task = asyncio.create_task(run_forever())
+    try:
+        yield
+    finally:
+        task.cancel()
+
+
 app = FastAPI(
+    lifespan=_lifespan,
     title="Open Strings",
     version="1.0.0",
     # Interactive API docs only outside production.
@@ -121,6 +137,7 @@ logger.info("CORS allowed origins: %s (pattern: %s)", _allowed_origins, _origin_
 # Body caps enforced while streaming (before multipart spooling to /tmp).
 # Added before CORS so CORS is the outer layer and decorates our 413s too.
 app.add_middleware(LLMBudgetMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     BodySizeLimitMiddleware,
     default_limit=256 * 1024,

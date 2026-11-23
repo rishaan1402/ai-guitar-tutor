@@ -23,6 +23,20 @@ const sentryOrigin = (() => {
   }
 })();
 
+// Where the browser reports a blocked script or connection: Sentry's security
+// endpoint for the same project, when error monitoring is on.
+const cspReportUri = (() => {
+  try {
+    const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+    if (!dsn) return "";
+    const u = new URL(dsn);
+    const project = u.pathname.replace(/^\//, "");
+    return `${u.origin}/api/${project}/security/?sentry_key=${u.username}`;
+  } catch {
+    return "";
+  }
+})();
+
 // Who the site may talk to. Inline scripts stay allowed: Next.js inlines its own
 // bootstrap scripts, and nonces would force every page to render on the server.
 // What this blocks is script, frames and connections from anywhere not listed.
@@ -36,11 +50,14 @@ const csp = [
   `media-src 'self' blob: data: ${apiOrigin} https://storage.googleapis.com`,
   "worker-src 'self' blob:",
   "frame-src https://accounts.google.com https://*.facebook.com",
+  // React never uses onclick="..." attributes, so none may run
+  "script-src-attr 'none'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
   ...(apiOrigin.startsWith("https:") ? ["upgrade-insecure-requests"] : []),
+  ...(cspReportUri ? [`report-uri ${cspReportUri}`] : []),
 ].join("; ");
 
 const securityHeaders = [
