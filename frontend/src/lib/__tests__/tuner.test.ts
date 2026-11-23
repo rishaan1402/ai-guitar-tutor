@@ -141,7 +141,7 @@ describe("micHelp", () => {
 
 describe("free tuner (GuitarTuna style)", () => {
   it("never moves on by itself: hears any string, ticks it, and keeps listening", async () => {
-    let s = initialTuner(null, OPEN_STRINGS, false);
+    const s = initialTuner(null, OPEN_STRINGS, false);
     let r = feed(s, Array(14).fill(at(110, 1))); // A in tune
     expect(r.tuned).toEqual([1]);
     expect(r.state.target).toBeNull();

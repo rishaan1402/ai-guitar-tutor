@@ -8,8 +8,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Bump versionCode for every Play upload; the API's APP_MIN_ANDROID_BUILD compares against it
-        versionCode 16
-        versionName "3.3.0"
+        versionCode 17
+        versionName "3.4.0"
         resValue "string", "facebook_app_id", (project.findProperty("facebookAppId") ?: "")
         resValue "string", "facebook_client_token", (project.findProperty("facebookClientToken") ?: "")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

@@ -6,6 +6,7 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 from sqlalchemy import (
+    BigInteger,
     text,
     Boolean,
     CheckConstraint,
@@ -534,3 +535,74 @@ class ChordTip(Base):
     tips: Mapped[list[str]] = mapped_column(JSON, default=list)
     source: Mapped[str] = mapped_column(String(12), nullable=False, default="template")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+# ---------------------------------------------------------------------------
+# Song library: generated song lessons, shared, plus each user's saved songs
+# ---------------------------------------------------------------------------
+
+
+class SongLesson(Base):
+    """One generated song lesson, stored once and served to everyone who asks for that song.
+
+    ``song_key`` is the normalised "title|artist" the AI identified; lookups by
+    what people typed go through ``SongQueryAlias``. ``lesson_data`` is the
+    LessonDocument without a session id (each learner gets their own session).
+    """
+
+    __tablename__ = "song_lessons"
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    song_key: Mapped[str] = mapped_column(String(240), unique=True, nullable=False)
+    song_title: Mapped[str] = mapped_column(String(200), nullable=False)
+    artist: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    song_data: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    lesson_data: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    # learners who said the chords look wrong, and when a corrected chart was last saved
+    reports: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    hits: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class SongQueryAlias(Base):
+    """What someone typed (normalised) → the song lesson it turned out to be."""
+
+    __tablename__ = "song_query_aliases"
+
+    query: Mapped[str] = mapped_column(String(160), primary_key=True)
+    song_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("song_lessons.id", ondelete="CASCADE"), nullable=False
+    )
+
+
+class UserSong(Base):
+    """A song lesson a learner saved to their library."""
+
+    __tablename__ = "user_songs"
+    __table_args__ = (
+        UniqueConstraint("user_id", "song_id", name="uq_user_song"),
+        Index("idx_user_songs_user", "user_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    song_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("song_lessons.id", ondelete="CASCADE"), nullable=False
+    )
+    saved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class RateCounter(Base):
+    """Hits for one rate limit, one key, one time bucket (see auth/rate_limit.py)."""
+
+    __tablename__ = "rate_counters"
+    __table_args__ = (Index("idx_rate_counters_bucket", "bucket"),)
+
+    name: Mapped[str] = mapped_column(String(32), primary_key=True)
+    key: Mapped[str] = mapped_column(String(200), primary_key=True)
+    # start of the bucket, unix seconds
+    bucket: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

@@ -216,3 +216,22 @@ class TestResetEmailInProduction:
         assert sent["to"] == [email]
         assert "https://app.example/reset-password?token=" in sent["text"]
         assert "token=" not in caplog.text
+
+
+class TestPasswordHashCompatibility:
+    """Hashes made by passlib before the switch to bcrypt itself must still log people in."""
+
+    # passlib's bcrypt scheme wrote standard "$2b$12$" hashes (22-char salt + 31-char digest)
+    LEGACY = "$2b$12$jlCH2V5Q07.Nu5Yy4EzOZuNo5ICWIBci79QqMsnmw17ysjXsCMKVS"
+
+    def test_old_hash_still_verifies(self):
+        from auth.security import verify_password
+        assert verify_password("guitar-legacy-123", self.LEGACY)
+        assert not verify_password("wrong", self.LEGACY)
+
+    def test_new_hash_round_trip_and_garbage(self):
+        from auth.security import NO_PASSWORD, hash_password, verify_password
+        h = hash_password("guitar123")
+        assert h.startswith("$2b$") and verify_password("guitar123", h)
+        assert not verify_password("guitar123", NO_PASSWORD)
+        assert not verify_password("guitar123", "not-a-hash")

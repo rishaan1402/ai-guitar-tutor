@@ -44,11 +44,30 @@ export function lessonToChordPro(lesson: LessonDocument): string {
   return out.join("\n") + "\n";
 }
 
-export function storeDraft(content: string): boolean {
+const DRAFT_SOURCE_KEY = "guitar-tutor-sheet-draft-source";
+
+/** The song lesson a draft came from, so the editor can offer to send a fix. */
+export interface DraftSource {
+  song_id: string;
+  title: string;
+}
+
+export function storeDraft(content: string, source?: DraftSource): boolean {
   try {
     sessionStorage.setItem(DRAFT_KEY, content);
+    if (source?.song_id) sessionStorage.setItem(DRAFT_SOURCE_KEY, JSON.stringify(source));
+    else sessionStorage.removeItem(DRAFT_SOURCE_KEY);
     return true;
   } catch {
     return false;
+  }
+}
+
+export function readDraftSource(): DraftSource | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_SOURCE_KEY);
+    return raw ? (JSON.parse(raw) as DraftSource) : null;
+  } catch {
+    return null;
   }
 }

@@ -5,8 +5,9 @@ import os
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
+import jwt
+from jwt import PyJWTError as JWTError  # noqa: F401  (re-exported: callers catch it)
 
 _DEV_SECRET = "dev-secret-change-in-production-use-64-chars"
 
@@ -31,7 +32,9 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# bcrypt reads at most 72 bytes; the schemas cap new passwords there, and older
+# hashes (made by passlib, same "$2b$" format) were made from the same 72 bytes.
+_BCRYPT_MAX = 72
 
 
 # ---------------------------------------------------------------------------
@@ -40,7 +43,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode()[:_BCRYPT_MAX], bcrypt.gensalt()).decode()
 
 
 # Stored as password_hash for accounts created with Google/Facebook: matches no password.
@@ -50,7 +53,10 @@ NO_PASSWORD = "!social"
 def verify_password(plain: str, hashed: str) -> bool:
     if not hashed or hashed.startswith("!"):
         return False
-    return pwd_context.verify(plain, hashed)
+    try:
+        return bcrypt.checkpw(plain.encode()[:_BCRYPT_MAX], hashed.encode())
+    except ValueError:  # not a bcrypt hash
+        return False
 
 
 # ---------------------------------------------------------------------------

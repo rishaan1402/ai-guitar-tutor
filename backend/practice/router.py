@@ -20,13 +20,13 @@ from practice.profile import build_profile
 router = APIRouter(prefix="/api", tags=["practice"])
 
 # AI calls cost money: per signed-in user, or per IP when signed out
-ai_limiter = RateLimiter(max_hits=60, window_seconds=60 * 60)
+ai_limiter = RateLimiter("ai", max_hits=60, window_seconds=60 * 60)
 
 
-def _limit(request: Request, user: Optional[User]) -> None:
+async def _limit(request: Request, user: Optional[User], db: AsyncSession) -> None:
     key = f"user:{user.id}" if user else f"ip:{client_ip(request)}"
-    ai_limiter.check(key)
-    ai_limiter.hit(key)
+    await ai_limiter.check(db, key)
+    await ai_limiter.hit(db, key)
 
 
 # ------------------------------------------------------------------ grooves
@@ -44,7 +44,7 @@ async def generate_groove(body: GenerateRequest, request: Request,
                           user: Optional[User] = Depends(get_current_user_optional),
                           db: AsyncSession = Depends(get_db)):
     """A Groove built for this learner (works signed out too, from a beginner profile)."""
-    _limit(request, user)
+    await _limit(request, user, db)
     prof = await build_profile(db, user)
     focus = None
     if body.focus and len(body.focus) == 2:
@@ -137,7 +137,7 @@ class ChatIn(BaseModel):
 @router.post("/coach/chat", response_model=coach.CoachReply)
 async def coach_chat(body: ChatIn, request: Request, user: Optional[User] = Depends(get_current_user_optional),
                      db: AsyncSession = Depends(get_db)):
-    _limit(request, user)
+    await _limit(request, user, db)
     prof = await build_profile(db, user)
     return await coach.chat(prof, body.messages)
 
@@ -191,7 +191,7 @@ async def weekly_report(request: Request, user: User = Depends(get_current_user)
     # one written report per day-window; regenerate when the numbers changed
     if cached and cached.stats == stats:
         return {"stats": stats, "summary": cached.summary}
-    _limit(request, user)
+    await _limit(request, user, db)
     prof = await build_profile(db, user)
     summary = await coach.weekly_summary(stats, prof)
     if cached:
@@ -221,7 +221,7 @@ async def chord_tips(body: chordtips.ChordShapeIn, request: Request,
     row = (await db.execute(select(ChordTip).where(ChordTip.symbol == body.symbol, ChordTip.frets == key))).scalar_one_or_none()
     if row is not None:
         return {"tips": row.tips, "source": row.source, "shared": True}
-    _limit(request, user)  # only new shapes cost an AI call
+    await _limit(request, user, db)  # only new shapes cost an AI call
     tips = await chordtips.ai_tips(body)
     source = "ai" if tips else "template"
     tips = tips or chordtips.template_tips(body)

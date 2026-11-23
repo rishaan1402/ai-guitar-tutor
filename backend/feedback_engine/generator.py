@@ -37,6 +37,9 @@ _groq_client = None
 
 def _get_groq_client():
     global _groq_client
+    from llm_budget import allow_call
+    if not allow_call():
+        return None  # today's AI budget is spent: callers use their no-AI path
     if _groq_client is not None:
         return _groq_client
     api_key = os.environ.get("GROQ_API_KEY")

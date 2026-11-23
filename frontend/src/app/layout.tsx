@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import NativeShell, { NATIVE_BOOT_SCRIPT } from "@/components/native/NativeShell";
 import RotateHint from "@/components/native/RotateHint";
 import PwaShell from "@/components/native/PwaShell";
+import Monitoring from "@/components/native/Monitoring";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 // Stage Lights type: a wide, bold geometric display face for big statements,
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <NativeShell />
           <PwaShell />
+          <Monitoring />
           <RotateHint />
           {children}
         </AuthProvider>

@@ -60,7 +60,15 @@ export default function PrivacyPage() {
           It receives your scores and chord-level practice stats, or the song name you asked for — never your email,
           name or recordings.
         </li>
-        <li><strong className="text-cream">Vercel</strong> — hosts the website.</li>
+        <li>
+          <strong className="text-cream">Vercel</strong> — hosts the website, and counts page views on it (Vercel Web
+          Analytics: no cookies, no tracking across sites, nothing tied to your account).
+        </li>
+        <li>
+          <strong className="text-cream">Sentry</strong> — receives error reports when something in the app or on our
+          server breaks: what failed, the page, your browser or device type. Not your email, name, recordings or
+          anything you typed.
+        </li>
         <li><strong className="text-cream">Resend</strong> — sends password-reset emails to your address.</li>
       </ul>
       <p>

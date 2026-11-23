@@ -46,7 +46,21 @@ from meta.router import router as meta_router
 from practice.router import router as practice_router
 from db.engine import get_db
 from middleware import BodySizeLimitMiddleware
+from llm_budget import LLMBudgetMiddleware
 from auth.rate_limit import RateLimiter, client_ip
+
+# Error monitoring: on only when SENTRY_DSN is set. No request bodies (passwords,
+# recordings) and no personal data (IPs, cookies) leave the server.
+if os.environ.get("SENTRY_DSN"):
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=os.environ["SENTRY_DSN"],
+        environment=os.environ.get("SENTRY_ENVIRONMENT", "production" if os.environ.get("K_SERVICE") else "development"),
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.05")),
+        send_default_pii=False,
+        max_request_body_size="never",
+    )
 
 logging.basicConfig(
     level=logging.INFO,
@@ -106,6 +120,7 @@ logger.info("CORS allowed origins: %s (pattern: %s)", _allowed_origins, _origin_
 
 # Body caps enforced while streaming (before multipart spooling to /tmp).
 # Added before CORS so CORS is the outer layer and decorates our 413s too.
+app.add_middleware(LLMBudgetMiddleware)
 app.add_middleware(
     BodySizeLimitMiddleware,
     default_limit=256 * 1024,
@@ -217,8 +232,8 @@ def _parse_previous_scores(raw: Optional[str]) -> List[float]:
     return [min(1.0, max(0.0, v)) for v in values][-HISTORY_LIMIT:]
 
 
-_anon_submit_limiter = RateLimiter(max_hits=60, window_seconds=60)
-_user_submit_limiter = RateLimiter(max_hits=120, window_seconds=60)
+_anon_submit_limiter = RateLimiter("submit-anon", max_hits=60, window_seconds=60)
+_user_submit_limiter = RateLimiter("submit-user", max_hits=120, window_seconds=60)
 
 
 _NOTE_RE = re.compile(r"^[A-G][#b]?$")
@@ -285,8 +300,8 @@ async def submit_audio(
         (_user_submit_limiter, f"user:{user.id}") if user is not None
         else (_anon_submit_limiter, f"ip:{client_ip(request)}")
     )
-    limiter.check(key)
-    limiter.hit(key)
+    await limiter.check(db, key)
+    await limiter.hit(db, key)
 
     lesson = lesson_service.get_lesson(chord_name)
     built = False

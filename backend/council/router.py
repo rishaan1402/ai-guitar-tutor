@@ -3,25 +3,29 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
+from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from council.schemas import (
-    GenerateRequest, TipRequest, ReviseRequest, QuizRequest,
+    GenerateRequest, ResumeRequest, TipRequest, ReviseRequest, QuizRequest,
     QuizResponse, LessonDocument, FingeringPosition,
 )
 from council.ingestion import ingest_song
 from council.agents import run_council
 from council.chairman import synthesize
-from council import session_store
+from council import library, session_store
 from council.advisor import get_tip, revise_lesson
 from council.quiz import generate_quiz
-from auth.dependencies import get_current_user_optional
+from auth.dependencies import get_current_user, get_current_user_optional
 from auth.rate_limit import RateLimiter, client_ip
 from auth.profile_context import build_user_context
 from db.engine import get_db
+from db.models import ContentReport, SongLesson, UserSong
 from feedback_engine.generator import FeedbackGenerator
 
 logger = logging.getLogger(__name__)
@@ -72,20 +76,20 @@ def _embed_fingerings_and_functions(lesson: LessonDocument, song_chords: list) -
 
 
 # Each generation fans out to several LLM calls, so it is the costliest endpoint.
-_anon_generate_limiter = RateLimiter(max_hits=5, window_seconds=60 * 60)
-_user_generate_limiter = RateLimiter(max_hits=30, window_seconds=60 * 60)
+_anon_generate_limiter = RateLimiter("gen-anon", max_hits=5, window_seconds=60 * 60)
+_user_generate_limiter = RateLimiter("gen-user", max_hits=30, window_seconds=60 * 60)
 # Follow-up LLM calls (tips, revisions, quizzes) per user / per anonymous IP.
-_anon_llm_limiter = RateLimiter(max_hits=60, window_seconds=60 * 60)
-_user_llm_limiter = RateLimiter(max_hits=300, window_seconds=60 * 60)
+_anon_llm_limiter = RateLimiter("llm-anon", max_hits=60, window_seconds=60 * 60)
+_user_llm_limiter = RateLimiter("llm-user", max_hits=300, window_seconds=60 * 60)
 
 
-def _limit_llm(request: Request, user) -> None:
+async def _limit_llm(request: Request, user, db: AsyncSession) -> None:
     limiter, key = (
         (_user_llm_limiter, f"user:{user.id}") if user is not None
         else (_anon_llm_limiter, f"ip:{client_ip(request)}")
     )
-    limiter.check(key)
-    limiter.hit(key)
+    await limiter.check(db, key)
+    await limiter.hit(db, key)
 
 
 _UNAVAILABLE = "Song lessons are temporarily unavailable. Please try again later."
@@ -105,35 +109,171 @@ async def generate_lesson(
     """
     if not body.song_query.strip():
         raise HTTPException(status_code=400, detail="song_query must not be empty.")
+    owner = user.id if user else None
 
-    limiter, key = (
-        (_user_generate_limiter, f"user:{user.id}") if user is not None
-        else (_anon_generate_limiter, f"ip:{client_ip(request)}")
-    )
-    limiter.check(key)
-    limiter.hit(key)
+    # 1. Someone typed this before: serve the stored lesson, no LLM call, no limit used.
+    #    (Unless learners reported its chords: then it is written again below.)
+    stored = await library.find_by_query(db, body.song_query)
+    if stored is None or library.needs_regeneration(stored):
+        reported_id = stored.id if stored is not None else None
+        limiter, key = (
+            (_user_generate_limiter, f"user:{user.id}") if user is not None
+            else (_anon_generate_limiter, f"ip:{client_ip(request)}")
+        )
+        await limiter.check(db, key)
+        await limiter.hit(db, key)
 
-    try:
-        song = await ingest_song(body.song_query)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
-    except RuntimeError:
-        # Missing/invalid LLM configuration: log it, don't leak it.
-        logger.exception("Council ingestion unavailable")
-        raise HTTPException(status_code=503, detail=_UNAVAILABLE)
+        await db.rollback()  # release the connection during the LLM calls
+        try:
+            song = await ingest_song(body.song_query)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+        except RuntimeError:
+            # Missing/invalid LLM configuration: log it, don't leak it.
+            logger.exception("Council ingestion unavailable")
+            raise HTTPException(status_code=503, detail=_UNAVAILABLE)
 
-    try:
-        agent_outputs = await run_council(song)
-        lesson = await synthesize(song, agent_outputs)
-    except RuntimeError:
-        logger.exception("Council synthesis unavailable")
-        raise HTTPException(status_code=503, detail=_UNAVAILABLE)
+        # 2. Typed differently, same song: reuse it.
+        stored = (
+            await db.get(SongLesson, reported_id) if reported_id
+            else await library.find_by_song(db, song.song_title, song.artist)
+        )
+        if stored is None or library.needs_regeneration(stored):
+            # 3. New (or reported) song: write the lesson and keep it for everyone.
+            rewrite_id = stored.id if stored is not None else None
+            await db.rollback()
+            try:
+                agent_outputs = await run_council(song)
+                lesson = await synthesize(song, agent_outputs)
+            except RuntimeError:
+                logger.exception("Council synthesis unavailable")
+                raise HTTPException(status_code=503, detail=_UNAVAILABLE)
+            lesson = _embed_fingerings_and_functions(lesson, song.chords)
+            if rewrite_id is not None:
+                stored = await db.get(SongLesson, rewrite_id, populate_existing=True)  # reload after the rollback
+                stored = await library.replace(db, stored, song, lesson)
+            else:
+                stored = await library.store(db, song, lesson)
+        await library.remember_query(db, body.song_query, stored)
+    else:
+        await library.count_hit(db, stored)
 
-    # Embed rich structured data before storing and returning
-    lesson = _embed_fingerings_and_functions(lesson, song.chords)
-
-    await session_store.create_session(db, song, lesson, user.id if user else None)
+    song, lesson = library.lesson_for_learner(stored)
+    await session_store.create_session(db, song, lesson, owner)
     return lesson
+
+
+@router.post("/session/resume")
+async def resume_session(
+    body: ResumeRequest,
+    user=Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Pick a saved song back up.
+
+    Returns the learner's own session when it is still alive (with its scores),
+    otherwise starts a fresh session from the shared song lesson. Nothing is
+    generated, so this costs no LLM call.
+    """
+    owner = user.id if user else None
+    if body.lesson_id:
+        session = await session_store.get_session(db, body.lesson_id, owner)
+        if session is not None and (not body.song_id or session.lesson.song_id in ("", body.song_id)):
+            return {
+                "lesson": session.lesson.model_dump(mode="json"),
+                "chord_scores": {k: [round(s, 3) for s in v] for k, v in session.chord_scores.items()},
+                "resumed": True,
+            }
+    song_id = library.parse_song_id(body.song_id)
+    stored = await library.get(db, song_id) if song_id else None
+    if stored is None:
+        raise HTTPException(status_code=404, detail="That song lesson isn't available any more. Search for it again.")
+    song, lesson = library.lesson_for_learner(stored)
+    await session_store.create_session(db, song, lesson, owner)
+    return {"lesson": lesson.model_dump(mode="json"), "chord_scores": {}, "resumed": False}
+
+
+# ---------------------------------------------------------------------------
+# A signed-in learner's saved songs (synced across their devices)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/library")
+async def list_library(user=Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict:
+    result = await db.execute(
+        select(UserSong, SongLesson)
+        .join(SongLesson, SongLesson.id == UserSong.song_id)
+        .where(UserSong.user_id == user.id)
+        .order_by(UserSong.saved_at.desc())
+        .limit(200)
+    )
+    return {"songs": [
+        {
+            "song_id": str(song.id),
+            "title": song.song_title,
+            "artist": song.artist,
+            "saved_at": saved.saved_at.isoformat() if saved.saved_at else None,
+        }
+        for saved, song in result.all()
+    ]}
+
+
+@router.put("/library/{song_id}", status_code=204)
+async def save_to_library(song_id: str, user=Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> None:
+    sid = library.parse_song_id(song_id)
+    if sid is None or await library.get(db, sid) is None:
+        raise HTTPException(status_code=404, detail="Song lesson not found.")
+    existing = await db.execute(select(UserSong).where(UserSong.user_id == user.id, UserSong.song_id == sid))
+    if existing.scalar_one_or_none() is None:
+        db.add(UserSong(user_id=user.id, song_id=sid))
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()  # saved twice at once: already there
+
+
+class ChartSuggestion(BaseModel):
+    chart: str = Field(min_length=10, max_length=8000)
+    note: Optional[str] = Field(default=None, max_length=500)
+
+
+@router.post("/songs/{song_id}/suggest-chart", status_code=201)
+async def suggest_chart(
+    song_id: str,
+    body: ChartSuggestion,
+    request: Request,
+    user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """A learner's corrected chord chart for a song. Reviewed before everyone gets it."""
+    from meta.router import report_limiter
+
+    key = client_ip(request)
+    await report_limiter.check(db, key)
+    await report_limiter.hit(db, key)
+    sid = library.parse_song_id(song_id)
+    if sid is None or await library.get(db, sid) is None:
+        raise HTTPException(status_code=404, detail="Song lesson not found.")
+    db.add(ContentReport(
+        user_id=user.id,
+        kind="song_chart",
+        reason="wrong",
+        content=body.chart,
+        context=f"song:{sid}",
+        note=("Suggested correction. " + (body.note or "").strip()).strip()[:500],
+    ))
+    await db.commit()
+    await library.add_report(db, sid)
+    return {"status": "received"}
+
+
+@router.delete("/library/{song_id}", status_code=204)
+async def remove_from_library(song_id: str, user=Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> None:
+    sid = library.parse_song_id(song_id)
+    if sid is None:
+        return
+    await db.execute(delete(UserSong).where(UserSong.user_id == user.id, UserSong.song_id == sid))
+    await db.commit()
 
 
 @router.post("/practice/tip")
@@ -147,7 +287,7 @@ async def practice_tip(
     Called after each chord attempt in song-learning mode.
     Returns adaptive tip + structured analysis + fingering tips + score history.
     """
-    _limit_llm(request, user)
+    await _limit_llm(request, user, db)
     session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
@@ -200,7 +340,7 @@ async def practice_revise(
     Called after all chords have been attempted at least once.
     Returns a revised LessonDocument with updated practice_plan + chord_ranking.
     """
-    _limit_llm(request, user)
+    await _limit_llm(request, user, db)
     session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
@@ -229,7 +369,7 @@ async def get_quiz(
     Generate (or return cached) 3 MCQ questions from the lesson content.
     Questions are cached on the session after first generation.
     """
-    _limit_llm(request, user)
+    await _limit_llm(request, user, db)
     session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")

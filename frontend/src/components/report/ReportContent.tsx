@@ -17,11 +17,15 @@ interface Props {
   content: string;
   /** Chord key or song name, so we can reproduce it. */
   context?: string;
+  /** a song-library lesson: "It's wrong" counts against its chords */
+  songId?: string;
+  /** link text (default "Report this AI response") */
+  label?: string;
   className?: string;
 }
 
 /** Small "Report" link for AI-written text (Google Play's AI-generated content policy). */
-export default function ReportContent({ kind, content, context, className }: Props) {
+export default function ReportContent({ kind, content, context, songId, label, className }: Props) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason>("wrong");
   const [note, setNote] = useState("");
@@ -37,9 +41,9 @@ export default function ReportContent({ kind, content, context, className }: Pro
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`text-xs text-cream/40 underline-offset-4 hover:text-cream/70 hover:underline ${className ?? ""}`}
+        className={`text-xs text-cream/60 underline-offset-4 hover:text-cream/80 hover:underline ${className ?? ""}`}
       >
-        Report this AI response
+        {label ?? "Report this AI response"}
       </button>
     );
   }
@@ -48,7 +52,7 @@ export default function ReportContent({ kind, content, context, className }: Pro
     e.preventDefault();
     setState("sending");
     try {
-      await reportContent({ kind, reason, content, context, note: note.trim() || undefined });
+      await reportContent({ kind, reason, content, context, note: note.trim() || undefined, song_id: songId || undefined });
       setState("sent");
     } catch {
       setState("error");

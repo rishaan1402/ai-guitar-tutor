@@ -124,14 +124,12 @@ def app_client():
 
 @pytest.fixture(autouse=True)
 def _reset_rate_limits():
-    from auth.rate_limit import login_limiter, reset_limiter, signup_limiter
-    from council.router import (_anon_generate_limiter, _anon_llm_limiter,
-                                _user_generate_limiter, _user_llm_limiter)
-    from main import _anon_submit_limiter, _user_submit_limiter
-    from meta.router import report_limiter
-    from practice.router import ai_limiter
-    for limiter in (login_limiter, reset_limiter, signup_limiter,
-                    _anon_generate_limiter, _user_generate_limiter, _anon_llm_limiter,
-                    _user_llm_limiter, _anon_submit_limiter, _user_submit_limiter, report_limiter, ai_limiter):
-        limiter.clear()
+    """Every test starts with fresh limits (and a fresh daily AI budget)."""
+    import sqlite3
+    if _TEST_DB.exists():
+        with sqlite3.connect(_TEST_DB) as conn:
+            try:
+                conn.execute("DELETE FROM rate_counters")
+            except sqlite3.OperationalError:
+                pass  # schema not created yet (first test)
     yield

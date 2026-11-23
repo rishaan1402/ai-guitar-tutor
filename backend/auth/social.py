@@ -21,8 +21,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import httpx
-from jose import jwt
-from jose.exceptions import JWTError
+import jwt
+from jwt import PyJWKSet, PyJWTError
 
 logger = logging.getLogger(__name__)
 
@@ -107,9 +107,11 @@ async def verify_google(id_token: str, client: Optional[httpx.AsyncClient] = Non
         if own:
             await client.aclose()
     try:
+        kid = jwt.get_unverified_header(id_token).get("kid")
+        signing_key = next(k for k in PyJWKSet.from_dict(keys).keys if k.key_id == kid)
         # audience is checked below against every configured client ID
-        claims = jwt.decode(id_token, keys, algorithms=["RS256"], options={"verify_aud": False, "verify_at_hash": False})
-    except JWTError as e:
+        claims = jwt.decode(id_token, signing_key.key, algorithms=["RS256"], options={"verify_aud": False})
+    except (PyJWTError, StopIteration, ValueError, KeyError) as e:
         raise SocialAuthError("Google sign-in token is invalid or expired") from e
     if claims.get("iss") not in GOOGLE_ISSUERS:
         raise SocialAuthError("Token wasn't issued by Google")

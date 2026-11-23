@@ -56,6 +56,39 @@ Unset, any origin may call the API (auth uses Bearer tokens, not cookies), so
 always set it in production. Commas in a value need gcloud's delimiter syntax:
 `--update-env-vars='^##^ALLOWED_ORIGINS=a,b,c##ALLOWED_ORIGIN_REGEX=...'`.
 
+### Rate limits and the daily AI budget
+
+Rate limits are counted in Postgres (`rate_counters`), so they hold across
+every Cloud Run instance and survive deploys.
+
+`LLM_DAILY_BUDGET` caps AI calls per day across all instances (default 3000
+on Cloud Run, no cap locally; `0` turns the cap off). Once it's spent, AI
+features fall back to their non-AI versions (template feedback and tips),
+stored songs still open, and only writing a brand-new song lesson answers
+503 until the window frees up. A new song costs about 6 calls; a stored one
+costs none.
+
+### Monitoring
+
+- **Errors (Sentry):** set `SENTRY_DSN` on Cloud Run for the backend, and
+  `NEXT_PUBLIC_SENTRY_DSN` in Vercel's environment variables for the website
+  (and when building the app). Both are off when unset. No request bodies and
+  no personal data are sent. The website's CSP allows the DSN's host
+  automatically at build time.
+- **Page views (Vercel Web Analytics):** turn on Analytics in the Vercel
+  project. The site loads `/_vercel/insights/script.js` only on production
+  deployments (`NEXT_PUBLIC_VERCEL_ENV=production`); no cookies.
+
+### Tests
+
+- Backend: `cd backend && python -m pytest`
+- Frontend unit tests, types and lint: `cd frontend && npm test && npx tsc --noEmit && npm run lint`
+- End to end (real backend on a throwaway database, one seeded song, a real
+  G major recording as the microphone):
+  `cd frontend && NEXT_PUBLIC_API_URL=http://localhost:8100 npm run build && npm run e2e`
+
+CI runs all of these on every pull request.
+
 ### Password reset email
 
 Reset links are sent with [Resend](https://resend.com). Production needs:

@@ -290,6 +290,8 @@ export function reportContent(r: {
   content: string;
   context?: string;
   note?: string;
+  /** a song-library lesson: "wrong" reports count against its chords */
+  song_id?: string;
 }): Promise<{ status: string }> {
   return requestOptional("/api/reports", {
     method: "POST",
@@ -570,6 +572,12 @@ export interface SongSection {
 
 export interface LessonDocument {
   lesson_id: string;
+  /** the shared song lesson this came from (song library); "" on lessons made before it */
+  song_id?: string;
+  /** how far to trust the chords: the AI's confidence, learner reports, a reviewed correction */
+  chord_confidence?: "high" | "medium" | "low" | "";
+  chords_reported?: number;
+  chords_corrected?: boolean;
   song_title: string;
   artist: string;
   overall_difficulty: string;
@@ -645,6 +653,80 @@ export function getSongTip(params: TipRequest): Promise<TipResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
   });
+}
+
+export interface ResumedSong {
+  lesson: LessonDocument;
+  chord_scores: Record<string, number[]>;
+  /** true: your own session, still alive; false: a fresh session from the song library */
+  resumed: boolean;
+}
+
+/** Pick a saved song back up: your session if it's still alive, else a fresh one (no AI call). */
+export function resumeSongSession(songId: string, lessonId = ""): Promise<ResumedSong> {
+  return requestOptional("/api/council/session/resume", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ song_id: songId, lesson_id: lessonId }),
+  });
+}
+
+export interface LibrarySong {
+  song_id: string;
+  title: string;
+  artist: string;
+  saved_at: string | null;
+}
+
+/** Saved songs on your account (signed in only). */
+export function listSongLibrary(): Promise<{ songs: LibrarySong[] }> {
+  return request("/api/council/library", undefined, { auth: "optional" });
+}
+
+export function saveToSongLibrary(songId: string): Promise<void> {
+  return request(`/api/council/library/${encodeURIComponent(songId)}`, { method: "PUT" }, { auth: "optional" });
+}
+
+export function removeFromSongLibrary(songId: string): Promise<void> {
+  return request(`/api/council/library/${encodeURIComponent(songId)}`, { method: "DELETE" }, { auth: "optional" });
+}
+
+/** Send a corrected chord chart for a song; once reviewed, everyone gets it. Signed in only. */
+export function suggestSongChart(songId: string, chart: string, note?: string): Promise<{ status: string }> {
+  return request(`/api/council/songs/${encodeURIComponent(songId)}/suggest-chart`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chart: chart.slice(0, 8000), note }),
+  });
+}
+
+export interface ReportedSong {
+  song_id: string;
+  title: string;
+  artist: string;
+  reports: number;
+  chart: string;
+  edited_at: string | null;
+  suggestions: { report_id: string; chart: string; note: string | null; created_at: string | null }[];
+}
+
+/** Admin: songs whose chords learners flagged, with their suggested charts. */
+export function getReportedSongs(): Promise<ReportedSong[]> {
+  return request("/api/admin/songs/reported");
+}
+
+/** Admin: publish a corrected chart for everyone. */
+export function publishSongChart(songId: string, chart: string): Promise<void> {
+  return request(`/api/admin/songs/${encodeURIComponent(songId)}/chart`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chart }),
+  });
+}
+
+/** Admin: the chords are fine; clear the reports. */
+export function dismissSongReports(songId: string): Promise<void> {
+  return request(`/api/admin/songs/${encodeURIComponent(songId)}/dismiss`, { method: "POST" });
 }
 
 export function reviseSongLesson(lessonId: string): Promise<LessonDocument> {
