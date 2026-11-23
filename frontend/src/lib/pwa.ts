@@ -17,10 +17,24 @@ const emit = () => listeners.forEach((l) => l());
 
 export type InstallMode = "prompt" | "ios" | "installed" | "none";
 
-/** Opened from the home screen (or the app itself)? */
+const LAUNCHED_KEY = "os:pwa";
+
+/**
+ * Opened from the home screen? The installed app always starts at
+ * /studio?source=pwa (manifest start_url), so that launch marks this window's
+ * session; iOS reports navigator.standalone. display-mode: standalone counts
+ * too. display-mode: fullscreen alone doesn't: headless browsers (Lighthouse,
+ * search crawlers) report it, and they must see the website.
+ */
 export function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
-  return window.matchMedia?.("(display-mode: standalone)").matches || window.matchMedia?.("(display-mode: fullscreen)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
+  try {
+    if (new URLSearchParams(window.location.search).get("source") === "pwa") sessionStorage.setItem(LAUNCHED_KEY, "1");
+    if (sessionStorage.getItem(LAUNCHED_KEY) === "1") return true;
+  } catch {
+    /* storage blocked: fall back to the display mode */
+  }
+  return window.matchMedia?.("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
 }
 
 /** iPhone / iPad (iPadOS reports itself as a Mac with touch). */

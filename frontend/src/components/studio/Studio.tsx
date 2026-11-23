@@ -494,10 +494,11 @@ export default function Studio() {
       </div>
 
       {/* upright (website): every place in the room as a list under it */}
-      {!station && !wide && vp.w > 0 && (
+      {/* Placed with CSS (the room is 9/16 of the width upright), so it's in the first paint, before any script runs */}
+      {!station && (
         <div
-          className="absolute inset-x-0 bottom-0 touch-auto overflow-y-auto px-4 pb-[max(1rem,var(--sa-b))]"
-          style={{ top: roomTy + SH + 8 }}
+          className="absolute inset-x-0 bottom-0 touch-auto overflow-y-auto px-4 pb-[max(1rem,var(--sa-b))] landscape:hidden"
+          style={{ top: `calc(${HUD_H + 8}px + ${(SCENE_H / SCENE_W) * 100}vw)` }}
           onPointerDown={(e) => e.stopPropagation()}
           onPointerUp={(e) => e.stopPropagation()}
           onPointerMove={(e) => e.stopPropagation()}
