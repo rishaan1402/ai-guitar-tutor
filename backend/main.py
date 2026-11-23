@@ -45,6 +45,7 @@ from admin.router import router as admin_router
 from personalization.router import router as plan_router
 from meta.router import router as meta_router
 from practice.router import router as practice_router
+from reminders.router import router as reminders_router
 from db.engine import get_db
 from middleware import BodySizeLimitMiddleware, SecurityHeadersMiddleware
 from llm_budget import LLMBudgetMiddleware
@@ -175,6 +176,7 @@ app.include_router(admin_router)
 app.include_router(plan_router)
 app.include_router(meta_router)
 app.include_router(practice_router)
+app.include_router(reminders_router)
 
 
 # ---------------------------------------------------------------------------

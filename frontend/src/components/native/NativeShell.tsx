@@ -35,6 +35,8 @@ export default function NativeShell() {
     if (!isNativeApp()) return;
     const platform = Capacitor.getPlatform();
     document.documentElement.dataset.native = platform;
+    // keep the next few days' practice reminders scheduled on the phone
+    import("@/lib/reminders").then((r) => r.refreshAppReminders()).catch(() => {});
 
     // A full load landed on the home page: go where it was meant to go,
     // or straight to the room for a signed-in player opening the app.
