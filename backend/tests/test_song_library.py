@@ -290,3 +290,21 @@ class TestWrongChords:
         learner, _ = _user(client)
         r = client.post(f"/api/council/songs/{uuid.uuid4()}/suggest-chart", json={"chart": CHART}, headers=learner)
         assert r.status_code == 404
+
+
+class TestPublicSongPages:
+    def test_only_trusted_songs_are_listed_and_only_facts(self, client):
+        sure, unsure = f"Sure Song {uuid.uuid4().hex[:6]}", f"Unsure Song {uuid.uuid4().hex[:6]}"
+        d = json.loads(_song_json(sure)); d["chord_confidence"] = "high"
+        with _llm(json.dumps(d)):
+            sure_id = _generate(client, sure).json()["song_id"]
+        with _llm(_song_json(unsure)):  # medium confidence
+            _generate(client, unsure)
+        songs = {s["title"]: s for s in client.get("/api/council/songs/public").json()["songs"]}
+        assert sure in songs and unsure not in songs
+        page = songs[sure]
+        assert page["slug"].startswith("sure-song-") and page["song_id"] == sure_id
+        assert page["chords"] and "chart" not in page and "lyrics" not in page
+        # a learner report takes it off the public pages until it's checked
+        client.post("/api/reports", json={"kind": "song_chart", "reason": "wrong", "content": "x", "song_id": sure_id})
+        assert sure not in {s["title"] for s in client.get("/api/council/songs/public").json()["songs"]}

@@ -513,7 +513,7 @@ export function RhythmStep({ step, onDone, continueLabel = "Continue →" }: { s
               <span className="label-mono h-3 text-[10px] text-cream/60">{onBeat ? k / (slots.length / 4) + 1 : ""}</span>
               <span
                 className={`flex h-10 w-full items-center justify-center rounded-lg border text-lg ${
-                  cursor === k ? "border-amber-300 bg-amber-400/30" : c === "x" ? "border-cream/25 bg-cream/10" : "border-cream/8"
+                  cursor === k ? "border-amber-300 bg-amber-400/30" : c === "x" ? "border-cream/25 bg-cream/10" : "border-cream/10"
                 }`}
               >
                 {c === "x" ? (step.strokes?.[k] === "D" ? "↓" : step.strokes?.[k] === "U" ? "↑" : "●") : ""}

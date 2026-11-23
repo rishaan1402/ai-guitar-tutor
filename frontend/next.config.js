@@ -76,6 +76,8 @@ const nextConfig = mobile
       images: { unoptimized: true },
     }
   : {
+      // website-only pages (page.web.tsx): the app's static build leaves them out
+      pageExtensions: ["web.tsx", "tsx", "ts", "jsx", "js"],
       poweredByHeader: false,
       async headers() {
         return [{ source: "/:path*", headers: securityHeaders }];
