@@ -41,6 +41,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   { href: "/songs", label: "Chord sheets", group: "Songs", hint: "Your charts: transpose, capo, autoscroll", active: (p) => p.startsWith("/songs") },
   { href: "/groove", label: "Grooves", top: true, group: "Play", hint: "Play along with a band" },
+  { href: "/rhythm", label: "Strum trainer", group: "Play", hint: "Any strum with a click: every hit early, late or on time" },
   { href: "/tuner", label: "Tuner", top: true, group: "Play", hint: "Tune any string, any tuning" },
   { href: "/coach", label: "Coach", top: true, group: "You", hint: "Ask, set a goal, your week" },
   { href: "/dashboard", label: "Today", authRequired: true, group: "You", hint: "Today's plan and streak" },

@@ -12,7 +12,7 @@ import { NoteTracker } from "@/lib/groove/pitch";
 import { noteName } from "@/lib/groove/lead";
 import { starsFor, targetMatches, pcName, type Question, type Step, type Target, type Dot } from "@/lib/path/steps";
 import { makeRound, type EarRound } from "@/lib/path/ear";
-import { planRhythm, scoreTaps, type RhythmScore } from "@/lib/path/rhythm";
+import { hitResult, planRhythm, scoreTaps, type HitResult, type RhythmScore } from "@/lib/path/rhythm";
 import { lessonBand, playNotes } from "@/lib/path/synth";
 import { pluck } from "@/lib/sound";
 import { OnsetDetector } from "@/lib/path/exercises";
@@ -361,7 +361,36 @@ export function EarStep({ step, onDone }: { step: Extract<Step, { kind: "ear" }>
 
 /* ------------------------------------------------------------------ rhythm (tap along) */
 
-export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhythm" }>; onDone: Done }) {
+const HIT_STYLE: Record<HitResult, { cls: string; label: string }> = {
+  on: { cls: "border-sage-300/60 bg-sage-300/20 text-sage-100", label: "✓" },
+  early: { cls: "border-amber-400/60 bg-amber-400/15 text-amber-100", label: "early" },
+  late: { cls: "border-amber-400/60 bg-amber-400/15 text-amber-100", label: "late" },
+  missed: { cls: "border-live-400/60 bg-live-400/15 text-live-200", label: "–" },
+};
+
+/** Every hit of every bar: on time, early, late or missed, where it happened. */
+function HitRows({ slots, bars, errors }: { slots: string; bars: number; errors: (number | null)[] }) {
+  let n = 0;
+  const rows = Array.from({ length: bars }, () =>
+    slots.split("").map((c) => (c === "x" || c === "X" ? hitResult(errors[n++] ?? null) : null)),
+  );
+  const counts = rows.flat().reduce<Record<string, number>>((m, r) => (r ? { ...m, [r]: (m[r] ?? 0) + 1 } : m), {});
+  return (
+    <div className="mt-3 space-y-1" aria-label={`On time ${counts.on ?? 0}, early ${counts.early ?? 0}, late ${counts.late ?? 0}, missed ${counts.missed ?? 0}`}>
+      {rows.map((row, b) => (
+        <div key={b} className="flex gap-1" aria-hidden="true">
+          {row.map((r, k) => (
+            <span key={k} className={`flex h-7 flex-1 items-center justify-center rounded-md border text-[10px] font-semibold ${r ? HIT_STYLE[r].cls : "border-transparent"}`}>
+              {r ? HIT_STYLE[r].label : ""}
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function RhythmStep({ step, onDone, continueLabel = "Continue →" }: { step: Extract<Step, { kind: "rhythm" }>; onDone: Done; continueLabel?: string }) {
   const plan = useMemo(() => planRhythm(step.pattern, step.bpm, step.bars), [step.pattern, step.bpm, step.bars]);
   const [phase, setPhase] = useState<"ready" | "listen" | "count" | "tap" | "done">("ready");
   const [score, setScore] = useState<RhythmScore | null>(null);
@@ -487,7 +516,7 @@ export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhyt
                   cursor === k ? "border-amber-300 bg-amber-400/30" : c === "x" ? "border-cream/25 bg-cream/10" : "border-cream/8"
                 }`}
               >
-                {c === "x" ? "●" : ""}
+                {c === "x" ? (step.strokes?.[k] === "D" ? "↓" : step.strokes?.[k] === "U" ? "↑" : "●") : ""}
               </span>
             </div>
           );
@@ -501,9 +530,10 @@ export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhyt
             {score.extra ? ` · ${score.extra} extra` : ""}
             {late.length ? ` · ${Math.abs(avg) < 15 ? "right on time" : avg > 0 ? `${avg} ms late on average` : `${-avg} ms early on average`}` : ""}
           </p>
+          <HitRows slots={slots} bars={step.bars} errors={score.errors} />
           <div className="mt-3 flex justify-center gap-2">
             <button onClick={() => run(false)} className={secondary}>Again</button>
-            <button onClick={() => onDone(stars)} className={primary}>Continue →</button>
+            <button onClick={() => onDone(stars)} className={primary}>{continueLabel}</button>
           </div>
         </div>
       ) : (

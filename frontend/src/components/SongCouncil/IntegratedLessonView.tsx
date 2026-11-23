@@ -189,6 +189,14 @@ export function IntegratedLessonView({
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <SongLessonButton lesson={lesson} chart={lesson.chart || lessonToChordPro(lesson)} />
+          {lesson.strumming && (
+            <a
+              href={`/rhythm?p=${encodeURIComponent(lesson.strumming)}&bpm=${Math.round((lesson.tempo_bpm || 90) * 0.8)}`}
+              className="inline-flex h-12 items-center rounded-full border border-cream/20 px-5 font-semibold text-cream hover:border-amber-400/50"
+            >
+              Practise the strum
+            </a>
+          )}
           {onSave && (
             <button
               type="button"

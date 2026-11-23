@@ -51,3 +51,27 @@ export function scoreTaps(hits: number[], taps: number[], windowMs = 110): Rhyth
   const share = hits.length ? Math.max(0, (hitCount - extra * 0.5) / hits.length) : 0;
   return { errors, extra, share };
 }
+
+/**
+ * A strum written the usual way ("D DU UDU": D down, U up, a space where the
+ * hand moves without hitting the strings) as a grid pattern plus the stroke
+ * for each slot. Bars are 4, 8 or 16 slots (quarters, eighths, sixteenths);
+ * shorter input is padded with rests.
+ */
+export function strumPattern(written: string): { pattern: string; strokes: string } | null {
+  const raw = written.toUpperCase().replace(/[-._]/g, " ").replace(/[^DU ]/g, "");
+  if (!/[DU]/.test(raw)) return null;
+  const size = raw.length <= 4 ? 4 : raw.length <= 8 ? 8 : raw.length <= 16 ? 16 : 0;
+  if (!size) return null;
+  const slots = raw.padEnd(size, " ");
+  return { pattern: slots.replace(/[DU]/g, "x").replace(/ /g, "."), strokes: slots.replace(/ /g, ".") };
+}
+
+export type HitResult = "on" | "early" | "late" | "missed";
+
+/** On time within `tightMs`; otherwise early, late or missed. */
+export function hitResult(error: number | null, tightMs = 40): HitResult {
+  if (error === null) return "missed";
+  if (Math.abs(error) <= tightMs) return "on";
+  return error < 0 ? "early" : "late";
+}
