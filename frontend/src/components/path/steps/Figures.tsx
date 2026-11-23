@@ -16,7 +16,7 @@ export function FigureView({ figure }: { figure: Figure }) {
       return (
         <figure className="overflow-x-auto rounded-2xl border border-cream/10 bg-ink-900/60 p-3">
           <pre className="font-mono text-[13px] leading-[1.35] text-cream/85">{figure.tab}</pre>
-          {figure.caption && <figcaption className="label-mono mt-2 text-[10px] text-cream/45">{figure.caption}</figcaption>}
+          {figure.caption && <figcaption className="label-mono mt-2 text-[10px] text-cream/60">{figure.caption}</figcaption>}
         </figure>
       );
     case "chord":
@@ -114,7 +114,7 @@ export function Fretboard({ dots, from, to, caption, active }: { dots: Dot[]; fr
           );
         })}
       </svg>
-      {caption && <figcaption className="label-mono mt-1 px-1 text-[10px] text-cream/45">{caption}</figcaption>}
+      {caption && <figcaption className="label-mono mt-1 px-1 text-[10px] text-cream/60">{caption}</figcaption>}
     </figure>
   );
 }

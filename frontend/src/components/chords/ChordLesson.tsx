@@ -180,7 +180,7 @@ export default function ChordLesson({ symbol, fingering, autoPlay = false }: { s
               {useAlt ? "Show the easier shape" : "Show a barre shape up the neck"}
             </button>
           )}
-          <p className="text-xs text-cream/45">Tap any string to hear its note.</p>
+          <p className="text-xs text-cream/60">Tap any string to hear its note.</p>
         </div>
       </div>
     </div>

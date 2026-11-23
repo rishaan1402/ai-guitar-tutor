@@ -72,7 +72,7 @@ function GrooveRoute() {
           <>
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
             <p className="label-mono text-cream/60">Building a Groove for you…</p>
-            <p className="max-w-xs text-sm text-cream/45">Picking the change you most need, in chords you know, at a tempo that fits.</p>
+            <p className="max-w-xs text-sm text-cream/60">Picking the change you most need, in chords you know, at a tempo that fits.</p>
           </>
         )}
       </div>

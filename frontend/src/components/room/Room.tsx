@@ -127,7 +127,7 @@ export default function Room({ state, badges = {}, hide = [], hrefs = {}, blurbs
             })()}
           </div>
         </div>
-        <p className="label-mono pointer-events-none absolute right-4 top-4 hidden text-cream/40 md:block">Hover the room · click to enter</p>
+        <p className="label-mono pointer-events-none absolute right-4 top-4 hidden text-cream/60 md:block">Hover the room · click to enter</p>
         <p className="label-mono pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-cream/50 md:hidden">← swipe · tap a light →</p>
       </div>
 

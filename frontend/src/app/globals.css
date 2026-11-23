@@ -649,6 +649,11 @@ html[data-practice-deeplink="1"] .practice-skel-idle { display: none; }
 /* Headings focused by script (tabIndex -1, for screen readers) show no ring */
 [tabindex="-1"]:focus { outline: none; box-shadow: none; }
 
+/* Grid children may shrink below their content: without this, one long
+   single-line title (truncate, whitespace-nowrap) stretches an auto column
+   past a phone's edge. Same as the minmax(0, 1fr) Tailwind's grid-cols-N use. */
+.grid > * { min-width: 0; }
+
 /* app screens are landscape: upright phones get the turn-sideways screen */
 @media (orientation: portrait) and (pointer: coarse) and (max-width: 900px) {
   .os-rotate { display: flex; }

@@ -67,7 +67,7 @@ export default function Intro() {
       <div className={`absolute inset-x-0 top-1/2 -translate-y-1/2 transition-opacity duration-slow ${open ? "opacity-0" : "opacity-100"}`}>
         {NAMES.map((n, i) => (
           <div key={n + i} className="relative flex h-[clamp(28px,6vh,56px)] items-center">
-            <span className="label-mono absolute left-4 text-cream/40 sm:left-8">{n}</span>
+            <span className="label-mono absolute left-4 text-cream/60 sm:left-8">{n}</span>
             <div
               className={`mx-12 h-px w-full origin-center sm:mx-16 ${phase === "strum" ? "os-intro-strum" : ""}`}
               style={{
@@ -83,8 +83,9 @@ export default function Intro() {
         ))}
       </div>
 
-      {/* wordmark */}
-      <h1
+      {/* wordmark (the page's heading is the hero's h1) */}
+      <p
+        aria-hidden="true"
         className={`pointer-events-none relative font-display text-[clamp(3rem,13vw,11rem)] uppercase leading-[0.85] tracking-tight text-cream mix-blend-difference transition-all duration-slow ease-out-expo ${
           open ? "scale-110 opacity-0" : phase === "show" ? "opacity-0 translate-y-4" : "opacity-100"
         }`}
@@ -92,7 +93,7 @@ export default function Intro() {
         Open
         <br />
         Strings
-      </h1>
+      </p>
 
       <button
         type="button"
@@ -104,7 +105,7 @@ export default function Intro() {
       >
         Skip ✕
       </button>
-      <p className="label-mono absolute bottom-6 left-1/2 -translate-x-1/2 text-cream/40">Tap to strum</p>
+      <p className="label-mono absolute bottom-6 left-1/2 -translate-x-1/2 text-cream/60">Tap to strum</p>
     </div>
   );
 }

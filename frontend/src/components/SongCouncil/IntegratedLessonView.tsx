@@ -60,10 +60,10 @@ export function IntegratedLessonView({
 
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#86b092"
+      ? "rgb(var(--ok-400))"
       : lesson.overall_difficulty === "intermediate"
-      ? "#e8a54b"
-      : "#e8604f";
+      ? "rgb(var(--acc-400))"
+      : "rgb(var(--live-400))";
 
   // Get context for selected chord
   const selectedContext: SongCouncilContext | null = selectedChordKey
@@ -119,7 +119,7 @@ export function IntegratedLessonView({
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="gradient-text text-3xl font-bold">{lesson.song_title}</h2>
-            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgb(var(--text) / 0.5)" }}>
               {lesson.artist}
             </p>
           </div>
@@ -127,8 +127,8 @@ export function IntegratedLessonView({
             <span
               className="text-xs font-semibold px-3 py-1 rounded-full capitalize"
               style={{
-                background: `${difficultyColor}22`,
-                border: `1px solid ${difficultyColor}55`,
+                background: `color-mix(in srgb, ${difficultyColor} 13%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${difficultyColor} 33%, transparent)`,
                 color: difficultyColor,
               }}
             >
@@ -143,7 +143,7 @@ export function IntegratedLessonView({
                   color: "rgba(var(--accent-soft-rgb),0.9)",
                 }}
               >
-                🎵 {lesson.key}
+                Key {lesson.key}
               </span>
             )}
             {lesson.time_signature && (
@@ -155,7 +155,7 @@ export function IntegratedLessonView({
                   color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
-                ⏱ {lesson.time_signature}
+                {lesson.time_signature}
               </span>
             )}
             {lesson.tempo_feel && (
@@ -167,7 +167,7 @@ export function IntegratedLessonView({
                   color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
-                🎸 {lesson.tempo_feel}
+                {lesson.tempo_feel}
               </span>
             )}
           </div>
@@ -179,7 +179,7 @@ export function IntegratedLessonView({
           style={{
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
-            color: "rgba(255,255,255,0.8)",
+            color: "rgb(var(--text) / 0.8)",
                       }}
         >
           <RichText text={lesson.chairman_summary} />
@@ -231,19 +231,19 @@ export function IntegratedLessonView({
       <div className="space-y-3">
         <LessonSection
           title="Music Theory"
-          icon="🎼"
+          icon=""
           content={lesson.theory_section}
           defaultOpen={true}
         />
         <LessonSection
           title="Technique Guide"
-          icon="✋"
+          icon=""
           content={lesson.technique_section}
           defaultOpen={false}
         />
         <LessonSection
           title="Ear Training"
-          icon="👂"
+          icon=""
           content={lesson.ear_training_section}
           defaultOpen={false}
         />
@@ -265,19 +265,19 @@ export function IntegratedLessonView({
             <div
               className="p-4 rounded-xl text-center text-sm font-medium"
               style={{
-                background: "rgba(134,176,146,0.1)",
-                border: "1px solid rgba(134,176,146,0.3)",
-                color: "#86efac",
+                background: "rgb(var(--ok-400) / 0.1)",
+                border: "1px solid rgb(var(--ok-400) / 0.3)",
+                color: "rgb(var(--ok-200))",
               }}
             >
-              🎉 All chords practiced! Take the quiz or jump to play-along.
+              Every chord practised. Take the quiz, or go straight to the play-along.
             </div>
 
             <button
               onClick={() => setShowQuiz(!showQuiz)}
               className="btn-gradient w-full px-6 py-3 rounded-xl font-semibold text-white"
             >
-              {showQuiz ? "Hide Quiz" : "Take Quiz"}
+              {showQuiz ? "Hide the quiz" : "Take the quiz"}
             </button>
 
             {allChordsAttempted && (
@@ -291,7 +291,7 @@ export function IntegratedLessonView({
                   color: "rgba(var(--accent-soft-rgb),0.9)",
                 }}
               >
-                {revising ? "Revising lesson…" : "✨ Revise Lesson Plan"}
+                {revising ? "Revising lesson…" : "Revise the practice plan"}
               </button>
             )}
           </div>
@@ -301,7 +301,7 @@ export function IntegratedLessonView({
       {/* Practice Plan section */}
       <LessonSection
         title="Practice Plan"
-        icon="📅"
+        icon=""
         content={lesson.practice_plan}
         defaultOpen={false}
       />
@@ -327,7 +327,7 @@ export function IntegratedLessonView({
             onClick={() => setShowPlayAlong(!showPlayAlong)}
             className="btn-gradient w-full px-6 py-3 rounded-xl font-semibold text-white"
           >
-            {showPlayAlong ? "Hide Play-Along" : "🎸 Play Along"}
+            {showPlayAlong ? "Hide play-along" : "Play along"}
           </button>
 
           {showPlayAlong && (

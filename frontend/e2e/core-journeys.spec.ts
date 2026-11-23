@@ -29,7 +29,13 @@ test("landing page leads into the studio", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: /start in 30 seconds/i }).first()).toBeVisible();
   await page.goto("/studio");
+  // first visit: the welcome card, then the room with its hint and a list of everything in it
+  await expect(page.getByRole("dialog", { name: "Your practice room" })).toBeVisible();
+  await page.getByRole("button", { name: /I.ll explore/ }).click();
   await expect(page.getByText(/drag the pick around the room/i)).toBeVisible();
+  await page.getByRole("button", { name: "see a list" }).click();
+  await page.getByRole("dialog", { name: "Everything in the room" }).getByRole("button", { name: /Chords/ }).click();
+  await page.waitForURL(/\/practice/);
   expect(errors).toEqual([]);
 });
 

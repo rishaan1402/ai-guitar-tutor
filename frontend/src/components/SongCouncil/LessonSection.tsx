@@ -24,7 +24,7 @@ export function LessonSection({ title, icon, content, defaultOpen = false }: Les
         className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-colors"
       >
         <span className="flex items-center gap-3 font-semibold text-sm">
-          <span className="text-lg">{icon}</span>
+          {icon && <span className="text-lg" aria-hidden="true">{icon}</span>}
           <span style={{ color: "rgb(var(--text-muted))" }}>{title}</span>
         </span>
         <span

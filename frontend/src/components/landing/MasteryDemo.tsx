@@ -21,7 +21,7 @@ export default function MasteryDemo() {
                 <span className="label-mono text-cream/50">{d}</span>
               </li>
             ))}
-            <li className="pb-6 text-cream/40" aria-hidden="true">→</li>
+            <li className="pb-6 text-cream/60" aria-hidden="true">→</li>
             <li className="flex flex-col items-center gap-2">
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff0c4,#e3b55a_40%,#8a6424)] text-ink-950 shadow-[0_0_30px_rgba(227,181,90,0.45)]">
                 ★

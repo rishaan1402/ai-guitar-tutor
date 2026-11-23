@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LegalPage, H2 } from "@/components/legal/LegalPage";
 import { SITE, contactLine } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Delete your account · ${SITE.name}` };
+export const metadata: Metadata = { title: "Delete your account" };
 
 /** Public page for Google Play's account-deletion requirement (linked from the store listing). */
 export default function DeleteAccountPage() {

@@ -46,24 +46,24 @@ function LearnChord() {
   return (
     <main className="min-h-[100dvh] bg-ink-950 px-4 pb-10 pt-[max(1rem,var(--sa-t))] landscape:px-6">
       <div className="mx-auto max-w-5xl">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 text-cream/80">←</button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/practice" aria-label="All chords" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 text-cream/80">←</Link>
           <div className="min-w-0 flex-1">
-            <p className="label-mono text-amber-400">Chord builder</p>
+            <p className="label-mono text-amber-400">Chords</p>
             <h1 className="truncate font-display text-xl uppercase text-cream">{symbol ? `Learn ${symbol}` : "Learn any chord"}</h1>
           </div>
-          <form onSubmit={go} className="flex shrink-0 gap-2">
+          <AppMenu className="landscape:order-last" />
+          <form onSubmit={go} className="flex w-full gap-2 landscape:w-auto" role="search" aria-label="Another chord">
             <input
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
-              placeholder="e.g. Cadd9"
+              placeholder="Another chord, e.g. Cadd9"
               aria-label="Chord name"
               maxLength={16}
-              className="h-10 w-28 rounded-full border border-cream/15 bg-transparent px-4 text-cream placeholder:text-cream/30 landscape:w-36"
+              className="h-10 min-w-0 flex-1 rounded-full border border-cream/15 bg-transparent px-4 text-cream placeholder:text-cream/40 landscape:w-48 landscape:flex-none"
             />
-            <button className="h-10 rounded-full border border-amber-400/50 px-4 text-sm font-semibold text-amber-100">Build</button>
+            <button className="h-10 shrink-0 rounded-full border border-amber-400/50 px-4 text-sm font-semibold text-amber-100">Learn it</button>
           </form>
-          <AppMenu />
         </div>
 
         <div className="mt-5 space-y-5">

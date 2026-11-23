@@ -94,7 +94,7 @@ export function EchoStep({ step, onDone }: { step: Extract<Step, { kind: "echo" 
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="label-mono text-amber-400">{step.title}</p>
-        <p className="label-mono text-cream/45">Phrase {p + 1} / {step.phrases.length}</p>
+        <p className="label-mono text-cream/60">Phrase {p + 1} / {step.phrases.length}</p>
       </div>
       <RichText text={step.prompt} className="text-[15px] text-cream/85" />
       <div className="grid gap-3 landscape:grid-cols-[1.3fr_1fr] landscape:items-start">
@@ -120,7 +120,7 @@ export function EchoStep({ step, onDone }: { step: Extract<Step, { kind: "echo" 
           {mic.error && <p role="alert" className="text-sm text-red-300">{mic.error}</p>}
         </div>
       </div>
-      <button onClick={() => { mic.stop(); onDone(null); }} className="w-full text-center text-sm text-cream/45 underline-offset-4 hover:underline">
+      <button onClick={() => { mic.stop(); onDone(null); }} className="w-full text-center text-sm text-cream/60 underline-offset-4 hover:underline">
         Skip for now (no mic, or a noisy room)
       </button>
     </div>
@@ -193,7 +193,7 @@ export function LadderStep({ step, onDone }: { step: Extract<Step, { kind: "ladd
                   className={`w-full rounded-md ${done ? "bg-sage-300/70" : here ? "bg-amber-400" : "bg-cream/10"}`}
                   style={{ height: 14 + (k / Math.max(1, rungs.length - 1)) * 46 }}
                 />
-                <span className={`font-mono text-[10px] ${here ? "text-amber-200" : done ? "text-sage-200" : "text-cream/40"}`}>{b}</span>
+                <span className={`font-mono text-[10px] ${here ? "text-amber-200" : done ? "text-sage-200" : "text-cream/60"}`}>{b}</span>
               </li>
             );
           })}
@@ -211,7 +211,7 @@ export function LadderStep({ step, onDone }: { step: Extract<Step, { kind: "ladd
               {ladderDone(ladder) ? "Continue →" : "Finish for today"}
             </button>
           </div>
-          {ladder.best > 0 && <p className="label-mono text-[10px] text-cream/45">Your best: {ladder.best} bpm</p>}
+          {ladder.best > 0 && <p className="label-mono text-[10px] text-cream/60">Your best: {ladder.best} bpm</p>}
         </div>
       </div>
     </div>
@@ -322,7 +322,7 @@ export function ImproviseStep({ step, onDone }: { step: Extract<Step, { kind: "i
         </div>
       </div>
       {phase === "ready" && (
-        <button onClick={() => onDone(null)} className="w-full text-center text-sm text-cream/45 underline-offset-4 hover:underline">Skip for now</button>
+        <button onClick={() => onDone(null)} className="w-full text-center text-sm text-cream/60 underline-offset-4 hover:underline">Skip for now</button>
       )}
     </div>
   );
@@ -374,7 +374,7 @@ export function FretGameStep({ step, onDone }: { step: Extract<Step, { kind: "fr
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="label-mono text-amber-400">{step.title}</p>
-        <p className="label-mono text-cream/45">{n + 1} / {step.rounds} · {right} right</p>
+        <p className="label-mono text-cream/60">{n + 1} / {step.rounds} · {right} right</p>
       </div>
       <RichText text={step.prompt} className="text-[15px] text-cream/85" />
       <div className={`rounded-[22px] transition-shadow ${flash === "right" ? "shadow-[0_0_0_2px_rgb(var(--ok-300))]" : flash === "wrong" ? "shadow-[0_0_0_2px_rgb(var(--live-400))]" : ""}`}>

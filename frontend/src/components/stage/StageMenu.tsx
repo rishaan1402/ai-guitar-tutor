@@ -108,7 +108,7 @@ export default function StageMenu({ open, onClose, chapters, activeHref, signedI
                     }}
                   >
                     <Link href={c.href} onClick={onClose} tabIndex={open ? 0 : -1} className="group block">
-                      <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-cream/35">
+                      <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-cream/60">
                         Chapter {String(i + 1).padStart(2, "0")} · {c.note}
                       </span>
                       <span
@@ -160,10 +160,10 @@ export default function StageMenu({ open, onClose, chapters, activeHref, signedI
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-cream/10 pt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-cream/40">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-cream/10 pt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-cream/60">
           <Link href="/" onClick={onClose} tabIndex={open ? 0 : -1} className="hover:text-cream/80">Home</Link>
           <Link href="/songs" onClick={onClose} tabIndex={open ? 0 : -1} className="hover:text-cream/80">Song library</Link>
-          <span className="ml-auto normal-case tracking-normal text-cream/30">Press Esc to close</span>
+          <span className="ml-auto normal-case tracking-normal text-cream/60">Press Esc to close</span>
         </div>
       </div>
     </div>

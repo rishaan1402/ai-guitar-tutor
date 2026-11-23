@@ -17,7 +17,7 @@ export default function WeeklyCard({ report }: { report: WeeklyReport }) {
       <div className="grid grid-cols-2 gap-2">
         {tiles.map(([k, v]) => (
           <div key={k} className="rounded-2xl border border-cream/10 p-3">
-            <p className="label-mono text-[10px] text-cream/45">{k}</p>
+            <p className="label-mono text-[10px] text-cream/60">{k}</p>
             <p className="mt-1 font-display text-2xl text-cream">{v}</p>
           </div>
         ))}

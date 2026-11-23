@@ -108,7 +108,7 @@ export default function ListeningStage({ fingering, analyser, state, verdicts, c
         label={label}
       />
       {targets.some((t) => t.ambiguous) && (
-        <p className="pointer-events-none absolute bottom-2 right-3 text-[11px] text-cream/45" aria-hidden="true">
+        <p className="pointer-events-none absolute bottom-2 right-3 text-[11px] text-cream/60" aria-hidden="true">
           <span className="text-cream/70">{targets.find((t) => t.ambiguous)?.note}?</span> = same note as another string, so it can&apos;t be told apart by ear
         </p>
       )}

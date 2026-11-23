@@ -21,9 +21,15 @@ import { planTitle } from "@/lib/mastery";
 import { planHref } from "@/app/dashboard/_components/TodaysPlan";
 import { pluck } from "@/lib/sound";
 
+const TOUR_KEY = "os:studio-tour";
+/** Space the HUD takes at the top when the room sits under it (upright). */
+const HUD_H = 112;
+
 /** Left-to-right order through the room. */
 const ORDER: RoomObjectId[] = ["wall", "amp", "pedal", "guitar", "stand", "record", "metronome"];
 const OBJECTS = ORDER.map((id) => ROOM_OBJECTS.find((o) => o.id === id)!);
+/** The list of places: most used first. */
+const LIST = (["guitar", "amp", "record", "stand", "pedal", "metronome", "wall"] as RoomObjectId[]).map((id) => ROOM_OBJECTS.find((o) => o.id === id)!);
 
 interface View {
   tx: number;
@@ -76,12 +82,32 @@ export default function Studio() {
     : wide
       ? // landscape: the whole room fits on screen, no zoom; extra width fades to the background
         Math.min(vp.w / SCENE_W, vp.h / SCENE_H)
-      : Math.max((vp.h * 0.66) / SCENE_H, Math.min(vp.w / SCENE_W, (vp.h * 0.9) / SCENE_H));
+      : // upright (website only): the whole room across the width, the list of places below it
+        vp.w / SCENE_W;
   const SW = SCENE_W * s, SH = SCENE_H * s;
   /** Landscape card width: a side panel on the right. */
   const cardW = wide ? Math.min(380, vp.w * 0.42) : 0;
 
   const [focus, setFocus] = useState<RoomObjectId | null>(null);
+  // first visit: a welcome card, then (if wanted) a walk through each object
+  const [welcome, setWelcome] = useState(false);
+  const [touring, setTouring] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
+  useEffect(() => {
+    try {
+      setWelcome(!localStorage.getItem(TOUR_KEY));
+    } catch {
+      /* storage blocked: no welcome card */
+    }
+  }, []);
+  const endWelcome = () => {
+    setWelcome(false);
+    try {
+      localStorage.setItem(TOUR_KEY, "1");
+    } catch {
+      /* storage blocked */
+    }
+  };
   const [view, setView] = useState<View>({ tx: 0, ty: 0, z: 1 });
   const [dragging, setDragging] = useState(false);
   const overviewTx = useRef<number | null>(null);
@@ -97,8 +123,8 @@ export default function Studio() {
     },
     [vp.w, vp.h, SW, SH],
   );
-  /** The room view sits a little above centre, between the HUD and the bottom button. */
-  const roomTy = (vp.h - SH) * (wide ? 0.5 : 0.42);
+  /** The room view sits a little above centre (landscape), or under the HUD (upright). */
+  const roomTy = wide ? (vp.h - SH) * 0.5 : HUD_H;
 
   /** Zoom so the object fills the space above the card, centred there. */
   const viewFor = useCallback(
@@ -309,6 +335,7 @@ export default function Studio() {
       onPointerLeave={(e) => e.pointerType === "mouse" && !drag.current && setHover(null)}
       data-testid="studio"
     >
+      <h1 className="sr-only">Your practice room</h1>
       {vp.w > 0 && (
         <div
           className="absolute left-0 top-0 origin-top-left will-change-transform"
@@ -340,8 +367,9 @@ export default function Studio() {
             active={focus ?? hover}
             state={{ mastered, streak, sheet, recheckDue: due > 0, upgrades: game?.upgrades.filter((u) => u.unlocked).map((u) => u.id) }}
           />
-          {/* keyboard / screen-reader targets over each object (the pick handles pointers) */}
-          {OBJECTS.map((o) => (
+          {/* keyboard / screen-reader targets over each object (the pick handles pointers).
+              Upright the room is a picture above the list, which does this job with big targets. */}
+          {wide && OBJECTS.map((o) => (
             <button
               key={o.id}
               type="button"
@@ -356,6 +384,15 @@ export default function Studio() {
               className="absolute rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80"
               style={{ left: o.x * s, top: o.y * s, width: o.w * s, height: o.h * s }}
             >
+              {!focus && wide && hover !== o.id && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full border border-cream/15 bg-ink-950/80 px-2.5 py-0.5 text-[11px] font-semibold text-cream/90 backdrop-blur"
+                  style={{ left: (o.tag[0] - o.x) * s, top: Math.max(10, (o.tag[1] - o.y) * s) }}
+                >
+                  {labelFor(o)}
+                </span>
+              )}
               {!focus && (o.id === "wall" ? due > 0 : o.id === "guitar" && !!next) && (
                 <span className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-amp-500 px-2 py-0.5 text-[11px] font-semibold text-cream">
                   {o.id === "wall" ? `${due} re-check${due > 1 ? "s" : ""}` : "Lesson ready"}
@@ -383,7 +420,7 @@ export default function Studio() {
           </div>
         );
       })()}
-      {!focus && pick && (
+      {!focus && pick && wide && (
         <svg
           aria-hidden="true"
           className="pointer-events-none absolute z-30 drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]"
@@ -437,7 +474,7 @@ export default function Studio() {
                 style={{ width: `${game.next_level_xp ? Math.min(100, ((game.xp - game.level_xp) / (game.next_level_xp - game.level_xp)) * 100) : 100}%` }}
               />
             </div>
-            <p className="mt-1 text-[11px] text-cream/50">{game.xp} XP{game.next_level_xp ? ` · ${game.next_level_xp - game.xp} to go` : ""}</p>
+            <p className="mt-1 text-[11px] text-cream/70">{game.xp} XP{game.next_level_xp ? ` · ${game.next_level_xp - game.xp} to go` : ""}</p>
           </div>
         ) : (
           <span />
@@ -456,8 +493,78 @@ export default function Studio() {
         </span>
       </div>
 
+      {/* upright (website): every place in the room as a list under it */}
+      {!station && !wide && vp.w > 0 && (
+        <div
+          className="absolute inset-x-0 bottom-0 touch-auto overflow-y-auto px-4 pb-[max(1rem,var(--sa-b))]"
+          style={{ top: roomTy + SH + 8 }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          onPointerMove={(e) => e.stopPropagation()}
+        >
+          {next && (
+            <button
+              onClick={() => router.push(planHref(next))}
+              className="mb-3 flex w-full items-center gap-3 rounded-2xl bg-amber-400 px-4 py-3 text-left font-semibold text-ink-950"
+            >
+              <span className="label-mono text-ink-950/60">Next up</span>
+              <span className="min-w-0 flex-1 truncate">{planTitle(next)}</span> →
+            </button>
+          )}
+          <RoomList onOpen={(id) => router.push(hrefFor(id))} />
+        </div>
+      )}
+
+      {/* landscape: the list of places on request (keyboard and screen-reader friendly) */}
+      {listOpen && wide && (
+        <div
+          className="absolute inset-0 z-40 flex justify-end bg-ink-950/60 backdrop-blur-sm"
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          onClick={() => setListOpen(false)}
+          role="dialog"
+          aria-label="Everything in the room"
+        >
+          <div className="h-full w-[min(420px,92vw)] touch-auto overflow-y-auto bg-ink-950 p-4 pt-[max(1rem,var(--sa-t))] pr-[max(1rem,var(--sa-r))]" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="font-display text-lg uppercase text-cream">In the room</p>
+              <button onClick={() => setListOpen(false)} aria-label="Close the list" className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/15 text-cream/70">✕</button>
+            </div>
+            <RoomList onOpen={(id) => router.push(hrefFor(id))} />
+          </div>
+        </div>
+      )}
+
+      {/* first visit: what this room is */}
+      {!station && welcome && wide && (
+        <div className="absolute inset-x-0 bottom-0 z-30 flex justify-center p-4 pb-[max(1rem,var(--sa-b))]" onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
+          <div className="animate-enter-fast w-[min(560px,100%)] rounded-[26px] border border-amber-400/40 bg-ink-950/95 p-5 shadow-2xl backdrop-blur-md" role="dialog" aria-labelledby="studio-welcome-h">
+            <p id="studio-welcome-h" className="font-display text-xl uppercase text-cream">Your practice room</p>
+            <p className="mt-2 text-[15px] leading-snug text-cream/75">
+              Everything in here opens part of the app: the guitar for lessons, the amp for chords, the record player for
+              songs, the pedal to tune. Drag the pick onto anything, or just tap it.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                onClick={() => {
+                  endWelcome();
+                  setTouring(true);
+                  select(ORDER[0]);
+                }}
+                className="h-11 rounded-full bg-amber-400 px-5 font-semibold text-ink-950"
+              >
+                Show me around
+              </button>
+              <button onClick={endWelcome} className="h-11 rounded-full border border-cream/20 px-5 text-cream/85">
+                I&apos;ll explore
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* room view: next step + hint */}
-      {!station && (
+      {!station && wide && !welcome && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 pb-[max(1.25rem,var(--sa-b))] text-center">
           {next && (
             <button
@@ -469,7 +576,12 @@ export default function Studio() {
               <span className="truncate">{planTitle(next)}</span> →
             </button>
           )}
-          <p className="label-mono text-cream/50">Drag the pick around the room · let go to go in</p>
+          <p className="label-mono text-cream/70">
+            Drag the pick around the room · let go to go in ·{" "}
+            <button onPointerDown={(e) => e.stopPropagation()} onClick={() => setListOpen(true)} className="pointer-events-auto underline underline-offset-4 hover:text-cream">
+              see a list
+            </button>
+          </p>
         </div>
       )}
 
@@ -491,21 +603,37 @@ export default function Studio() {
                 <p className="label-mono text-amber-400">{station.thing}</p>
                 <h2 className="mt-1 font-display text-2xl uppercase text-cream">{labelFor(station)}</h2>
               </div>
-              <button onClick={() => select(null)} aria-label="Back to the room" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 text-cream/70">
+              <button onClick={() => (setTouring(false), select(null))} aria-label="Back to the room" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 text-cream/70">
                 ✕
               </button>
             </div>
             <p className="mt-2 text-[15px] leading-snug text-cream/70">
-              {station.id === "guitar"
-                ? "Short lessons: learn a chord, play it for the app, practise it with a band, then play a song with it."
-                : station.id === "metronome"
-                  ? "Jam along with a backing band on the highway. The music waits for your chord changes."
-                  : station.blurb}
+              {blurbFor(station)}
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <button onClick={() => router.push(hrefFor(station.id))} className="h-12 flex-1 rounded-full bg-amber-400 text-base font-semibold text-ink-950 active:scale-[0.98]">
-                Enter →
-              </button>
+              {touring ? (
+                <>
+                  <button onClick={() => router.push(hrefFor(station.id))} className="h-12 rounded-full border border-amber-400/50 px-4 text-sm font-semibold text-amber-100">
+                    Open
+                  </button>
+                  <button
+                    onClick={() => {
+                      const i = ORDER.indexOf(station.id);
+                      if (i === ORDER.length - 1) {
+                        setTouring(false);
+                        select(null);
+                      } else select(ORDER[i + 1]);
+                    }}
+                    className="h-12 flex-1 rounded-full bg-amber-400 text-base font-semibold text-ink-950 active:scale-[0.98]"
+                  >
+                    {ORDER.indexOf(station.id) === ORDER.length - 1 ? "Done" : "Next thing →"}
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => router.push(hrefFor(station.id))} className="h-12 flex-1 rounded-full bg-amber-400 text-base font-semibold text-ink-950 active:scale-[0.98]">
+                  Enter →
+                </button>
+              )}
               <div className="flex items-center gap-1.5" role="tablist" aria-label="Objects in the room">
                 {ORDER.map((id) => (
                   <button
@@ -562,6 +690,32 @@ function DailyRing({ done, total, tasks }: { done: number; total: number; tasks:
   );
 }
 
+/** Every place in the room as a plain list: upright phones, keyboards and screen readers. */
+function RoomList({ onOpen }: { onOpen: (id: RoomObjectId) => void }) {
+  return (
+    <ul className="grid grid-cols-1 gap-2 pb-2">
+      {LIST.map((o) => (
+        <li key={o.id}>
+          <button onClick={() => onOpen(o.id)} className="flex w-full items-center gap-3 rounded-2xl border border-cream/10 bg-ink-900/60 px-4 py-3 text-left hover:border-amber-400/40">
+            <span className="min-w-0 flex-1">
+              <span className="label-mono block text-[10px] text-amber-400">{o.thing}</span>
+              <span className="block font-display text-base uppercase text-cream">{labelFor(o)}</span>
+              <span className="block text-sm leading-snug text-cream/70">{blurbFor(o)}</span>
+            </span>
+            <span aria-hidden="true" className="text-xl text-cream/60">→</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function blurbFor(o: RoomObject): string {
+  if (o.id === "guitar") return "Short lessons: learn a chord, play it for the app, practise it with a band, then play a song with it.";
+  if (o.id === "metronome") return "Jam along with a backing band on the highway. The music waits for your chord changes.";
+  return o.blurb;
+}
+
 function labelFor(o: RoomObject): string {
   return o.id === "guitar" ? "Lessons" : o.id === "metronome" ? "Grooves" : o.label;
 }
@@ -569,7 +723,7 @@ function labelFor(o: RoomObject): string {
 function Chip({ label, value, spoken }: { label: string; value: React.ReactNode; spoken?: string }) {
   return (
     <div className="rounded-full border border-cream/10 bg-ink-950/70 px-3 py-1.5 backdrop-blur" aria-label={`${label}: ${spoken ?? String(value)}`}>
-      <span className="label-mono text-cream/50">{label} </span>
+      <span className="label-mono text-cream/70">{label} </span>
       <span className="font-semibold text-cream">{value}</span>
     </div>
   );

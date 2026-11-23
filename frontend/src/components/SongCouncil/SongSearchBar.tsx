@@ -32,7 +32,7 @@ export default function SongSearchBar({ onSearch, loading }: SongSearchBarProps)
           style={{
             background: "rgba(var(--cream-rgb),0.07)",
             border: "1px solid rgba(var(--cream-rgb),0.15)",
-            color: "#fff",
+            color: "rgb(var(--text))",
             backdropFilter: "blur(12px)",
           }}
           onFocus={(e) => {

@@ -43,12 +43,12 @@ function Section({
       >
         <span className="flex items-center gap-2 font-semibold text-sm">
           <span>{icon}</span>
-          <span style={{ color: "#e2e8f0" }}>{title}</span>
+          <span style={{ color: "rgb(var(--text))" }}>{title}</span>
         </span>
         <span
           className="text-xs transition-transform duration-200"
           style={{
-            color: "rgba(255,255,255,0.4)",
+            color: "rgb(var(--text) / 0.4)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             display: "inline-block",
           }}
@@ -59,7 +59,7 @@ function Section({
       {open && (
         <div
           className="px-4 pb-4 text-sm leading-relaxed fade-in-up"
-          style={{ color: "rgba(255,255,255,0.7)" }}
+          style={{ color: "rgb(var(--text) / 0.7)" }}
         >
           <RichText text={content} />
         </div>
@@ -81,10 +81,10 @@ function StudyStage({
 }) {
   const difficultyColor =
     lesson.overall_difficulty === "beginner"
-      ? "#86b092"
+      ? "rgb(var(--ok-400))"
       : lesson.overall_difficulty === "intermediate"
-      ? "#e8a54b"
-      : "#e8604f";
+      ? "rgb(var(--acc-400))"
+      : "rgb(var(--live-400))";
 
   return (
     <div className="space-y-4 animate-stage-unlock">
@@ -93,7 +93,7 @@ function StudyStage({
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="gradient-text text-2xl font-bold">{lesson.song_title}</h2>
-            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <p className="text-sm mt-1" style={{ color: "rgb(var(--text) / 0.5)" }}>
               {lesson.artist}
             </p>
           </div>
@@ -101,8 +101,8 @@ function StudyStage({
             <span
               className="text-xs font-semibold px-3 py-1 rounded-full capitalize"
               style={{
-                background: `${difficultyColor}22`,
-                border: `1px solid ${difficultyColor}55`,
+                background: `color-mix(in srgb, ${difficultyColor} 13%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${difficultyColor} 33%, transparent)`,
                 color: difficultyColor,
               }}
             >
@@ -117,7 +117,7 @@ function StudyStage({
                   color: "rgba(var(--accent-soft-rgb),0.9)",
                 }}
               >
-                🎵 {lesson.key}
+                Key {lesson.key}
               </span>
             )}
             {lesson.time_signature && (
@@ -129,7 +129,7 @@ function StudyStage({
                   color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
-                ⏱ {lesson.time_signature}
+                {lesson.time_signature}
               </span>
             )}
             {lesson.tempo_feel && (
@@ -141,7 +141,7 @@ function StudyStage({
                   color: "rgba(var(--sage-soft-rgb),0.9)",
                 }}
               >
-                🎸 {lesson.tempo_feel}
+                {lesson.tempo_feel}
               </span>
             )}
           </div>
@@ -153,7 +153,7 @@ function StudyStage({
           style={{
             background: "rgba(var(--accent-rgb),0.1)",
             border: "1px solid rgba(var(--accent-rgb),0.25)",
-            color: "rgba(255,255,255,0.8)",
+            color: "rgb(var(--text) / 0.8)",
                       }}
         >
           <RichText text={lesson.chairman_summary} />
@@ -162,20 +162,20 @@ function StudyStage({
         {/* Song structure map */}
         {lesson.song_sections && lesson.song_sections.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-1">
-            <span className="text-xs mr-1" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <span className="text-xs mr-1" style={{ color: "rgb(var(--text) / 0.35)" }}>
               Structure:
             </span>
             {lesson.song_sections.map((section, i) => (
               <span key={i} className="flex items-center gap-1">
                 {i > 0 && (
-                  <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "10px" }}>→</span>
+                  <span style={{ color: "rgb(var(--text) / 0.2)", fontSize: "10px" }}>→</span>
                 )}
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{
-                    background: "rgba(255,255,255,0.06)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    color: "rgba(255,255,255,0.6)",
+                    background: "rgb(var(--text) / 0.06)",
+                    border: "1px solid rgb(var(--text) / 0.12)",
+                    color: "rgb(var(--text) / 0.6)",
                   }}
                 >
                   {section.name}
@@ -187,16 +187,16 @@ function StudyStage({
       </div>
 
       {/* Collapsible specialist sections */}
-      <Section title="Music Theory" icon="🎼" content={lesson.theory_section} defaultOpen={true} />
-      <Section title="Technique Guide" icon="✋" content={lesson.technique_section} />
-      <Section title="Ear Training" icon="👂" content={lesson.ear_training_section} />
+      <Section title="Music Theory" icon="" content={lesson.theory_section} defaultOpen={true} />
+      <Section title="Technique Guide" icon="" content={lesson.technique_section} />
+      <Section title="Ear Training" icon="" content={lesson.ear_training_section} />
 
       {/* Mark studied button */}
       <div className="flex justify-center pt-2 pb-4">
         <button
           onClick={onComplete}
           className="btn-gradient px-8 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200"
-          style={{ background: "linear-gradient(135deg, #d98b2b, #6a9576)" }}
+          style={{ background: "linear-gradient(135deg, rgb(var(--acc-500)), rgb(var(--ok-500)))" }}
         >
           I&apos;ve studied this →
         </button>
@@ -234,10 +234,10 @@ function PracticeStage({
       {/* Progress bar */}
       <div className="glass-card p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.7)" }}>
-            🎸 Chords to Practice
+          <span className="text-sm font-semibold" style={{ color: "rgb(var(--text) / 0.7)" }}>
+            Chords to practise
           </span>
-          <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <span className="text-xs" style={{ color: "rgb(var(--text) / 0.4)" }}>
             {attemptedCount}/{available.length} practiced
           </span>
         </div>
@@ -245,13 +245,13 @@ function PracticeStage({
         {available.length > 0 && (
           <div
             className="w-full h-1.5 rounded-full mb-4 overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.08)" }}
+            style={{ background: "rgb(var(--text) / 0.08)" }}
           >
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${(attemptedCount / available.length) * 100}%`,
-                background: "linear-gradient(90deg, #d98b2b, #6a9576)",
+                background: "linear-gradient(90deg, rgb(var(--acc-500)), rgb(var(--ok-500)))",
               }}
             />
           </div>
@@ -274,12 +274,12 @@ function PracticeStage({
           <div
             className="mt-4 p-3 rounded-xl text-center text-sm font-medium animate-quiz-correct"
             style={{
-              background: "rgba(134,176,146,0.1)",
-              border: "1px solid rgba(134,176,146,0.3)",
-              color: "#86efac",
+              background: "rgb(var(--ok-400) / 0.1)",
+              border: "1px solid rgb(var(--ok-400) / 0.3)",
+              color: "rgb(var(--ok-200))",
             }}
           >
-            🎉 Practice complete! Head to Perform when you&apos;re ready.
+            Practice complete. Head to Perform when you&apos;re ready.
           </div>
         )}
 
@@ -290,13 +290,13 @@ function PracticeStage({
               disabled={revising}
               className="btn-gradient px-6 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
             >
-              {revising ? "Revising lesson…" : "✨ Revise Lesson Plan"}
+              {revising ? "Revising lesson…" : "Revise the practice plan"}
             </button>
           </div>
         )}
       </div>
 
-      <Section title="Practice Plan" icon="📅" content={lesson.practice_plan} defaultOpen={true} />
+      <Section title="Practice Plan" icon="" content={lesson.practice_plan} defaultOpen={true} />
     </div>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { listChords } from "@/lib/api";
+import { libraryKey } from "@/lib/chords/shape";
+import { parseSymbol } from "@/lib/chords/quality";
 import { BEGINNER_PATH, chordSymbol, formatChord } from "@/lib/chordName";
 import { pluck } from "@/lib/sound";
 
@@ -36,8 +38,25 @@ function StatusDot({ status }: { status?: string }) {
  * chord in a root × quality grid.
  */
 export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }: Props) {
+  const router = useRouter();
   const [chords, setChords] = useState<Set<string> | null>(null);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [unreadable, setUnreadable] = useState(false);
+
+  /** Any chord name: the library lesson (video, per-string feedback) when there is one, else a built lesson. */
+  const openChord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const sym = query.trim();
+    if (!sym) return;
+    if (!parseSymbol(sym)) {
+      setUnreadable(true);
+      return;
+    }
+    const key = libraryKey(sym);
+    if (key && chords?.has(key)) onSelect(key);
+    else router.push(`/chords/learn?c=${encodeURIComponent(sym)}`);
+  };
 
   useEffect(() => {
     listChords()
@@ -52,11 +71,34 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }
 
   return (
     <div className="space-y-8">
+      <form onSubmit={openChord} className="flex flex-wrap items-end gap-2" role="search" aria-label="Find a chord">
+        <label htmlFor="chord-search" className="w-full label-mono text-amber-300">Any chord</label>
+        <input
+          id="chord-search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setUnreadable(false);
+          }}
+          placeholder="e.g. Cadd9, F#m7b5, G/B"
+          autoComplete="off"
+          spellCheck={false}
+          maxLength={16}
+          aria-describedby={unreadable ? "chord-search-error" : undefined}
+          className="h-12 min-w-0 flex-1 basis-48 rounded-full border border-cream/15 bg-transparent px-5 text-cream placeholder:text-cream/40 focus:border-amber-400/70 focus:outline-none"
+        />
+        <button type="submit" disabled={disabled || !query.trim()} className="h-12 rounded-full bg-amber-400 px-6 font-semibold text-ink-950 disabled:opacity-50">
+          Learn it
+        </button>
+        {unreadable && (
+          <p id="chord-search-error" role="alert" className="w-full text-sm text-amp-300">
+            &quot;{query.trim()}&quot; isn&apos;t a chord name we can read. Try names like C, Am7, Dsus4 or G/B.
+          </p>
+        )}
+      </form>
+
       <section aria-labelledby="path-title">
-        <div className="flex items-baseline justify-between gap-3">
-          <h3 id="path-title" className="label-mono text-amber-300">Start here — the first eight</h3>
-          <Link href="/chords/learn" className="label-mono text-amber-300 underline-offset-4 hover:underline">Can&apos;t find your chord? Build it →</Link>
-        </div>
+        <h3 id="path-title" className="label-mono text-amber-300">Start here — the first eight</h3>
         <ol className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8">
           {path.map((c, i) => {
             const status = chordStatuses[c];
@@ -77,7 +119,7 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }
                         : "border-cream/10 hover:border-cream/30"
                   }`}
                 >
-                  <span className="label-mono absolute left-2 top-1.5 text-[10px] text-cream/35">{i + 1}</span>
+                  <span className="label-mono absolute left-2 top-1.5 text-[10px] text-cream/60">{i + 1}</span>
                   <span className="font-display text-2xl text-cream group-hover:text-amber-200">{chordSymbol(c)}</span>
                   <span className="mt-1 flex h-3 items-center gap-1">
                     {isNext ? <span className="label-mono text-[9px] text-amber-300">Next</span> : <StatusDot status={status} />}
@@ -95,11 +137,11 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }
           <table className="w-full min-w-[560px] border-collapse text-sm">
             <thead>
               <tr>
-                <th scope="col" className="label-mono w-12 p-2 text-left text-cream/35">
+                <th scope="col" className="label-mono w-12 p-2 text-left text-cream/60">
                   <span className="sr-only">Root</span>
                 </th>
                 {QUALITIES.map((q) => (
-                  <th key={q.key} scope="col" className="label-mono p-2 text-cream/45">
+                  <th key={q.key} scope="col" className="label-mono p-2 text-cream/60">
                     {q.label}
                   </th>
                 ))}

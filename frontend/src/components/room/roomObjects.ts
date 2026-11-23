@@ -8,7 +8,7 @@ export interface RoomObject {
   id: RoomObjectId;
   /** What the object is ("Amp") — used in the label tag. */
   thing: string;
-  /** What it does ("Practice a chord"). */
+  /** What it does ("Chords"). */
   label: string;
   /** One line explaining the feature. */
   blurb: string;
@@ -36,7 +36,7 @@ export const ROOM_OBJECTS: RoomObject[] = [
   {
     id: "amp",
     thing: "Amp",
-    label: "Practice a chord",
+    label: "Chords",
     blurb: "Play into your mic — it hears every string and tells you what to fix.",
     href: "/practice",
     x: 214, y: 404, w: 330, h: 330, tag: [379, 386], hz: 110.0,
@@ -45,14 +45,14 @@ export const ROOM_OBJECTS: RoomObject[] = [
     id: "pedal",
     thing: "Pedal",
     label: "Tuner",
-    blurb: "Tune each string by ear-free, needle-steady pitch tracking.",
+    blurb: "Tune any string in any order, with a steady needle. Standard and alternate tunings.",
     href: "/tuner",
     x: 560, y: 690, w: 170, h: 100, tag: [645, 672], hz: 146.83,
   },
   {
     id: "stand",
     thing: "Music stand",
-    label: "Songs & charts",
+    label: "Chord sheets",
     blurb: "Chord charts with transpose, capo, simplify, autoscroll and tabs.",
     href: "/songs",
     x: 930, y: 270, w: 200, h: 500, tag: [1030, 252], hz: 196.0,
@@ -60,7 +60,7 @@ export const ROOM_OBJECTS: RoomObject[] = [
   {
     id: "record",
     thing: "Record player",
-    label: "Learn any song",
+    label: "Songs",
     blurb: "Name a song — get its chart, section lessons and a play-along.",
     href: "/practice?mode=song",
     x: 1160, y: 470, w: 250, h: 150, tag: [1285, 452], hz: 246.94,

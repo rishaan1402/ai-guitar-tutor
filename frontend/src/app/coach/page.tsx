@@ -222,7 +222,7 @@ function Goal() {
         <label className="block">
           <span className="field-label">Its chords</span>
           <input value={chords} onChange={(e) => setChords(e.target.value)} placeholder="G D Em C" className="field-input font-mono" />
-          <span className="mt-1 block text-xs text-cream/45">
+          <span className="mt-1 block text-xs text-cream/60">
             Don&apos;t know them? <Link href="/practice?mode=song" className="text-amber-300">Learn any song</Link> gives you the chart.
           </span>
         </label>
@@ -277,13 +277,13 @@ function Goal() {
         <ol className="mt-3 space-y-1.5">
           {goal.plan.days.map((d) => (
             <li key={d.date} className={d.date === today ? "text-amber-200" : ""}>
-              <span className="label-mono mr-2 text-cream/40">{d.date.slice(5)}</span>
+              <span className="label-mono mr-2 text-cream/60">{d.date.slice(5)}</span>
               {d.tasks.map((t) => t.label).join(" · ")}
             </li>
           ))}
         </ol>
       </details>
-      <button onClick={async () => { await clearGoal().catch(() => {}); setGoalState(null); }} className="text-sm text-cream/45 underline-offset-4 hover:underline">
+      <button onClick={async () => { await clearGoal().catch(() => {}); setGoalState(null); }} className="text-sm text-cream/60 underline-offset-4 hover:underline">
         Remove this goal
       </button>
     </div>
