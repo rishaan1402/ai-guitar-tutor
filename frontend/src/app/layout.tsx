@@ -10,25 +10,27 @@ import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 // Stage Lights type: a wide, bold geometric display face for big statements,
 // a crisp text face, and a mono for labels, readouts and tabs.
+// All three are variable fonts: one file each covers every weight (listing weights
+// fetched ten files). Body and mono use "optional": next/font's size-matched fallback
+// shows at once and the real face is used when it's already there, so text never
+// repaints (that repaint was the slowest paint on most pages).
 const display = Unbounded({
   subsets: ["latin"],
-  weight: ["500", "700", "800"],
   variable: "--font-display",
   display: "swap",
 });
 
 const mono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
   variable: "--font-mono",
-  display: "swap",
+  display: "optional",
+  preload: false,
 });
 
 const body = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
-  display: "swap",
+  display: "optional",
 });
 
 export const metadata: Metadata = {

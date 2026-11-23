@@ -50,7 +50,6 @@ class User(Base):
             "skill_level IN ('beginner','intermediate','advanced')",
             name="ck_users_skill",
         ),
-        Index("idx_users_email", "email"),
         Index("idx_users_role", "role"),
     )
 
@@ -279,7 +278,6 @@ class ChordAttempt(Base):
 
     __tablename__ = "chord_attempts"
     __table_args__ = (
-        Index("idx_chord_attempts_user", "user_id"),
         Index("idx_chord_attempts_user_chord", "user_id", "chord_name"),
         Index("idx_chord_attempts_created", "created_at"),
     )
@@ -309,7 +307,6 @@ class TransitionDrill(Base):
 
     __tablename__ = "transition_drills"
     __table_args__ = (
-        Index("idx_transition_drills_user", "user_id"),
         Index("idx_transition_drills_pair", "user_id", "chord_a", "chord_b"),
     )
 
@@ -365,7 +362,6 @@ class LessonSessionDB(Base):
 
     __tablename__ = "lesson_sessions"
     __table_args__ = (
-        Index("idx_lesson_sessions_lesson_id", "lesson_id"),
         Index("idx_lesson_sessions_user", "user_id"),
         Index("idx_lesson_sessions_expires", "expires_at"),
     )
@@ -394,7 +390,6 @@ class TutorSessionDB(Base):
 
     __tablename__ = "tutor_sessions"
     __table_args__ = (
-        Index("idx_tutor_sessions_sid", "session_id"),
         Index("idx_tutor_sessions_last", "last_access"),
     )
 

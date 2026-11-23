@@ -32,7 +32,7 @@ gcloud run deploy guitar-tutor-backend \
   --add-cloudsql-instances=guitar-tutor-prod-2:us-central1:guitar-tutor-db \
   --set-secrets=JWT_SECRET_KEY=JWT_SECRET_KEY:latest,DATABASE_URL=DATABASE_URL:latest,GROQ_API_KEY=GROQ_API_KEY:latest \
   --set-env-vars=LESSON_ASSETS_BASE_URL=https://storage.googleapis.com/guitar-tutor-prod-2-lessons \
-  --memory=1Gi --cpu=1 --max-instances=3
+  --memory=1Gi --cpu=1 --max-instances=5 --concurrency=40
 ```
 
 `backend/start.sh` runs `alembic upgrade head` before starting uvicorn, so a
@@ -67,6 +67,33 @@ features fall back to their non-AI versions (template feedback and tips),
 stored songs still open, and only writing a brand-new song lesson answers
 503 until the window frees up. A new song costs about 6 calls; a stored one
 costs none.
+
+### Scale and database connections
+
+Cloud SQL `db-f1-micro` accepts about 25 connections, so
+`max-instances x (DB_POOL_SIZE + DB_MAX_OVERFLOW)` must stay under that:
+5 x (2 + 2) = 20. Each instance takes up to 40 requests at once
+(`--concurrency=40`), so a second instance starts before one CPU saturates.
+`scripts/loadtest.py` reproduces the numbers (50 graded takes at once on one
+instance: p95 about 2 s). Raising max instances means a bigger database tier
+or smaller pools.
+
+### AI fallback
+
+Every AI call tries Groq with the requested model, then the other Groq model
+(`GROQ_MODEL` / `GROQ_FAST_MODEL`, or `GROQ_FALLBACK_MODEL`), then, if set,
+a second provider over any OpenAI-compatible API:
+
+| Name | Kind | Example |
+|---|---|---|
+| `FALLBACK_LLM_BASE_URL` | env var | `https://api.openai.com/v1`, `https://openrouter.ai/api/v1` |
+| `FALLBACK_LLM_MODEL` | env var | a model that provider serves |
+| `FALLBACK_LLM_API_KEY` | secret | that provider's API key |
+
+Without the second provider, a full Groq outage still means template
+feedback and a 503 for new song lessons (stored songs keep working). Each
+attempt that has another option after it gets `LLM_ATTEMPT_TIMEOUT` seconds
+(default 12).
 
 ### Monitoring
 

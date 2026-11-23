@@ -36,22 +36,15 @@ _groq_client = None
 
 
 def _get_groq_client():
+    """The app's AI client (see llm_client.py): Groq with fallbacks, or None if nothing is configured."""
     global _groq_client
     from llm_budget import allow_call
     if not allow_call():
         return None  # today's AI budget is spent: callers use their no-AI path
     if _groq_client is not None:
         return _groq_client
-    api_key = os.environ.get("GROQ_API_KEY")
-    if not api_key:
-        return None
-    try:
-        from groq import AsyncGroq
-        _groq_client = AsyncGroq(api_key=api_key)
-        logger.info("Groq client initialised (model: %s)", GROQ_MODEL)
-    except Exception as e:
-        logger.warning("Failed to initialise Groq: %s", e)
-        _groq_client = None
+    from llm_client import build_client
+    _groq_client = build_client(GROQ_MODEL, GROQ_FAST_MODEL, _REASONING_HEADROOM)
     return _groq_client
 
 
