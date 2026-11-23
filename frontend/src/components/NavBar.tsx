@@ -46,6 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/coach", label: "Coach", top: true, group: "You", hint: "Ask, set a goal, your week" },
   { href: "/dashboard", label: "Today", authRequired: true, group: "You", hint: "Today's plan and streak" },
   { href: "/progress", label: "Progress", authRequired: true, group: "You", hint: "Chords, stars and history" },
+  { href: "/pricing", label: "Pricing", group: "You", hint: "Free while we build it; Pro is coming" },
   { href: "/teacher", label: "Class", authRequired: true, teacherOnly: true, group: "You" },
   { href: "/admin", label: "Admin", authRequired: true, adminOnly: true, group: "You" },
 ];

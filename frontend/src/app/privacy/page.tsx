@@ -70,6 +70,11 @@ export default function PrivacyPage() {
           anything you typed.
         </li>
         <li><strong className="text-cream">Resend</strong> — sends password-reset emails to your address.</li>
+        <li>
+          <strong className="text-cream">Pro interest</strong> — if you tell us on the pricing page that you&apos;d want Pro,
+          we keep which price you saw and, if you give it, your email, only to tell you when Pro is ready. Ask us and we delete it;
+          deleting your account deletes it too.
+        </li>
       </ul>
       <p>
         AI-written text can be wrong. Every AI response has a <em>Report</em> link; reports include the text you

@@ -12,6 +12,7 @@ const PAGES: [string, number][] = [
   ["/practice?mode=song", 0.8],
   ["/tuner", 0.8],
   ["/rhythm", 0.6],
+  ["/pricing", 0.4],
   ["/groove", 0.6],
   ["/songs", 0.6],
   ["/studio", 0.6],

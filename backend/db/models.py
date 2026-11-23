@@ -621,3 +621,20 @@ class PushSubscription(Base):
     p256dh: Mapped[str] = mapped_column(String(200), nullable=False)
     auth: Mapped[str] = mapped_column(String(100), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class PricingEvent(Base):
+    """The pricing experiment: a visit to the pricing page, or someone saying they'd want Pro."""
+
+    __tablename__ = "pricing_events"
+    __table_args__ = (Index("idx_pricing_variant", "variant", "kind"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    kind: Mapped[str] = mapped_column(String(12), nullable=False)  # "view" | "interest"
+    variant: Mapped[str] = mapped_column(String(8), nullable=False)
+    plan: Mapped[str | None] = mapped_column(String(12), nullable=True)  # "monthly" | "yearly"
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

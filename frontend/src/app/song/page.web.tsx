@@ -18,7 +18,7 @@ export default async function SongIndex() {
       <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
         <p className="label-mono text-amber-300">Songs</p>
         <h1 className="mt-2 font-display text-h1 uppercase text-cream">Songs to learn</h1>
-        <p className="mt-3 max-w-2xl text-cream/75">Songs learners are playing, with their key and chords. Not here? <Link href="/practice?mode=song" className="text-amber-300 underline-offset-4 hover:underline">Name any song</Link> and get a lesson for it.</p>
+        <p className="mt-3 max-w-2xl text-cream/75">Songs learners are playing, with their key and chords. Not here? <Link href="/practice?mode=song" className="text-amber-300 underline underline-offset-4">Name any song</Link> and get a lesson for it.</p>
         <ul className="mt-8 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {songs.map((s) => (
             <li key={s.slug}>
