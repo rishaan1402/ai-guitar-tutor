@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import UserManagement from "@/components/AdminPanel/UserManagement";
 import SystemStatsView from "@/components/AdminPanel/SystemStats";
+import ReportedSongs from "@/components/AdminPanel/ReportedSongs";
 import { getAdminUsers, getSystemStats, type AdminUser, type SystemStats } from "@/lib/api";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
@@ -60,6 +61,8 @@ export default function AdminPage() {
 
         {/* System stats */}
         {stats && <SystemStatsView stats={stats} />}
+
+        {isAdmin && <ReportedSongs />}
 
         {/* User management */}
         <div className="panel overflow-hidden">

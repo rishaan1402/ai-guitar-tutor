@@ -33,6 +33,10 @@ Rules:
 - NEVER include song lyrics or any words of the song
 - For songs with multiple versions, use the most widely-taught beginner arrangement
 - If uncertain about any field, provide your best estimate — do not refuse or leave fields empty
+- chord_confidence: how sure you are that these chords match the original recording:
+  "high" only for very well-known songs whose chords you know precisely; "medium" when the
+  overall harmony is right but some bars or voicings may differ; "low" for songs you know
+  little about or may be confusing with another song. Be honest: learners are told.
 """
 
 

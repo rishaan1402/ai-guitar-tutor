@@ -44,6 +44,8 @@ class SongObject(BaseModel):
     strumming: str = ""               # e.g. "D DU UDU"
     capo: int = 0                     # fret of the commonly taught arrangement
     tempo_bpm: Optional[int] = None   # approximate tempo
+    # how sure the AI is the chords match the recording (shown to learners)
+    chord_confidence: Literal["high", "medium", "low"] = "medium"
 
 
 # ---------------------------------------------------------------------------
@@ -116,6 +118,10 @@ class LessonDocument(BaseModel):
     lesson_id: str
     # the shared song lesson this came from (song library); empty on lessons made before it
     song_id: str = ""
+    # how far to trust the chords: the AI's own confidence, learner reports, corrections
+    chord_confidence: str = ""
+    chords_reported: int = 0
+    chords_corrected: bool = False
     song_title: str
     artist: str
     overall_difficulty: str

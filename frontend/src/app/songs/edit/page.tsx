@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import SongSheetPlayer from "@/components/SongSheet/SongSheetPlayer";
 import { useAuth } from "@/context/AuthContext";
-import { deleteSong, getSong, saveSong } from "@/lib/api";
-import { DRAFT_KEY } from "@/lib/songDraft";
+import { deleteSong, getSong, saveSong, suggestSongChart } from "@/lib/api";
+import { DRAFT_KEY, readDraftSource, type DraftSource } from "@/lib/songDraft";
 
 const TEMPLATE = `{title: My Song}
 {artist: }
@@ -45,6 +45,9 @@ function SongEditor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"edit" | "preview">("edit");
+  // opened from "Fix the chords" on a song lesson: the fix can go to everyone
+  const [source, setSource] = useState<DraftSource | null>(null);
+  const [fix, setFix] = useState<"idle" | "sending" | "sent">("idle");
   const textRef = useRef<HTMLTextAreaElement>(null);
   // Until the user places the cursor, snippets go at the end rather than position 0
   const touched = useRef(false);
@@ -70,6 +73,7 @@ function SongEditor() {
         // storage blocked: fall back to the template
       }
       setContent(draft ?? TEMPLATE);
+      setSource(readDraftSource());
     } else {
       setContent(TEMPLATE);
     }
@@ -99,6 +103,19 @@ function SongEditor() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
       setSaving(false);
+    }
+  };
+
+  const sendFix = async () => {
+    if (!source || content === null) return;
+    setFix("sending");
+    setError(null);
+    try {
+      await suggestSongChart(source.song_id, content);
+      setFix("sent");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't send your fix");
+      setFix("idle");
     }
   };
 
@@ -150,6 +167,21 @@ function SongEditor() {
           </button>
         </div>
       </div>
+
+      {source && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm">
+          <p className="min-w-0 flex-1 basis-64 text-cream/85">
+            {fix === "sent"
+              ? `Thanks. Once your fix to "${source.title}" is checked, everyone who opens the song gets it.`
+              : `Fixing the chords for "${source.title}". Edit the bars below, then send your version. You can also save it to your own songs.`}
+          </p>
+          {fix !== "sent" && (
+            <button type="button" onClick={sendFix} disabled={fix === "sending"} className="rounded-full bg-amber-400 px-4 py-2 font-semibold text-ink-950 disabled:opacity-60">
+              {fix === "sending" ? "Sending…" : "Send this fix"}
+            </button>
+          )}
+        </div>
+      )}
 
       {error && (
         <p className="text-red-300 text-sm bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 mb-4" role="alert">

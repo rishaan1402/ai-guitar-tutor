@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth.dependencies import get_current_user_optional
 from auth.rate_limit import RateLimiter, client_ip
 from db.engine import get_db
+from council import library
 from db.models import ContentReport, User
 
 router = APIRouter(prefix="/api", tags=["app"])
@@ -45,6 +46,8 @@ class ReportRequest(BaseModel):
     content: str = Field(min_length=1, max_length=8000)
     context: Optional[str] = Field(default=None, max_length=200)
     note: Optional[str] = Field(default=None, max_length=500)
+    # a song lesson from the song library: "wrong" reports count against its chords
+    song_id: Optional[str] = Field(default=None, max_length=40)
 
 
 @router.post("/reports", status_code=201)
@@ -67,4 +70,7 @@ async def report_content(
         note=(body.note or "").strip() or None,
     ))
     await db.commit()
+    song_id = library.parse_song_id(body.song_id) if body.song_id else None
+    if song_id and body.reason == "wrong" and body.kind in ("song_chart", "song_lesson"):
+        await library.add_report(db, song_id)
     return {"status": "received"}

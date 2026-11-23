@@ -14,6 +14,7 @@ import PlayAlongMode from "./PlayAlongMode";
 import { ChordPracticeDrawer } from "./ChordPracticeDrawer";
 import { SongCouncilContext } from "./index";
 import { lessonToChordPro, storeDraft } from "@/lib/songDraft";
+import ChordTrust from "./ChordTrust";
 
 interface IntegratedLessonViewProps {
   lesson: LessonDocument;
@@ -172,7 +173,7 @@ export function IntegratedLessonView({
           </div>
         </div>
 
-        {/* Chairman summary */}
+        {/* Lesson summary */}
         <div
           className="mt-4 p-4 rounded-xl text-sm leading-relaxed"
           style={{
@@ -183,6 +184,8 @@ export function IntegratedLessonView({
         >
           <RichText text={lesson.chairman_summary} />
         </div>
+
+        <ChordTrust lesson={lesson} />
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <SongLessonButton lesson={lesson} chart={lesson.chart || lessonToChordPro(lesson)} />

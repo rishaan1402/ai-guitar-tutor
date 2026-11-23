@@ -204,3 +204,89 @@ class TestAccountLibrary:
                     UserSong.song_id == uuid.UUID(song_id)))).scalar_one()
 
         assert asyncio.run(_count()) == 0
+
+
+# ---------------------------------------------------------------------------
+# Wrong chords: confidence, reports, suggested fixes, review
+# ---------------------------------------------------------------------------
+
+from tests.test_teacher_scoping import _user  # noqa: E402  (signup + role helper)
+
+CHART = "{title: Fixed}\n{start_of_verse: Verse}\n| G | D | Em | C |\n{end_of_verse}\n"
+
+
+def _report(client, song_id, reason="wrong"):
+    return client.post("/api/reports", json={
+        "kind": "song_chart", "reason": reason, "content": "| G | D |", "song_id": song_id})
+
+
+class TestWrongChords:
+    def test_confidence_comes_from_the_ai(self, client):
+        title = f"Confidence Song {uuid.uuid4().hex[:6]}"
+        d = json.loads(_song_json(title)); d["chord_confidence"] = "low"
+        with _llm(json.dumps(d)):
+            lesson = _generate(client, title).json()
+        assert lesson["chord_confidence"] == "low"
+        assert lesson["chords_reported"] == 0 and lesson["chords_corrected"] is False
+
+    def test_reports_count_and_three_reports_rewrite_the_lesson(self, client):
+        title = f"Reported Song {uuid.uuid4().hex[:6]}"
+        with _llm(_song_json(title)):
+            first = _generate(client, title).json()
+        sid = first["song_id"]
+        assert _report(client, sid, reason="offensive").status_code == 201  # not about the chords
+        for _ in range(2):
+            assert _report(client, sid).status_code == 201
+        with _llm(None, council=False):
+            still_cached = _generate(client, title).json()
+        assert still_cached["chords_reported"] == 2
+        assert _report(client, sid).status_code == 201
+        # third report: the next search writes it again (the LLM is called) and reports start over
+        with patch("council.ingestion._get_groq_client", return_value=_groq(_song_json(title))), \
+             patch("council.agents._get_groq_client", return_value=_groq("Rewritten lesson.")), \
+             patch("council.chairman._get_groq_client", return_value=_groq("Rewritten lesson.")), \
+             patch("feedback_engine.generator._get_groq_client", return_value=_groq("x")):
+            rewritten = _generate(client, title).json()
+        assert rewritten["song_id"] == sid and rewritten["chords_reported"] == 0
+        assert "Rewritten" in rewritten["chairman_summary"]
+
+    def test_suggest_review_and_publish_a_fix(self, client):
+        title = f"Fix Song {uuid.uuid4().hex[:6]}"
+        with _llm(_song_json(title)):
+            sid = _generate(client, title).json()["song_id"]
+        assert client.post(f"/api/council/songs/{sid}/suggest-chart", json={"chart": CHART}).status_code == 401
+        learner, _ = _user(client)
+        r = client.post(f"/api/council/songs/{sid}/suggest-chart", json={"chart": CHART, "note": "verse is Em"}, headers=learner)
+        assert r.status_code == 201, r.text
+        # learners can't review
+        assert client.get("/api/admin/songs/reported", headers=learner).status_code == 403
+        admin, _ = _user(client, role="admin")
+        reported = {s["song_id"]: s for s in client.get("/api/admin/songs/reported", headers=admin).json()}
+        assert reported[sid]["reports"] == 1
+        (sugg,) = reported[sid]["suggestions"]
+        assert sugg["chart"] == CHART and "verse is Em" in sugg["note"]
+        assert client.post(f"/api/admin/songs/{sid}/chart", json={"chart": sugg["chart"]}, headers=admin).status_code == 204
+        # everyone now gets the corrected chart, marked as corrected
+        with _llm(None, council=False):
+            fixed = _generate(client, title).json()
+        assert fixed["chart"] == CHART and fixed["chords_corrected"] is True and fixed["chord_confidence"] == "high"
+        assert sid not in {s["song_id"] for s in client.get("/api/admin/songs/reported", headers=admin).json()}
+        # a corrected song is not rewritten by later reports
+        for _ in range(3):
+            _report(client, sid)
+        with _llm(None, council=False):
+            assert _generate(client, title).json()["chart"] == CHART
+
+    def test_dismiss_clears_reports(self, client):
+        title = f"Dismiss Song {uuid.uuid4().hex[:6]}"
+        with _llm(_song_json(title)):
+            sid = _generate(client, title).json()["song_id"]
+        _report(client, sid)
+        admin, _ = _user(client, role="admin")
+        assert client.post(f"/api/admin/songs/{sid}/dismiss", headers=admin).status_code == 204
+        assert sid not in {s["song_id"] for s in client.get("/api/admin/songs/reported", headers=admin).json()}
+
+    def test_unknown_song_suggestion_is_404(self, client):
+        learner, _ = _user(client)
+        r = client.post(f"/api/council/songs/{uuid.uuid4()}/suggest-chart", json={"chart": CHART}, headers=learner)
+        assert r.status_code == 404

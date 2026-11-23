@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +25,7 @@ from auth.dependencies import get_current_user, get_current_user_optional
 from auth.rate_limit import RateLimiter, client_ip
 from auth.profile_context import build_user_context
 from db.engine import get_db
-from db.models import SongLesson, UserSong
+from db.models import ContentReport, SongLesson, UserSong
 from feedback_engine.generator import FeedbackGenerator
 
 logger = logging.getLogger(__name__)
@@ -111,8 +112,10 @@ async def generate_lesson(
     owner = user.id if user else None
 
     # 1. Someone typed this before: serve the stored lesson, no LLM call, no limit used.
+    #    (Unless learners reported its chords: then it is written again below.)
     stored = await library.find_by_query(db, body.song_query)
-    if stored is None:
+    if stored is None or library.needs_regeneration(stored):
+        reported_id = stored.id if stored is not None else None
         limiter, key = (
             (_user_generate_limiter, f"user:{user.id}") if user is not None
             else (_anon_generate_limiter, f"ip:{client_ip(request)}")
@@ -131,9 +134,13 @@ async def generate_lesson(
             raise HTTPException(status_code=503, detail=_UNAVAILABLE)
 
         # 2. Typed differently, same song: reuse it.
-        stored = await library.find_by_song(db, song.song_title, song.artist)
-        if stored is None:
-            # 3. New song: write the lesson and keep it for everyone.
+        stored = (
+            await db.get(SongLesson, reported_id) if reported_id
+            else await library.find_by_song(db, song.song_title, song.artist)
+        )
+        if stored is None or library.needs_regeneration(stored):
+            # 3. New (or reported) song: write the lesson and keep it for everyone.
+            rewrite_id = stored.id if stored is not None else None
             await db.rollback()
             try:
                 agent_outputs = await run_council(song)
@@ -142,7 +149,11 @@ async def generate_lesson(
                 logger.exception("Council synthesis unavailable")
                 raise HTTPException(status_code=503, detail=_UNAVAILABLE)
             lesson = _embed_fingerings_and_functions(lesson, song.chords)
-            stored = await library.store(db, song, lesson)
+            if rewrite_id is not None:
+                stored = await db.get(SongLesson, rewrite_id, populate_existing=True)  # reload after the rollback
+                stored = await library.replace(db, stored, song, lesson)
+            else:
+                stored = await library.store(db, song, lesson)
         await library.remember_query(db, body.song_query, stored)
     else:
         await library.count_hit(db, stored)
@@ -219,6 +230,41 @@ async def save_to_library(song_id: str, user=Depends(get_current_user), db: Asyn
             await db.commit()
         except IntegrityError:
             await db.rollback()  # saved twice at once: already there
+
+
+class ChartSuggestion(BaseModel):
+    chart: str = Field(min_length=10, max_length=8000)
+    note: Optional[str] = Field(default=None, max_length=500)
+
+
+@router.post("/songs/{song_id}/suggest-chart", status_code=201)
+async def suggest_chart(
+    song_id: str,
+    body: ChartSuggestion,
+    request: Request,
+    user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """A learner's corrected chord chart for a song. Reviewed before everyone gets it."""
+    from meta.router import report_limiter
+
+    key = client_ip(request)
+    report_limiter.check(key)
+    report_limiter.hit(key)
+    sid = library.parse_song_id(song_id)
+    if sid is None or await library.get(db, sid) is None:
+        raise HTTPException(status_code=404, detail="Song lesson not found.")
+    db.add(ContentReport(
+        user_id=user.id,
+        kind="song_chart",
+        reason="wrong",
+        content=body.chart,
+        context=f"song:{sid}",
+        note=("Suggested correction. " + (body.note or "").strip()).strip()[:500],
+    ))
+    await db.commit()
+    await library.add_report(db, sid)
+    return {"status": "received"}
 
 
 @router.delete("/library/{song_id}", status_code=204)

@@ -4,14 +4,15 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.account import delete_user_and_data
 from auth.dependencies import require_role
 from db.engine import get_db
-from db.models import ChordAttempt, ContentReport, TransitionDrill, User
+from council import library
+from db.models import ChordAttempt, ContentReport, SongLesson, TransitionDrill, User
 
 router = APIRouter(
     prefix="/api/admin",
@@ -136,4 +137,76 @@ async def resolve_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db
     if r is None:
         raise HTTPException(status_code=404, detail="Report not found")
     r.resolved = True
+    await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Song lessons learners reported, and their suggested chord charts
+# ---------------------------------------------------------------------------
+
+
+@router.get("/songs/reported")
+async def reported_songs(db: AsyncSession = Depends(get_db)):
+    """Songs whose chords learners flagged, with any corrected charts they sent."""
+    songs = (await db.execute(
+        select(SongLesson).where(SongLesson.reports > 0).order_by(SongLesson.reports.desc()).limit(100)
+    )).scalars().all()
+    contexts = [f"song:{s.id}" for s in songs]
+    suggestions: dict[str, list] = {}
+    if contexts:
+        rows = (await db.execute(
+            select(ContentReport)
+            .where(ContentReport.context.in_(contexts), ContentReport.resolved.is_(False))
+            .order_by(ContentReport.created_at.desc())
+        )).scalars().all()
+        for r in rows:
+            suggestions.setdefault(r.context, []).append(
+                {"report_id": str(r.id), "chart": r.content, "note": r.note,
+                 "created_at": r.created_at.isoformat() if r.created_at else None}
+            )
+    return [
+        {
+            "song_id": str(s.id), "title": s.song_title, "artist": s.artist, "reports": s.reports,
+            "chart": (s.lesson_data or {}).get("chart", ""),
+            "edited_at": s.edited_at.isoformat() if s.edited_at else None,
+            "suggestions": suggestions.get(f"song:{s.id}", []),
+        }
+        for s in songs
+    ]
+
+
+class ChartUpdate(BaseModel):
+    chart: str = Field(min_length=10, max_length=8000)
+    report_id: uuid.UUID | None = None
+
+
+async def _song_or_404(db: AsyncSession, song_id: uuid.UUID) -> SongLesson:
+    song = await db.get(SongLesson, song_id)
+    if song is None:
+        raise HTTPException(status_code=404, detail="Song lesson not found")
+    return song
+
+
+async def _resolve_song_reports(db: AsyncSession, song_id: uuid.UUID) -> None:
+    rows = (await db.execute(
+        select(ContentReport).where(ContentReport.context == f"song:{song_id}", ContentReport.resolved.is_(False))
+    )).scalars().all()
+    for r in rows:
+        r.resolved = True
+
+
+@router.post("/songs/{song_id}/chart", status_code=204)
+async def set_song_chart(song_id: uuid.UUID, body: ChartUpdate, db: AsyncSession = Depends(get_db)):
+    """Publish a corrected chart: everyone who opens this song gets it from now on."""
+    song = await _song_or_404(db, song_id)
+    await _resolve_song_reports(db, song_id)
+    await library.set_chart(db, song, body.chart)
+
+
+@router.post("/songs/{song_id}/dismiss", status_code=204)
+async def dismiss_song_reports(song_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    """The chords are fine: clear the reports and close the suggestions."""
+    song = await _song_or_404(db, song_id)
+    song.reports = 0
+    await _resolve_song_reports(db, song_id)
     await db.commit()

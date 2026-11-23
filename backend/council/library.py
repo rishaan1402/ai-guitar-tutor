@@ -108,9 +108,52 @@ async def count_hit(db: AsyncSession, song: SongLesson) -> None:
     await db.commit()
 
 
+# Enough learners said the chords are wrong and nobody has corrected them:
+# the next search writes the lesson again instead of serving it.
+REGENERATE_AFTER_REPORTS = 3
+
+
+def needs_regeneration(song: SongLesson) -> bool:
+    return song.edited_at is None and (song.reports or 0) >= REGENERATE_AFTER_REPORTS
+
+
+async def replace(db: AsyncSession, row: SongLesson, song: SongObject, lesson: LessonDocument) -> SongLesson:
+    """Swap in a newly written lesson for a song learners reported (reports start again)."""
+    row.song_data = song.model_dump(mode="json")
+    row.lesson_data = lesson.model_copy(update={"lesson_id": "", "song_id": ""}).model_dump(mode="json")
+    row.reports = 0
+    await db.commit()
+    return row
+
+
+async def add_report(db: AsyncSession, song_id: uuid.UUID) -> bool:
+    result = await db.execute(update(SongLesson).where(SongLesson.id == song_id).values(reports=SongLesson.reports + 1))
+    await db.commit()
+    return bool(result.rowcount)
+
+
+async def set_chart(db: AsyncSession, row: SongLesson, chart: str) -> None:
+    """A reviewed correction: everyone who opens this song gets this chart from now on."""
+    from datetime import datetime, timezone
+
+    data = dict(row.lesson_data)
+    data["chart"] = chart
+    row.lesson_data = data
+    row.edited_at = datetime.now(timezone.utc)
+    row.reports = 0
+    await db.commit()
+
+
 def lesson_for_learner(song: SongLesson) -> tuple[SongObject, LessonDocument]:
     """The shared lesson as a fresh copy for one learner: a new session id, tagged with its song."""
+    song_obj = SongObject.model_validate(song.song_data)
     lesson = LessonDocument.model_validate(song.lesson_data).model_copy(
-        update={"lesson_id": str(uuid.uuid4()), "song_id": str(song.id)}
+        update={
+            "lesson_id": str(uuid.uuid4()),
+            "song_id": str(song.id),
+            "chord_confidence": "high" if song.edited_at else song_obj.chord_confidence,
+            "chords_reported": song.reports or 0,
+            "chords_corrected": song.edited_at is not None,
+        }
     )
-    return SongObject.model_validate(song.song_data), lesson
+    return song_obj, lesson

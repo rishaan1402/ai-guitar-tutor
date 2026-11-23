@@ -180,7 +180,7 @@ export default function ChartStage({ lesson, onPracticeChord, onComplete }: Prop
 
       <SongLessonButton lesson={lesson} chart={lesson.chart} />
       <SongSheetPlayer content={lesson.chart} />
-      <ReportContent kind="song_chart" content={lesson.chart} context={`${lesson.song_title ?? ""} — ${lesson.artist ?? ""}`} />
+      <ReportContent kind="song_chart" content={lesson.chart} context={`${lesson.song_title ?? ""} — ${lesson.artist ?? ""}`} songId={lesson.song_id} />
 
       {sections.length > 0 && (
         <section aria-labelledby="section-lessons-heading" className="space-y-4">
