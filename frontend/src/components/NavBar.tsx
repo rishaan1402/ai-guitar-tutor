@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -14,26 +14,33 @@ import InstallApp from "@/components/native/InstallApp";
 interface NavItem {
   href: string;
   label: string;
-  /** Path that marks this item active (defaults to href without the query). */
-  match?: string;
+  /** Marks this item active (default: the path of href). */
+  active?: (pathname: string, search: string) => boolean;
   authRequired?: boolean;
   teacherOnly?: boolean;
   adminOnly?: boolean;
   /** Shown in the top bar on wide screens (everything is in the menu). */
   top?: boolean;
-  group: "Learn" | "Play" | "You";
+  group: "Learn" | "Songs" | "Play" | "You";
   /** One line under the label in the menu. */
   hint?: string;
 }
 
+const isSongMode = (search: string) => /(^|[?&])mode=song(&|$)/.test(search);
+
 const NAV_ITEMS: NavItem[] = [
   { href: "/studio", label: "Studio", top: true, group: "Learn", hint: "Your practice room" },
-  { href: "/path", label: "Lessons", top: true, group: "Learn", hint: "Four tracks, beginner to pro" },
-  { href: "/practice", label: "Practice", top: true, group: "Learn", hint: "Play a chord, hear every string" },
-  { href: "/practice?mode=song", label: "Learn a song", match: "#song", top: true, group: "Learn", hint: "Any song: chart, tabs, a lesson" },
-  { href: "/chords/learn", label: "Build a chord", group: "Learn", hint: "Any chord, with its own lesson" },
+  { href: "/path", label: "Lessons", top: true, group: "Learn", hint: "Four tracks, beginner to pro", active: (p) => p.startsWith("/path") },
+  {
+    href: "/practice", label: "Chords", top: true, group: "Learn", hint: "Any chord: watch it, play it, hear every string",
+    active: (p, s) => (p === "/practice" && !isSongMode(s)) || p.startsWith("/chords"),
+  },
+  {
+    href: "/practice?mode=song", label: "Songs", top: true, group: "Songs", hint: "Any song: chart, tabs, a lesson for each part",
+    active: (p, s) => p === "/practice" && isSongMode(s),
+  },
+  { href: "/songs", label: "Chord sheets", group: "Songs", hint: "Your charts: transpose, capo, autoscroll", active: (p) => p.startsWith("/songs") },
   { href: "/groove", label: "Grooves", top: true, group: "Play", hint: "Play along with a band" },
-  { href: "/songs", label: "Songs", top: true, group: "Play", hint: "Chord charts and tabs" },
   { href: "/tuner", label: "Tuner", top: true, group: "Play", hint: "Tune any string, any tuning" },
   { href: "/coach", label: "Coach", top: true, group: "You", hint: "Ask, set a goal, your week" },
   { href: "/dashboard", label: "Today", authRequired: true, group: "You", hint: "Today's plan and streak" },
@@ -41,11 +48,22 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/teacher", label: "Class", authRequired: true, teacherOnly: true, group: "You" },
   { href: "/admin", label: "Admin", authRequired: true, adminOnly: true, group: "You" },
 ];
-const GROUPS: NavItem["group"][] = ["Learn", "Play", "You"];
+const GROUPS: NavItem["group"][] = ["Learn", "Songs", "Play", "You"];
 
-function isActive(item: NavItem, pathname: string): boolean {
-  if (item.match === "#song") return false; // query-based; Practice stays lit for /practice
-  return pathname === (item.match ?? item.href.split("?")[0]);
+function isActive(item: NavItem, pathname: string, search: string): boolean {
+  return item.active ? item.active(pathname, search) : pathname === item.href.split("?")[0];
+}
+
+/** The query string, for items that differ only by it (Chords vs Songs on /practice). */
+function WithSearch({ children }: { children: (search: string) => ReactNode }) {
+  return (
+    <Suspense fallback={children("")}>
+      <SearchReader>{children}</SearchReader>
+    </Suspense>
+  );
+}
+function SearchReader({ children }: { children: (search: string) => ReactNode }) {
+  return <>{children(useSearchParams()?.toString() ?? "")}</>;
 }
 
 export default function NavBar() {
@@ -72,9 +90,10 @@ export default function NavBar() {
           <Logo size="md" />
         </Link>
 
-        <div className="hidden min-w-0 items-center gap-0.5 xl:flex">
+        <WithSearch>{(search) => (
+        <div className="hidden min-w-0 items-center gap-0.5 lg:flex">
           {items.filter((i) => i.top).map((item) => {
-            const active = isActive(item, pathname);
+            const active = isActive(item, pathname, search);
             return (
               <Link
                 key={item.href}
@@ -90,6 +109,7 @@ export default function NavBar() {
             );
           })}
         </div>
+        )}</WithSearch>
 
         <div className="flex shrink-0 items-center gap-2">
           <ThemeToggle />
@@ -160,26 +180,27 @@ export function AppMenu({ className = "" }: { className?: string }) {
                   <Logo size="sm" />
                   {user && <p className="mt-3 text-sm text-cream/70">Signed in as {user.display_name}</p>}
                 </div>
+                <WithSearch>{(search) => (
                 <div className="flex-1 space-y-3 p-3">
                   {GROUPS.map((g) => {
                     const list = items.filter((i) => i.group === g);
                     if (!list.length) return null;
                     return (
                       <div key={g}>
-                        <p className="label-mono px-4 pb-1 pt-1 text-[10px] text-cream/40">{g}</p>
+                        <p className="label-mono px-4 pb-1 pt-1 text-[10px] text-cream/60">{g}</p>
                         {list.map((item) => (
                           <Link
                             key={item.href}
                             href={item.href}
                             onClick={() => setMobileOpen(false)}
-                            aria-current={isActive(item, pathname) ? "page" : undefined}
+                            aria-current={isActive(item, pathname, search) ? "page" : undefined}
                             className={cn(
                               "block rounded-xl px-4 py-2",
-                              isActive(item, pathname) ? "bg-amber-400/10 text-amber-300" : "text-cream hover:bg-cream/5",
+                              isActive(item, pathname, search) ? "bg-amber-400/10 text-amber-300" : "text-cream hover:bg-cream/5",
                             )}
                           >
                             <span className="block font-display text-base uppercase">{item.label}</span>
-                            {item.hint && <span className="block text-xs text-cream/50">{item.hint}</span>}
+                            {item.hint && <span className="block text-xs text-cream/65">{item.hint}</span>}
                           </Link>
                         ))}
                       </div>
@@ -187,6 +208,7 @@ export function AppMenu({ className = "" }: { className?: string }) {
                   })}
                   <InstallApp variant="menu" />
                 </div>
+                )}</WithSearch>
                 <div className="space-y-1 border-t border-cream/10 p-3">
                   {user ? (
                     <>

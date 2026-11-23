@@ -10,7 +10,7 @@ interface ModeToggleProps {
 }
 
 const MODES: { key: AppMode; label: string; thing: string }[] = [
-  { key: "chords", label: "Practice a chord", thing: "Amp" },
+  { key: "chords", label: "Chords", thing: "Amp" },
   { key: "song", label: "Learn any song", thing: "Record player" },
 ];
 

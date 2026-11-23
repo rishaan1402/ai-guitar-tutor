@@ -60,11 +60,11 @@ export default function PathPage() {
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-1">
             <AppMenu className="-ml-2" />
-            <Link href="/studio" className="label-mono text-cream/50">← Studio</Link>
+            <Link href="/studio" className="label-mono whitespace-nowrap text-cream/60">← Studio</Link>
           </span>
           <div className="flex items-center gap-3">
-            <Link href="/chords/learn" className="rounded-full border border-amber-400/40 px-3 py-1 text-sm font-semibold text-amber-100">Build a chord</Link>
-            <p className="label-mono text-cream/40">
+            <Link href="/practice" className="whitespace-nowrap rounded-full border border-amber-400/40 px-3 py-1 text-sm font-semibold text-amber-100">Chords</Link>
+            <p className="label-mono whitespace-nowrap text-cream/60">
               {done ? Object.values(done).filter((n) => n > 0).length : 0} lessons done
             </p>
           </div>

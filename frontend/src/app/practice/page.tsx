@@ -153,8 +153,8 @@ function SessionHeader({ title, stepText, right, extra }: { title: string; stepT
 const HERO: Record<AppMode, { kicker: string; title: string; body: string }> = {
   chords: {
     kicker: "The amp",
-    title: "Practice a chord",
-    body: "Pick a chord, watch it, hear it, then play it into your mic. You'll hear back about every string.",
+    title: "Chords",
+    body: "Any chord: type its name or pick one below. Watch it, hear it, then play it into your mic, and you'll hear back about every string.",
   },
   song: {
     kicker: "The record player",
