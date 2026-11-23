@@ -68,6 +68,23 @@ stored songs still open, and only writing a brand-new song lesson answers
 503 until the window frees up. A new song costs about 6 calls; a stored one
 costs none.
 
+### AI fallback
+
+Every AI call tries Groq with the requested model, then the other Groq model
+(`GROQ_MODEL` / `GROQ_FAST_MODEL`, or `GROQ_FALLBACK_MODEL`), then, if set,
+a second provider over any OpenAI-compatible API:
+
+| Name | Kind | Example |
+|---|---|---|
+| `FALLBACK_LLM_BASE_URL` | env var | `https://api.openai.com/v1`, `https://openrouter.ai/api/v1` |
+| `FALLBACK_LLM_MODEL` | env var | a model that provider serves |
+| `FALLBACK_LLM_API_KEY` | secret | that provider's API key |
+
+Without the second provider, a full Groq outage still means template
+feedback and a 503 for new song lessons (stored songs keep working). Each
+attempt that has another option after it gets `LLM_ATTEMPT_TIMEOUT` seconds
+(default 12).
+
 ### Monitoring
 
 - **Errors (Sentry):** set `SENTRY_DSN` on Cloud Run for the backend, and
