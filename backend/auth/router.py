@@ -7,7 +7,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from jose import JWTError
+from auth.security import JWTError
 from sqlalchemy import case, delete, func, select
 from starlette.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -16,6 +16,7 @@ asyncpg>=0.29.0
 aiosqlite>=0.20.0
 alembic>=1.13.0
 # Auth
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-bcrypt>=4.0.0,<4.1.0
+PyJWT[crypto]>=2.10
+bcrypt>=4.2
+# Error monitoring (on only when SENTRY_DSN is set)
+sentry-sdk[fastapi]>=2.20

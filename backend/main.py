@@ -49,6 +49,19 @@ from middleware import BodySizeLimitMiddleware
 from llm_budget import LLMBudgetMiddleware
 from auth.rate_limit import RateLimiter, client_ip
 
+# Error monitoring: on only when SENTRY_DSN is set. No request bodies (passwords,
+# recordings) and no personal data (IPs, cookies) leave the server.
+if os.environ.get("SENTRY_DSN"):
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=os.environ["SENTRY_DSN"],
+        environment=os.environ.get("SENTRY_ENVIRONMENT", "production" if os.environ.get("K_SERVICE") else "development"),
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.05")),
+        send_default_pii=False,
+        max_request_body_size="never",
+    )
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",

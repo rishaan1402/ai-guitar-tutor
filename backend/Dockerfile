@@ -9,8 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Build context is the project root — copy backend code and lesson data separately
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# requirements.lock pins every package (regenerate with
+# `uv pip compile requirements.txt --python-version 3.12 -o requirements.lock`)
+COPY backend/requirements.lock .
+RUN pip install --no-cache-dir -r requirements.lock
 
 COPY backend/ .
 COPY data/ /data/

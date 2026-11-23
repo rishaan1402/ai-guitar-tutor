@@ -9,7 +9,10 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
-from jose import jwk, jwt
+import json
+
+import jwt
+from jwt.algorithms import RSAAlgorithm
 
 import auth.router as auth_router
 import auth.social as social
@@ -113,10 +116,8 @@ class TestGoogleTokenVerification:
         key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         pem = key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                                 serialization.NoEncryption())
-        pub = jwk.construct(key.public_key().public_bytes(
-            serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo), "RS256").to_dict()
+        pub = json.loads(RSAAlgorithm.to_jwk(key.public_key()))
         pub.update(kid="k1", use="sig", alg="RS256")
-        pub = {k: (v.decode() if isinstance(v, bytes) else v) for k, v in pub.items()}
         monkeypatch.setitem(social._certs, "keys", {"keys": [pub]})
         monkeypatch.setitem(social._certs, "expires", time.time() + 3600)
         monkeypatch.setenv("GOOGLE_CLIENT_IDS", CLIENT_ID)
