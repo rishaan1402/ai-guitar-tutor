@@ -159,3 +159,60 @@ class TestJwtSecretGuard:
             importlib.reload(security)
         monkeypatch.delenv("K_SERVICE")
         importlib.reload(security)  # restore a usable module for later tests
+
+
+class TestResetEmailInProduction:
+    """Audit SEC-01: a reset link is a password; it must never reach the logs in production."""
+
+    @pytest.fixture
+    def prod(self, monkeypatch):
+        import auth.mailer as mailer
+        monkeypatch.setattr(mailer, "_is_production", lambda: True)
+        return mailer
+
+    def test_unconfigured_email_is_reported_not_faked(self, client, prod, monkeypatch, caplog):
+        monkeypatch.setattr(prod, "RESEND_API_KEY", "")
+        monkeypatch.setattr(prod, "FRONTEND_URL", "")
+        email, _ = _signup(client)
+        caplog.clear()
+        caplog.set_level(logging.INFO)
+        r = client.post("/api/auth/password-reset/request", json={"email": email})
+        assert r.status_code == 503
+        # same answer for an unknown email: nothing about which accounts exist
+        r2 = client.post("/api/auth/password-reset/request", json={"email": "nobody@example.com"})
+        assert r2.status_code == 503 and r2.json() == r.json()
+        assert "token=" not in caplog.text and email not in caplog.text
+
+    def test_send_failure_in_production_never_logs_the_message(self, prod, monkeypatch, caplog):
+        import asyncio
+        monkeypatch.setattr(prod, "RESEND_API_KEY", "")
+        caplog.set_level(logging.DEBUG)
+        asyncio.run(prod.send_password_reset("a@example.com", "SECRET-TOKEN", 30))
+        assert "SECRET-TOKEN" not in caplog.text and "a@example.com" not in caplog.text
+
+    def test_configured_email_is_sent_with_the_real_link(self, client, prod, monkeypatch, caplog):
+        sent = {}
+
+        class _Resp:
+            status_code = 200
+            text = ""
+
+        class _Client:
+            def __init__(self, *a, **k): ...
+            async def __aenter__(self): return self
+            async def __aexit__(self, *a): return False
+            async def post(self, url, headers, json):
+                sent.update(json)
+                return _Resp()
+
+        monkeypatch.setattr(prod, "RESEND_API_KEY", "test-key")
+        monkeypatch.setattr(prod, "FRONTEND_URL", "https://app.example")
+        monkeypatch.setattr(prod.httpx, "AsyncClient", _Client)
+        email, _ = _signup(client)
+        caplog.clear()
+        caplog.set_level(logging.INFO)
+        r = client.post("/api/auth/password-reset/request", json={"email": email})
+        assert r.status_code == 202
+        assert sent["to"] == [email]
+        assert "https://app.example/reset-password?token=" in sent["text"]
+        assert "token=" not in caplog.text

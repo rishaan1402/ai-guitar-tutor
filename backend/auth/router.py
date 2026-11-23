@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -13,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.account import delete_user_and_data
 from auth.dependencies import get_current_user
-from auth.mailer import send_password_reset
+from auth.mailer import email_configured, send_password_reset
 from auth.rate_limit import client_ip, login_limiter, reset_limiter, signup_limiter
 from auth.schemas import (
     DeleteAccountRequest,
@@ -38,6 +39,8 @@ from auth.security import (
 )
 from auth.social import SocialAuthError, SocialIdentity, enabled_providers, verify_facebook, verify_google
 from db.engine import get_db
+
+logger = logging.getLogger(__name__)
 from db.models import PasswordResetToken, RefreshToken, User, UserIdentity
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -352,6 +355,13 @@ async def request_password_reset(
     db: AsyncSession = Depends(get_db),
 ):
     """Email a reset link. Always 202, so the response never reveals whether an email is registered."""
+    if not email_configured():
+        # Checked before any lookup, so it says nothing about which emails exist.
+        logger.error("Password reset requested but email delivery is not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Password reset by email isn't available right now. Please try again later.",
+        )
     ip_key = client_ip(request)
     reset_limiter.check(ip_key)
     reset_limiter.hit(ip_key)
