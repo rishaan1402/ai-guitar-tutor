@@ -25,16 +25,31 @@ def _normalize_db_url(url: str) -> str:
 
 DATABASE_URL = _normalize_db_url(_raw_url)
 
-engine = create_async_engine(
-    DATABASE_URL,
-    echo=False,
-    # SQLite doesn't support pool_size/max_overflow
-    **(
-        {"pool_pre_ping": True, "pool_size": 5, "max_overflow": 10}
-        if not DATABASE_URL.startswith("sqlite")
-        else {}
-    ),
+def _int_env(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, default))
+    except ValueError:
+        return default
+
+
+# Connections per server instance. Cloud SQL db-f1-micro accepts about 25 in
+# total, so (max instances) x (pool + overflow) must stay under that with room
+# for migrations and admin: 5 instances x (2 + 2) = 20. Queries are short and
+# no request holds a connection while it waits on the AI, so a few go far
+# (load test: 50 concurrent graded takes on one instance, p95 about 2 s).
+_POOL = (
+    {
+        "pool_pre_ping": True,
+        "pool_size": _int_env("DB_POOL_SIZE", 2),
+        "max_overflow": _int_env("DB_MAX_OVERFLOW", 2),
+        "pool_timeout": _int_env("DB_POOL_TIMEOUT", 10),
+        "pool_recycle": 1800,
+    }
+    if not DATABASE_URL.startswith("sqlite")  # SQLite doesn't pool
+    else {}
 )
+
+engine = create_async_engine(DATABASE_URL, echo=False, **_POOL)
 
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
