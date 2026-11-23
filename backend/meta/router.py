@@ -17,7 +17,7 @@ from db.models import ContentReport, User
 router = APIRouter(prefix="/api", tags=["app"])
 
 # Reports per ip: generous for a class, too few to flood the table
-report_limiter = RateLimiter(max_hits=30, window_seconds=60 * 60)
+report_limiter = RateLimiter("report", max_hits=30, window_seconds=60 * 60)
 
 
 def _int_env(name: str, default: int) -> int:
@@ -59,8 +59,8 @@ async def report_content(
 ):
     """Flag AI-generated text. Signed in or not; rate-limited per IP."""
     key = client_ip(request)
-    report_limiter.check(key)
-    report_limiter.hit(key)
+    await report_limiter.check(db, key)
+    await report_limiter.hit(db, key)
     db.add(ContentReport(
         user_id=user.id if user else None,
         kind=body.kind,

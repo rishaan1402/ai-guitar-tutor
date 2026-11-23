@@ -104,7 +104,7 @@ async def signup(body: SignupRequest, request: Request, db: AsyncSession = Depen
     ip_key = client_ip(request)
     # Only successful signups count, so typos and validation errors from a
     # classroom sharing one school IP don't use up the allowance.
-    signup_limiter.check(ip_key)
+    await signup_limiter.check(db, ip_key)
     # Check email uniqueness
     if await _find_user_by_email(db, body.email) is not None:
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -119,7 +119,7 @@ async def signup(body: SignupRequest, request: Request, db: AsyncSession = Depen
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    signup_limiter.hit(ip_key)
+    await signup_limiter.hit(db, ip_key)
 
     access = create_access_token(str(user.id), user.role, user.token_version or 0)
     refresh = create_refresh_token(str(user.id))
@@ -136,7 +136,7 @@ async def signup(body: SignupRequest, request: Request, db: AsyncSession = Depen
 async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
     # Only failures count, keyed per ip+email so one attacker can't lock out everyone
     limit_key = f"{client_ip(request)}:{body.email.lower()}"
-    login_limiter.check(limit_key)
+    await login_limiter.check(db, limit_key)
     user = await _find_user_by_email(db, body.email)
     # Always run one bcrypt check so response time doesn't reveal whether the
     # email is registered.
@@ -145,9 +145,9 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
         body.password, user.password_hash if user is not None and user.has_password else _DUMMY_HASH
     )
     if user is None or not user.has_password or not password_ok:
-        login_limiter.hit(limit_key)
+        await login_limiter.hit(db, limit_key)
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    login_limiter.reset(limit_key)
+    await login_limiter.reset(db, limit_key)
 
     access = create_access_token(str(user.id), user.role, user.token_version or 0)
     refresh = create_refresh_token(str(user.id))
@@ -218,11 +218,11 @@ async def social_login(provider: str, body: SocialLoginRequest, request: Request
     if verify is None:
         raise HTTPException(status_code=404, detail="Unknown sign-in provider")
     limit_key = f"{client_ip(request)}:oauth"
-    login_limiter.check(limit_key)
+    await login_limiter.check(db, limit_key)
     try:
         ident = await verify(body.token)
     except SocialAuthError as e:
-        login_limiter.hit(limit_key)
+        await login_limiter.hit(db, limit_key)
         raise HTTPException(status_code=401, detail=str(e))
     user = await _user_for_identity(db, ident)
     access = create_access_token(str(user.id), user.role, user.token_version or 0)
@@ -363,8 +363,8 @@ async def request_password_reset(
             detail="Password reset by email isn't available right now. Please try again later.",
         )
     ip_key = client_ip(request)
-    reset_limiter.check(ip_key)
-    reset_limiter.hit(ip_key)
+    await reset_limiter.check(db, ip_key)
+    await reset_limiter.hit(db, ip_key)
 
     user = await _find_user_by_email(db, body.email)
     if user is not None:

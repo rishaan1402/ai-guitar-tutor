@@ -76,20 +76,20 @@ def _embed_fingerings_and_functions(lesson: LessonDocument, song_chords: list) -
 
 
 # Each generation fans out to several LLM calls, so it is the costliest endpoint.
-_anon_generate_limiter = RateLimiter(max_hits=5, window_seconds=60 * 60)
-_user_generate_limiter = RateLimiter(max_hits=30, window_seconds=60 * 60)
+_anon_generate_limiter = RateLimiter("gen-anon", max_hits=5, window_seconds=60 * 60)
+_user_generate_limiter = RateLimiter("gen-user", max_hits=30, window_seconds=60 * 60)
 # Follow-up LLM calls (tips, revisions, quizzes) per user / per anonymous IP.
-_anon_llm_limiter = RateLimiter(max_hits=60, window_seconds=60 * 60)
-_user_llm_limiter = RateLimiter(max_hits=300, window_seconds=60 * 60)
+_anon_llm_limiter = RateLimiter("llm-anon", max_hits=60, window_seconds=60 * 60)
+_user_llm_limiter = RateLimiter("llm-user", max_hits=300, window_seconds=60 * 60)
 
 
-def _limit_llm(request: Request, user) -> None:
+async def _limit_llm(request: Request, user, db: AsyncSession) -> None:
     limiter, key = (
         (_user_llm_limiter, f"user:{user.id}") if user is not None
         else (_anon_llm_limiter, f"ip:{client_ip(request)}")
     )
-    limiter.check(key)
-    limiter.hit(key)
+    await limiter.check(db, key)
+    await limiter.hit(db, key)
 
 
 _UNAVAILABLE = "Song lessons are temporarily unavailable. Please try again later."
@@ -120,8 +120,8 @@ async def generate_lesson(
             (_user_generate_limiter, f"user:{user.id}") if user is not None
             else (_anon_generate_limiter, f"ip:{client_ip(request)}")
         )
-        limiter.check(key)
-        limiter.hit(key)
+        await limiter.check(db, key)
+        await limiter.hit(db, key)
 
         await db.rollback()  # release the connection during the LLM calls
         try:
@@ -249,8 +249,8 @@ async def suggest_chart(
     from meta.router import report_limiter
 
     key = client_ip(request)
-    report_limiter.check(key)
-    report_limiter.hit(key)
+    await report_limiter.check(db, key)
+    await report_limiter.hit(db, key)
     sid = library.parse_song_id(song_id)
     if sid is None or await library.get(db, sid) is None:
         raise HTTPException(status_code=404, detail="Song lesson not found.")
@@ -287,7 +287,7 @@ async def practice_tip(
     Called after each chord attempt in song-learning mode.
     Returns adaptive tip + structured analysis + fingering tips + score history.
     """
-    _limit_llm(request, user)
+    await _limit_llm(request, user, db)
     session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
@@ -340,7 +340,7 @@ async def practice_revise(
     Called after all chords have been attempted at least once.
     Returns a revised LessonDocument with updated practice_plan + chord_ranking.
     """
-    _limit_llm(request, user)
+    await _limit_llm(request, user, db)
     session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")
@@ -369,7 +369,7 @@ async def get_quiz(
     Generate (or return cached) 3 MCQ questions from the lesson content.
     Questions are cached on the session after first generation.
     """
-    _limit_llm(request, user)
+    await _limit_llm(request, user, db)
     session = await session_store.get_session(db, body.lesson_id, user.id if user else None)
     if session is None:
         raise HTTPException(status_code=404, detail="Lesson session not found or expired.")

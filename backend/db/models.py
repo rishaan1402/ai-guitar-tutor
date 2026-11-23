@@ -6,6 +6,7 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 from sqlalchemy import (
+    BigInteger,
     text,
     Boolean,
     CheckConstraint,
@@ -592,3 +593,16 @@ class UserSong(Base):
         PG_UUID(as_uuid=True), ForeignKey("song_lessons.id", ondelete="CASCADE"), nullable=False
     )
     saved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class RateCounter(Base):
+    """Hits for one rate limit, one key, one time bucket (see auth/rate_limit.py)."""
+
+    __tablename__ = "rate_counters"
+    __table_args__ = (Index("idx_rate_counters_bucket", "bucket"),)
+
+    name: Mapped[str] = mapped_column(String(32), primary_key=True)
+    key: Mapped[str] = mapped_column(String(200), primary_key=True)
+    # start of the bucket, unix seconds
+    bucket: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

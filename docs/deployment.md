@@ -56,6 +56,18 @@ Unset, any origin may call the API (auth uses Bearer tokens, not cookies), so
 always set it in production. Commas in a value need gcloud's delimiter syntax:
 `--update-env-vars='^##^ALLOWED_ORIGINS=a,b,c##ALLOWED_ORIGIN_REGEX=...'`.
 
+### Rate limits and the daily AI budget
+
+Rate limits are counted in Postgres (`rate_counters`), so they hold across
+every Cloud Run instance and survive deploys.
+
+`LLM_DAILY_BUDGET` caps AI calls per day across all instances (default 3000
+on Cloud Run, no cap locally; `0` turns the cap off). Once it's spent, AI
+features fall back to their non-AI versions (template feedback and tips),
+stored songs still open, and only writing a brand-new song lesson answers
+503 until the window frees up. A new song costs about 6 calls; a stored one
+costs none.
+
 ### Password reset email
 
 Reset links are sent with [Resend](https://resend.com). Production needs:
