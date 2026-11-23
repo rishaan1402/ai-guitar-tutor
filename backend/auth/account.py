@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import (
     CoachReport, GrooveRun, PathProgress, SongSheet, TeacherAssignment, TeacherInviteCode,
-    TeacherStudent, User, UserGoal,
+    TeacherStudent, User, UserGoal, UserSong,
 )
 
 
@@ -25,7 +25,7 @@ async def delete_user_and_data(db: AsyncSession, user: User) -> None:
     )
     await db.execute(delete(TeacherInviteCode).where(TeacherInviteCode.teacher_id == user.id))
     await db.execute(delete(SongSheet).where(SongSheet.owner_id == user.id))
-    for model in (GrooveRun, PathProgress, UserGoal, CoachReport):
+    for model in (GrooveRun, PathProgress, UserGoal, CoachReport, UserSong):
         await db.execute(delete(model).where(model.user_id == user.id))
     # Tokens, attempts, drills and quiz results go via ORM cascade
     await db.delete(user)

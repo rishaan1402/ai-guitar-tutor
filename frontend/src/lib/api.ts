@@ -570,6 +570,8 @@ export interface SongSection {
 
 export interface LessonDocument {
   lesson_id: string;
+  /** the shared song lesson this came from (song library); "" on lessons made before it */
+  song_id?: string;
   song_title: string;
   artist: string;
   overall_difficulty: string;
@@ -645,6 +647,42 @@ export function getSongTip(params: TipRequest): Promise<TipResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
   });
+}
+
+export interface ResumedSong {
+  lesson: LessonDocument;
+  chord_scores: Record<string, number[]>;
+  /** true: your own session, still alive; false: a fresh session from the song library */
+  resumed: boolean;
+}
+
+/** Pick a saved song back up: your session if it's still alive, else a fresh one (no AI call). */
+export function resumeSongSession(songId: string, lessonId = ""): Promise<ResumedSong> {
+  return requestOptional("/api/council/session/resume", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ song_id: songId, lesson_id: lessonId }),
+  });
+}
+
+export interface LibrarySong {
+  song_id: string;
+  title: string;
+  artist: string;
+  saved_at: string | null;
+}
+
+/** Saved songs on your account (signed in only). */
+export function listSongLibrary(): Promise<{ songs: LibrarySong[] }> {
+  return request("/api/council/library", undefined, { auth: "optional" });
+}
+
+export function saveToSongLibrary(songId: string): Promise<void> {
+  return request(`/api/council/library/${encodeURIComponent(songId)}`, { method: "PUT" }, { auth: "optional" });
+}
+
+export function removeFromSongLibrary(songId: string): Promise<void> {
+  return request(`/api/council/library/${encodeURIComponent(songId)}`, { method: "DELETE" }, { auth: "optional" });
 }
 
 export function reviseSongLesson(lessonId: string): Promise<LessonDocument> {

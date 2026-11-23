@@ -25,3 +25,18 @@ describe("song store", () => {
     expect(isSongSaved("a")).toBe(false);
   });
 });
+
+describe("song store with the song library", () => {
+  beforeEach(() => localStorage.clear());
+  it("keys songs by song id, so a renewed session updates the same saved song", () => {
+    const first = { ...work("session-1"), lesson: { ...work("session-1").lesson, song_id: "song-9" } };
+    saveSong(first);
+    const renewed = { ...first, lesson: { ...first.lesson, lesson_id: "session-2" }, chordScores: { G_major: 0.8 } };
+    updateSavedSong(renewed);
+    const all = listSavedSongs();
+    expect(all).toHaveLength(1);
+    expect(all[0].id).toBe("song-9");
+    expect(all[0].work.lesson.lesson_id).toBe("session-2");
+    expect(all[0].work.chordScores.G_major).toBe(0.8);
+  });
+});

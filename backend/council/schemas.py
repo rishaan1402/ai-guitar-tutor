@@ -114,6 +114,8 @@ class SectionLesson(BaseModel):
 
 class LessonDocument(BaseModel):
     lesson_id: str
+    # the shared song lesson this came from (song library); empty on lessons made before it
+    song_id: str = ""
     song_title: str
     artist: str
     overall_difficulty: str
@@ -158,6 +160,11 @@ class TipRequest(BaseModel):
 
 class ReviseRequest(BaseModel):
     lesson_id: str = Field(max_length=100)
+
+
+class ResumeRequest(BaseModel):
+    song_id: str = Field(default="", max_length=40)
+    lesson_id: str = Field(default="", max_length=100)
 
 
 class GenerateRequest(BaseModel):

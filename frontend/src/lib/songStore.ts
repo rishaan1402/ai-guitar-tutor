@@ -3,7 +3,12 @@
  * - the song you're working on (and your chord scores) survives leaving the page:
  *   practise a chord, open a lesson, come back and it's all still there;
  * - "Save this song" keeps the whole breakdown on this device, to reopen later
- *   without generating it again.
+ *   without generating it again. Signed in, saved songs also go to your account
+ *   (see songLibrary.ts), so they follow you to other devices.
+ *
+ * A song is identified by its song-library id (``song_id``), which stays the
+ * same when a practice session is renewed; older lessons without one fall back
+ * to their session id.
  */
 import type { LessonDocument } from "./api";
 
@@ -46,6 +51,9 @@ function write(store: Storage | undefined, key: string, value: unknown): void {
 
 const local = () => (typeof window === "undefined" ? undefined : window.localStorage);
 
+/** The id a song is saved under: its song-library id, or its session id for older lessons. */
+export const songKey = (lesson: Pick<LessonDocument, "lesson_id" | "song_id">) => lesson.song_id || lesson.lesson_id;
+
 /** The song in progress (kept for this device until you search another). */
 export const loadCurrentSong = () => read<SongWork>(local(), CURRENT);
 export const saveCurrentSong = (w: SongWork | null) => (w ? write(local(), CURRENT, w) : local()?.removeItem(CURRENT));
@@ -54,23 +62,24 @@ export function listSavedSongs(): SavedSong[] {
   return (read<SavedSong[]>(local(), SAVED) ?? []).sort((a, b) => b.savedAt - a.savedAt);
 }
 
-export const isSongSaved = (lessonId: string) => listSavedSongs().some((s) => s.id === lessonId);
+export const isSongSaved = (id: string) => listSavedSongs().some((s) => s.id === id);
 
 export function saveSong(work: SongWork): void {
-  const others = listSavedSongs().filter((s) => s.id !== work.lesson.lesson_id);
-  const entry: SavedSong = { id: work.lesson.lesson_id, title: work.lesson.song_title || "Untitled song", artist: work.lesson.artist || "", savedAt: Date.now(), work };
+  const id = songKey(work.lesson);
+  const others = listSavedSongs().filter((s) => s.id !== id);
+  const entry: SavedSong = { id, title: work.lesson.song_title || "Untitled song", artist: work.lesson.artist || "", savedAt: Date.now(), work };
   write(local(), SAVED, [entry, ...others].slice(0, MAX_SAVED));
 }
 
-/** Keep a saved song's scores up to date as you practise. */
+/** Keep a saved song's scores (and renewed session) up to date as you practise. */
 export function updateSavedSong(work: SongWork): void {
   const all = listSavedSongs();
-  const i = all.findIndex((s) => s.id === work.lesson.lesson_id);
+  const i = all.findIndex((s) => s.id === songKey(work.lesson));
   if (i < 0) return;
   all[i] = { ...all[i], work };
   write(local(), SAVED, all);
 }
 
-export function removeSavedSong(lessonId: string): void {
-  write(local(), SAVED, listSavedSongs().filter((s) => s.id !== lessonId));
+export function removeSavedSong(id: string): void {
+  write(local(), SAVED, listSavedSongs().filter((s) => s.id !== id));
 }

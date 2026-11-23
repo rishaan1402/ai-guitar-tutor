@@ -12,7 +12,10 @@ from db.models import LessonSessionDB
 
 from council.schemas import SongObject, LessonDocument, QuizResponse, ChordRankEntry
 
-SESSION_TTL = 7200  # 2 hours
+# A session lives 30 days from its last use (each use pushes it back), so a
+# saved song keeps its scores, tips and quiz between practice days.
+SESSION_TTL = 30 * 24 * 3600
+_TOUCH_AFTER = 24 * 3600  # extend at most once a day, not on every request
 
 
 @dataclass
@@ -137,6 +140,11 @@ async def get_session(db: AsyncSession, lesson_id: str, user_id: Any = None) -> 
     row = await _get_row(db, lesson_id)
     if row is None or (row.user_id is not None and row.user_id != user_id):
         return None
+    now = datetime.now(timezone.utc)
+    expires = row.expires_at if row.expires_at.tzinfo else row.expires_at.replace(tzinfo=timezone.utc)
+    if (expires - now).total_seconds() < SESSION_TTL - _TOUCH_AFTER:
+        row.expires_at = now + timedelta(seconds=SESSION_TTL)
+        await db.commit()
     return _from_row(row)
 
 

@@ -5,6 +5,7 @@ import {
   LessonDocument,
   generateSongLesson,
   getSongTip,
+  resumeSongSession,
   reviseSongLesson,
   TipRequest,
   TipResponse,
@@ -13,7 +14,8 @@ import SongSearchBar from "./SongSearchBar";
 import CouncilProgress from "./CouncilProgress";
 import { IntegratedLessonView } from "./IntegratedLessonView";
 import SavedSongs from "./SavedSongs";
-import { isSongSaved, loadCurrentSong, saveCurrentSong, saveSong, updateSavedSong, type SongWork } from "@/lib/songStore";
+import { isSongSaved, loadCurrentSong, saveCurrentSong, saveSong, songKey, updateSavedSong, type SongWork } from "@/lib/songStore";
+import { saveToAccount } from "@/lib/songLibrary";
 
 interface SongCouncilProps {
   onPracticeChord: (chordKey: string, lessonContext: SongCouncilContext) => void;
@@ -54,7 +56,24 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
     setChordScoreHistory(w.chordScoreHistory ?? {});
     setAllChordsAttempted(!!w.allChordsAttempted);
     setAttemptCounts(w.attemptCounts ?? {});
-    setSaved(isSongSaved(w.lesson.lesson_id));
+    setSaved(isSongSaved(songKey(w.lesson)));
+    revive(w.lesson);
+  }
+
+  /**
+   * Practice sessions on the server end after 30 days unused. Reopening a song
+   * picks its session back up, or starts a fresh one from the song library
+   * (no new AI generation), so tips, quiz and revise keep working.
+   */
+  async function revive(l: LessonDocument) {
+    if (!l.song_id) return; // lessons made before the song library: nothing to renew from
+    try {
+      const r = await resumeSongSession(l.song_id, l.lesson_id);
+      setLesson((cur) => (cur && songKey(cur) === songKey(l) ? r.lesson : cur));
+      if (r.resumed && Object.keys(r.chord_scores).length) setChordScoreHistory(r.chord_scores);
+    } catch {
+      /* offline or the song is gone: keep what we have on this device */
+    }
   }
 
   // keep it, and a saved copy, up to date as you practise
@@ -68,6 +87,7 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
   function handleSave() {
     if (!lesson) return;
     saveSong({ lesson, chordScores, chordScoreHistory, allChordsAttempted, attemptCounts });
+    saveToAccount(lesson.song_id);
     setSaved(true);
   }
 
@@ -90,7 +110,7 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
     try {
       const doc = await generateSongLesson(query);
       setLesson(doc);
-      setSaved(isSongSaved(doc.lesson_id));
+      setSaved(isSongSaved(songKey(doc)));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to generate lesson");
     } finally {
@@ -181,7 +201,7 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
         </div>
       )}
 
-      {!loading && <SavedSongs currentId={lesson?.lesson_id ?? null} onOpen={openSaved} />}
+      {!loading && <SavedSongs currentId={lesson ? songKey(lesson) : null} onOpen={openSaved} />}
     </div>
   );
 }
