@@ -47,9 +47,43 @@ jobs:
       - run: npm ci
       - name: Type-check
         run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
       - name: Tests
         run: npm test
       - name: Build
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: https://example.invalid
+
+  e2e:
+    # The core learner journeys in a real browser, against the real backend
+    # (throwaway database, one seeded song, no AI key).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.lock
+      - name: System libraries for librosa
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libsndfile1 ffmpeg
+      - run: pip install -r backend/requirements.lock pytest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Build the website against the test backend
+        run: npm run build
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8100
+      - name: End-to-end tests
+        run: npm run e2e
+        working-directory: frontend

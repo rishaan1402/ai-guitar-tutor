@@ -14,6 +14,15 @@ const apiOrigin = (() => {
   }
 })();
 
+// Sentry's ingest host, when error monitoring is on (NEXT_PUBLIC_SENTRY_DSN)
+const sentryOrigin = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_SENTRY_DSN ? new URL(process.env.NEXT_PUBLIC_SENTRY_DSN).origin : "";
+  } catch {
+    return "";
+  }
+})();
+
 // Who the site may talk to. Inline scripts stay allowed: Next.js inlines its own
 // bootstrap scripts, and nonces would force every page to render on the server.
 // What this blocks is script, frames and connections from anywhere not listed.
@@ -23,7 +32,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://accounts.google.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' ${apiOrigin} https://accounts.google.com https://*.facebook.com https://storage.googleapis.com`,
+  `connect-src 'self' ${apiOrigin} https://accounts.google.com https://*.facebook.com https://storage.googleapis.com ${sentryOrigin}`.trim(),
   `media-src 'self' blob: data: ${apiOrigin} https://storage.googleapis.com`,
   "worker-src 'self' blob:",
   "frame-src https://accounts.google.com https://*.facebook.com",

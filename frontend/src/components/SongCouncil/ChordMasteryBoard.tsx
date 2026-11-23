@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { LessonDocument } from "@/lib/api";
+import { LessonDocument, type ChordFingering } from "@/lib/api";
 import EnhancedPracticeChordCard from "./EnhancedPracticeChordCard";
 import { buildFingering } from "@/lib/chords/voicing";
 
@@ -31,7 +31,7 @@ export function ChordMasteryBoard({
 
   // Build fingering lookup
   const fingeringMap = useMemo(() => {
-    const map: Record<string, any> = {};
+    const map: Record<string, ChordFingering> = {};
     if (lesson.practice_chords) {
       lesson.practice_chords.forEach((chord) => {
         // no shape from the lesson (a chord outside the library): build one

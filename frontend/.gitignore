@@ -1,3 +1,7 @@
 
 # Android app build output
 /out-build
+
+# Playwright end-to-end output
+/test-results
+/playwright-report

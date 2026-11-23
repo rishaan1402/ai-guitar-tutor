@@ -76,7 +76,7 @@ export function useMetronome(initialBpm = 80, initialBeatsPerBar = 4): [Metronom
   const start = useCallback(() => {
     // Create AudioContext lazily inside user gesture handler (Safari requirement)
     if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
     // Resume if suspended (needed on some browsers after inactivity)
     if (audioCtxRef.current.state === "suspended") {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
-import { getProgress, getCalendar, getWeeklyReport } from "@/lib/api";
+import { getProgress, getCalendar, getWeeklyReport, type ChordProgressItem } from "@/lib/api";
 import WeeklyCard from "@/components/coach/WeeklyCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -53,7 +53,7 @@ function SkillMeter({ skillLevel }: { skillLevel: string }) {
         ))}
       </div>
       <p className="text-sm text-gray-300 mt-6">
-        You're playing at a <span className="font-bold capitalize">{skillLevel}</span> level.{" "}
+        You&apos;re playing at a <span className="font-bold capitalize">{skillLevel}</span> level.{" "}
         {currentIndex < levels.length - 1
           ? "Master more advanced chords to level up!"
           : "You've reached the highest level!"}
@@ -62,7 +62,7 @@ function SkillMeter({ skillLevel }: { skillLevel: string }) {
   );
 }
 
-function ChordMasteryMatrix({ chords }: { chords: any[] }) {
+function ChordMasteryMatrix({ chords }: { chords: ChordProgressItem[] }) {
   return (
     <div className="glass-card p-6">
       {chords.length === 0 && (
@@ -112,9 +112,9 @@ function StatsOverview() {
 
   if (!data) return <LoadingSkeleton />;
 
-  const totalAttempts = data.chords.reduce((sum: number, c: any) => sum + c.total_attempts, 0);
+  const totalAttempts = data.chords.reduce((sum, c) => sum + c.total_attempts, 0);
   const avgScore = data.chords.length
-    ? data.chords.reduce((sum: number, c: any) => sum + c.best_score, 0) / data.chords.length
+    ? data.chords.reduce((sum, c) => sum + (c.best_score ?? 0), 0) / data.chords.length
     : 0;
 
   return (

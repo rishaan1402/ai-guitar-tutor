@@ -22,11 +22,11 @@ export function QuickStats() {
   }
 
   // Calculate some additional stats
-  const totalAttempts = data.chords.reduce((sum: number, c: any) => sum + c.total_attempts, 0);
+  const totalAttempts = data.chords.reduce((sum, c) => sum + c.total_attempts, 0);
   // A true mean of each chord's best take (the old tile summed bests and called it an average).
-  const graded = data.chords.filter((c: any) => typeof c.best_score === "number");
+  const graded = data.chords.filter((c) => typeof c.best_score === "number");
   const bestMean = graded.length
-    ? graded.reduce((sum: number, c: any) => sum + c.best_score, 0) / graded.length
+    ? graded.reduce((sum, c) => sum + (c.best_score ?? 0), 0) / graded.length
     : null;
 
   return (

@@ -27,9 +27,9 @@ function safeRoundRect(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, w: number, h: number, r: number
 ) {
-  if (typeof (ctx as any).roundRect === "function") {
+  if (typeof ctx.roundRect === "function") {
     ctx.beginPath();
-    (ctx as any).roundRect(x, y, w, h, r);
+    ctx.roundRect(x, y, w, h, r);
   } else {
     // Manual rounded rect via arcs
     const ri = Math.min(r, w / 2, h / 2);
@@ -131,7 +131,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       // Resume immediately — required on Safari after async getUserMedia
       if (ctx.state === "suspended") await ctx.resume();
       const source = ctx.createMediaStreamSource(stream);
