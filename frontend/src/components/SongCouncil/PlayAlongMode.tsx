@@ -53,7 +53,9 @@ function getBpm(lesson: LessonDocument): number {
 
 export default function PlayAlongMode({ lesson, onClose }: Props) {
   const availableChords = lesson.practice_chords.filter((c) => c.available_in_app && c.chord_key);
-  const bpm = getBpm(lesson);
+  // slow it down while you learn the changes (or push it a little)
+  const [speed, setSpeed] = useState(1);
+  const bpm = Math.round((lesson.tempo_bpm || getBpm(lesson)) * speed);
 
   const [isRunning, setIsRunning] = useState(false);
   const [currentBlockIdx, setCurrentBlockIdx] = useState(0);
@@ -454,8 +456,23 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
           className="glass px-5 py-2.5 rounded-xl text-sm font-semibold border border-white/10 transition-all"
           style={{ color: "rgb(var(--text) / 0.6)" }}
         >
-          🔁 Repeat
+          Repeat
         </button>
+        <label className="flex items-center gap-2 text-sm text-cream/80">
+          <span className="label-mono text-cream/60">Speed</span>
+          <input
+            type="range"
+            min={0.5}
+            max={1.2}
+            step={0.05}
+            value={speed}
+            disabled={isRunning}
+            onChange={(e) => setSpeed(Number(e.target.value))}
+            className="w-28 accent-amber-400"
+            aria-label="Play-along speed"
+          />
+          <span className="w-20 text-right">{Math.round(speed * 100)}% · {bpm} bpm</span>
+        </label>
         <div className="ml-auto">
           <MetronomeWidget tempoFeel={lesson.tempo_feel} timeSignature={lesson.time_signature} />
         </div>

@@ -19,7 +19,8 @@ import Celebrate from "@/components/game/Celebrate";
 import { ChordTracker } from "@/lib/groove/detect";
 import { NoteTracker } from "@/lib/groove/pitch";
 import { noteName, parseNote, STRING_NAMES } from "@/lib/groove/lead";
-import { chordsIn, timeline } from "@/lib/groove/groove";
+import { chordsIn, timeline, transposeGroove } from "@/lib/groove/groove";
+import { transposeChord } from "@/lib/chordpro";
 import { Transport, starsFor, summarise, type ChangeResult, type Mode } from "@/lib/groove/transport";
 
 type Phase = "ready" | "playing" | "done";
@@ -43,7 +44,10 @@ interface Props {
 
 const FFT = 4096;
 
-export default function GroovePlayer({ groove, onFinished, finishLabel = "Continue", defaultMode = "wait", onBack }: Props) {
+export default function GroovePlayer({ groove: source, onFinished, finishLabel = "Continue", defaultMode = "wait", onBack }: Props) {
+  // transpose: everything below (band, chord detection, diagrams) uses the moved groove
+  const [semis, setSemis] = useState(0);
+  const groove = useMemo(() => transposeGroove(source, semis, transposeChord), [source, semis]);
   const router = useRouter();
   const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("ready");
@@ -334,6 +338,19 @@ export default function GroovePlayer({ groove, onFinished, finishLabel = "Contin
               <input id="speed" type="range" min={0.6} max={1.2} step={0.05} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="flex-1 accent-amber-400" />
               <span className="w-12 text-right text-sm text-cream">{Math.round(speed * 100)}%</span>
             </div>
+            {source.kind !== "lead" && (
+              <div className="mt-3 flex items-center gap-3 short:mt-2">
+                <span className="label-mono shrink-0 text-cream/60" id="key-label">Key</span>
+                <div className="flex items-center gap-1" role="group" aria-labelledby="key-label">
+                  <button type="button" onClick={() => setSemis((v) => Math.max(-6, v - 1))} aria-label="Down a semitone" className="flex h-9 w-9 items-center justify-center rounded-full border border-cream/15 text-cream">−</button>
+                  <span className="w-28 text-center text-sm text-cream" aria-live="polite">
+                    {semis === 0 ? "Original" : `${semis > 0 ? "+" : "−"}${Math.abs(semis)} semitone${Math.abs(semis) > 1 ? "s" : ""}`}
+                  </span>
+                  <button type="button" onClick={() => setSemis((v) => Math.min(6, v + 1))} aria-label="Up a semitone" className="flex h-9 w-9 items-center justify-center rounded-full border border-cream/15 text-cream">+</button>
+                </div>
+                {semis !== 0 && <span className="truncate text-xs text-cream/60">{chordsIn(groove).slice(0, 4).join(" ")}</span>}
+              </div>
+            )}
             <label className="mt-3 flex items-center gap-3 text-sm text-cream/75 short:mt-2">
               <input type="checkbox" checked={headphones} onChange={(e) => setHeadphones(e.target.checked)} className="h-5 w-5 accent-amber-400" />
               {isLead ? "I'm wearing headphones (hear the melody while I play)" : "I'm wearing headphones (full band with chords)"}
