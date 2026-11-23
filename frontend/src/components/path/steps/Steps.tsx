@@ -100,7 +100,7 @@ export function QuizStep({ step, onDone }: { step: Extract<Step, { kind: "quiz" 
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="label-mono text-amber-400">{step.title}</p>
-        <p className="label-mono text-cream/45">{i + 1} / {total}</p>
+        <p className="label-mono text-cream/60">{i + 1} / {total}</p>
       </div>
       <p className="text-lg font-semibold text-cream">{qn.q}</p>
       <div className="grid gap-2 landscape:grid-cols-2" role="radiogroup">
@@ -270,7 +270,7 @@ export function PlayStep({ step, onDone }: { step: Extract<Step, { kind: "play" 
         </div>
       </div>
       {!done && (
-        <button onClick={() => { mic.stop(); onDone(null); }} className="w-full text-center text-sm text-cream/45 underline-offset-4 hover:underline">
+        <button onClick={() => { mic.stop(); onDone(null); }} className="w-full text-center text-sm text-cream/60 underline-offset-4 hover:underline">
           Skip for now (no mic, or a noisy room)
         </button>
       )}
@@ -311,7 +311,7 @@ export function EarStep({ step, onDone }: { step: Extract<Step, { kind: "ear" }>
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="label-mono text-amber-400">{step.title}</p>
-        <p className="label-mono text-cream/45">{n + 1} / {step.rounds}</p>
+        <p className="label-mono text-cream/60">{n + 1} / {step.rounds}</p>
       </div>
       <div className="flex items-center gap-3">
         <button onClick={() => playIt()} className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-400 text-xl text-ink-950" aria-label="Play it">▶</button>
@@ -481,7 +481,7 @@ export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhyt
           const onBeat = k % (slots.length / 4) === 0;
           return (
             <div key={k} className="flex flex-1 flex-col items-center gap-1">
-              <span className="label-mono h-3 text-[10px] text-cream/40">{onBeat ? k / (slots.length / 4) + 1 : ""}</span>
+              <span className="label-mono h-3 text-[10px] text-cream/60">{onBeat ? k / (slots.length / 4) + 1 : ""}</span>
               <span
                 className={`flex h-10 w-full items-center justify-center rounded-lg border text-lg ${
                   cursor === k ? "border-amber-300 bg-amber-400/30" : c === "x" ? "border-cream/25 bg-cream/10" : "border-cream/8"
@@ -517,7 +517,7 @@ export function RhythmStep({ step, onDone }: { step: Extract<Step, { kind: "rhyt
               e.preventDefault();
               tap();
             }}
-            className={`h-28 rounded-[22px] border-2 font-display text-xl uppercase ${phase === "tap" ? "border-amber-400 bg-amber-400/15 text-amber-100" : phase === "count" ? "border-cream/30 text-cream/70" : "border-cream/10 text-cream/30"}`}
+            className={`h-28 rounded-[22px] border-2 font-display text-xl uppercase ${phase === "tap" ? "border-amber-400 bg-amber-400/15 text-amber-100" : phase === "count" ? "border-cream/30 text-cream/70" : "border-cream/10 text-cream/60"}`}
           >
             {phase === "count"
               ? "Get ready… 1 2 3 4"

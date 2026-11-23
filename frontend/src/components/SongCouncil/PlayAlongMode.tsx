@@ -253,9 +253,9 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       ctx.fill();
 
       ctx.strokeStyle = result === "great" ? "#86b092"
-        : result === "ok" ? "#e8a54b"
-        : result === "miss" ? "#e8604f"
-        : isCurrent ? "#efc27a" : "rgba(232,165,75,0.35)";
+        : result === "ok" ? "rgb(var(--acc-400))"
+        : result === "miss" ? "rgb(var(--live-400))"
+        : isCurrent ? "#efc27a" : "rgb(var(--acc-400) / 0.35)";
       ctx.lineWidth = isCurrent ? 2 : 1;
       ctx.stroke();
 
@@ -334,13 +334,13 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
   const matchCount = liveNotes.filter((n) => expectedNotes.includes(n)).length;
   const isOnChord = expectedNotes.length > 0 && matchCount >= Math.ceil(expectedNotes.length * 0.4);
 
-  const flashColor = flashResult === "GREAT!" ? "#86b092" : flashResult === "OK" ? "#e8a54b" : "#e8604f";
+  const flashColor = flashResult === "GREAT!" ? "rgb(var(--ok-400))" : flashResult === "OK" ? "rgb(var(--acc-400))" : "rgb(var(--live-400))";
 
   if (availableChords.length === 0) {
     return (
       <div className="glass-card p-8 text-center space-y-4 max-w-xl mx-auto">
         <p className="gradient-text text-xl font-bold">Play Along</p>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+        <p className="text-sm" style={{ color: "rgb(var(--text) / 0.5)" }}>
           No app-supported chords found in this lesson. Practice individual chords first.
         </p>
         <button onClick={onClose} className="btn-gradient px-6 py-2 rounded-xl text-sm font-semibold text-white">
@@ -355,8 +355,8 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="gradient-text text-2xl font-bold">🎮 Play Along</h2>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <h2 className="gradient-text text-2xl font-bold">Play along</h2>
+          <p className="text-xs mt-0.5" style={{ color: "rgb(var(--text) / 0.4)" }}>
             {lesson.song_title} — {lesson.artist}
             {lesson.tempo_feel ? ` · ${lesson.tempo_feel}` : ""}
           </p>
@@ -364,7 +364,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
         <button
           onClick={() => { handleStop(); onClose(); }}
           className="glass text-sm px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
-          style={{ color: "rgba(255,255,255,0.5)" }}
+          style={{ color: "rgb(var(--text) / 0.5)" }}
         >
           ← Back
         </button>
@@ -380,7 +380,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
           style={{ background: "rgba(0,0,0,0.2)" }}
         />
         {!isRunning && (
-          <p className="text-center text-xs mt-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <p className="text-center text-xs mt-2" style={{ color: "rgb(var(--text) / 0.3)" }}>
             Press Start — chord blocks will scroll from right to left
           </p>
         )}
@@ -389,7 +389,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       {/* Current chord + live detection */}
       <div className="flex justify-between items-start gap-4">
         <div className="glass-card p-4 flex-1 text-center">
-          <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>Now Playing</p>
+          <p className="text-xs mb-1" style={{ color: "rgb(var(--text) / 0.4)" }}>Now Playing</p>
           <p className="gradient-text text-4xl font-black">{currentChord?.symbol ?? "—"}</p>
           {isRunning && (
             <div
@@ -398,17 +398,17 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
               }`}
               style={{
                 background: liveNotes.length === 0
-                  ? "rgba(255,255,255,0.05)"
-                  : isOnChord ? "rgba(134,176,146,0.15)" : "rgba(232,96,79,0.12)",
+                  ? "rgb(var(--text) / 0.05)"
+                  : isOnChord ? "rgb(var(--ok-400) / 0.15)" : "rgb(var(--live-400) / 0.12)",
                 border: liveNotes.length === 0
-                  ? "1px solid rgba(255,255,255,0.1)"
-                  : isOnChord ? "1px solid rgba(134,176,146,0.4)" : "1px solid rgba(232,96,79,0.3)",
+                  ? "1px solid rgb(var(--text) / 0.1)"
+                  : isOnChord ? "1px solid rgb(var(--ok-400) / 0.4)" : "1px solid rgb(var(--live-400) / 0.3)",
                 color: liveNotes.length === 0
-                  ? "rgba(255,255,255,0.3)"
-                  : isOnChord ? "#86b092" : "#e8604f",
+                  ? "rgb(var(--text) / 0.3)"
+                  : isOnChord ? "rgb(var(--ok-400))" : "rgb(var(--live-400))",
               }}
             >
-              {liveNotes.length === 0 ? "🎸 Play to detect" : isOnChord ? `✓ ${liveNotes.join(", ")}` : `Hearing: ${liveNotes.join(", ")}`}
+              {liveNotes.length === 0 ? "Play to start listening" : isOnChord ? `✓ ${liveNotes.join(", ")}` : `Hearing: ${liveNotes.join(", ")}`}
             </div>
           )}
         </div>
@@ -424,7 +424,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
           <div
             key={flashResult + Date.now()}
             className="animate-flash-result text-7xl font-black"
-            style={{ color: flashColor, textShadow: `0 0 60px ${flashColor}88` }}
+            style={{ color: flashColor, textShadow: `0 0 60px color-mix(in srgb, ${flashColor} 53%, transparent)` }}
           >
             {flashResult}
           </div>
@@ -444,7 +444,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
           <button
             onClick={handleStop}
             className="glass px-6 py-2.5 rounded-xl text-sm font-semibold border border-white/15 transition-all"
-            style={{ color: "rgba(255,255,255,0.7)" }}
+            style={{ color: "rgb(var(--text) / 0.7)" }}
           >
             ⏹ Stop
           </button>
@@ -452,7 +452,7 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
         <button
           onClick={handleRepeat}
           className="glass px-5 py-2.5 rounded-xl text-sm font-semibold border border-white/10 transition-all"
-          style={{ color: "rgba(255,255,255,0.6)" }}
+          style={{ color: "rgb(var(--text) / 0.6)" }}
         >
           🔁 Repeat
         </button>
@@ -464,10 +464,10 @@ export default function PlayAlongMode({ lesson, onClose }: Props) {
       {/* Song sections */}
       {lesson.song_sections && lesson.song_sections.length > 0 && (
         <div className="glass-card p-3">
-          <p className="text-xs font-semibold mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>Song Structure</p>
+          <p className="text-xs font-semibold mb-2" style={{ color: "rgb(var(--text) / 0.5)" }}>Song Structure</p>
           <div className="flex flex-wrap gap-2">
             {lesson.song_sections.map((section, i) => (
-              <span key={i} className="text-xs px-2 py-1 rounded-lg" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
+              <span key={i} className="text-xs px-2 py-1 rounded-lg" style={{ background: "rgb(var(--text) / 0.06)", border: "1px solid rgb(var(--text) / 0.1)", color: "rgb(var(--text) / 0.6)" }}>
                 {section.name}: {section.chords.join(", ")}
               </span>
             ))}

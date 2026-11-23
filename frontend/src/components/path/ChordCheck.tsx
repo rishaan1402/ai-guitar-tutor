@@ -81,7 +81,7 @@ export default function ChordCheck({ chord, onPass }: { chord: string; onPass: (
       <p className="mt-1 text-cream/75">Hold {prettySymbol(chord)} and strum, let it ring. Twice clean and you&apos;re through.</p>
       <div className="mt-4 flex items-center justify-center gap-3" aria-live="polite">
         {Array.from({ length: NEEDED }, (_, i) => (
-          <span key={i} className={`flex h-10 w-10 items-center justify-center rounded-full border text-lg ${i < hits ? "border-sage-300 bg-sage-300/20 text-sage-200" : "border-cream/15 text-cream/30"}`}>
+          <span key={i} className={`flex h-10 w-10 items-center justify-center rounded-full border text-lg ${i < hits ? "border-sage-300 bg-sage-300/20 text-sage-200" : "border-cream/15 text-cream/60"}`}>
             {i < hits ? "✓" : i + 1}
           </span>
         ))}

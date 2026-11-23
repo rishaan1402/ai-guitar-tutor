@@ -18,7 +18,7 @@ export function Footer() {
             <Link href="/terms" className="hover:text-cream">Terms</Link>
           </div>
         </div>
-        <p className="label-mono mt-8 text-cream/30">E · A · D · G · B · e — start anywhere.</p>
+        <p className="label-mono mt-8 text-cream/60">E · A · D · G · B · e — start anywhere.</p>
       </div>
     </footer>
   );

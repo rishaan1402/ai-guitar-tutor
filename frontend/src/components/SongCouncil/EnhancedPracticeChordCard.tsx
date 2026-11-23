@@ -15,9 +15,9 @@ interface EnhancedPracticeChordCardProps {
 }
 
 function scoreColor(score: number) {
-  if (score >= 0.8) return "#86b092";
-  if (score >= 0.5) return "#e8a54b";
-  return "#e8604f";
+  if (score >= 0.8) return "rgb(var(--ok-400))";
+  if (score >= 0.5) return "rgb(var(--acc-400))";
+  return "rgb(var(--live-400))";
 }
 
 function ScoreSparkline({ history }: { history: number[] }) {
@@ -32,7 +32,7 @@ function ScoreSparkline({ history }: { history: number[] }) {
     <svg width={width} height={BAR_MAX_H} viewBox={`0 0 ${width} ${BAR_MAX_H}`}>
       {bars.map((s, i) => {
         const h = Math.max(1, Math.round(s * BAR_MAX_H));
-        const color = s >= 0.8 ? "#86b092" : s >= 0.5 ? "#e8a54b" : "#e8604f";
+        const color = s >= 0.8 ? "rgb(var(--ok-400))" : s >= 0.5 ? "rgb(var(--acc-400))" : "rgb(var(--live-400))";
         return (
           <rect
             key={i}
@@ -70,7 +70,7 @@ export default function EnhancedPracticeChordCard({
       <div
         className="glass-card p-4 flex flex-col items-center gap-2 transition-all duration-200 cursor-pointer hover:border-white/30"
         style={{
-          border: score != null ? `1px solid ${scoreColor(score)}55` : "1px solid rgba(255,255,255,0.1)",
+          border: score != null ? `1px solid color-mix(in srgb, ${scoreColor(score)} 33%, transparent)` : "1px solid rgb(var(--text) / 0.1)",
         }}
         onClick={() => setShowDiagram(!showDiagram)}
       >
@@ -100,8 +100,8 @@ export default function EnhancedPracticeChordCard({
           <div
             className="text-xs font-semibold px-2 py-0.5 rounded-full"
             style={{
-              background: `${scoreColor(score)}22`,
-              border: `1px solid ${scoreColor(score)}55`,
+              background: `color-mix(in srgb, ${scoreColor(score)} 13%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${scoreColor(score)} 33%, transparent)`,
               color: scoreColor(score),
             }}
           >

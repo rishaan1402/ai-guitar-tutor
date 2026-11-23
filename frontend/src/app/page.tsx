@@ -81,7 +81,7 @@ export default function LandingPage() {
                   Learn a song
                 </Link>
               </div>
-              <p className="label-mono mt-4 text-cream/40">No account needed · works in your browser</p>
+              <p className="label-mono mt-4 text-cream/60">No account needed · works in your browser</p>
             </div>
           </div>
           <Room className="mt-10" />

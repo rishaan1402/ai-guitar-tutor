@@ -128,7 +128,7 @@ export default function NavBar() {
             </Link>
           ) : null}
           {!loading && user && (
-            <button onClick={handleLogout} className="label-mono hidden text-cream/40 hover:text-cream lg:inline">
+            <button onClick={handleLogout} className="label-mono hidden text-cream/60 hover:text-cream lg:inline">
               Log out
             </button>
           )}

@@ -31,7 +31,7 @@ export default function ModeToggle({ mode, onChange }: ModeToggleProps) {
               active ? "bg-amber-400 text-ink-950" : "text-cream/70 hover:bg-cream/5 hover:text-cream"
             }`}
           >
-            <span className={`label-mono block text-[10px] ${active ? "text-ink-950/60" : "text-cream/40"}`}>{m.thing}</span>
+            <span className={`label-mono block text-[10px] ${active ? "text-ink-950/60" : "text-cream/60"}`}>{m.thing}</span>
             <span className="mt-0.5 block text-sm font-semibold leading-tight sm:text-base">{m.label}</span>
           </button>
         );

@@ -219,7 +219,7 @@ export default function SocialSignIn({ onDone, mode }: Props) {
           {error}
         </p>
       )}
-      <div className="flex items-center gap-3 pt-1 text-xs uppercase tracking-wider text-cream/40" aria-hidden="true">
+      <div className="flex items-center gap-3 pt-1 text-xs uppercase tracking-wider text-cream/60" aria-hidden="true">
         <span className="h-px flex-1 bg-cream/10" />
         {mode === "signup" ? "or sign up with email" : "or log in with email"}
         <span className="h-px flex-1 bg-cream/10" />

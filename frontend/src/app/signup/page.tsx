@@ -117,7 +117,7 @@ type="password"
               {loading ? "Creating account…" : "Create Account"}
             </button>
           </form>
-          <p className="mt-4 text-center text-xs text-cream/45">
+          <p className="mt-4 text-center text-xs text-cream/60">
             By continuing you agree to the{" "}
             <Link href="/terms" className="underline underline-offset-2 hover:text-cream">Terms</Link> and{" "}
             <Link href="/privacy" className="underline underline-offset-2 hover:text-cream">Privacy policy</Link>.

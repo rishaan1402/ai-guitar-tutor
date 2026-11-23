@@ -16,7 +16,7 @@ import { CardSkeleton, StatCardSkeleton } from "@/components/ui/LoadingSkeleton"
 function Heading({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div className="mb-5">
-      <p className="label-mono text-cream/45">{kicker}</p>
+      <p className="label-mono text-cream/60">{kicker}</p>
       <h2 className="mt-1 font-display text-h3 uppercase tracking-tight text-cream">{title}</h2>
     </div>
   );

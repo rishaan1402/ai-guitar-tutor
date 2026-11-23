@@ -80,7 +80,7 @@ export default function DownloadPage() {
           </ul>
         </div>
 
-        <p className="mt-8 text-sm text-cream/40">
+        <p className="mt-8 text-sm text-cream/60">
           <Link href="/privacy" className="hover:text-cream">Privacy policy</Link>
           {" · "}
           <Link href="/" className="hover:text-cream">Back to the website</Link>

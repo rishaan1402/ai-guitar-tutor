@@ -46,7 +46,7 @@ export default function CouncilProgress({ active }: { active: boolean }) {
       <div className="rounded-[22px] border border-cream/10 bg-ink-900/60 p-5 short:p-4">
         <div className="flex items-baseline justify-between gap-3">
           <p className="font-display text-lg uppercase text-cream">{STAGES[stage].label}…</p>
-          <p className="label-mono text-cream/40 tabular-nums">{Math.floor(elapsed)} s</p>
+          <p className="label-mono text-cream/60 tabular-nums">{Math.floor(elapsed)} s</p>
         </div>
         <p className="mt-1 text-sm text-cream/60">{STAGES[stage].detail}</p>
 
@@ -59,12 +59,12 @@ export default function CouncilProgress({ active }: { active: boolean }) {
             <li key={s.label} className="flex items-center gap-2 text-sm">
               <span
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${
-                  i < stage ? "border-sage-300 bg-sage-300/20 text-sage-200" : i === stage ? "border-amber-400 text-amber-300" : "border-cream/15 text-cream/30"
+                  i < stage ? "border-sage-300 bg-sage-300/20 text-sage-200" : i === stage ? "border-amber-400 text-amber-300" : "border-cream/15 text-cream/60"
                 }`}
               >
                 {i < stage ? "✓" : i + 1}
               </span>
-              <span className={i <= stage ? "text-cream/85" : "text-cream/35"}>{s.label}</span>
+              <span className={i <= stage ? "text-cream/85" : "text-cream/60"}>{s.label}</span>
             </li>
           ))}
         </ol>

@@ -119,7 +119,7 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }
                         : "border-cream/10 hover:border-cream/30"
                   }`}
                 >
-                  <span className="label-mono absolute left-2 top-1.5 text-[10px] text-cream/35">{i + 1}</span>
+                  <span className="label-mono absolute left-2 top-1.5 text-[10px] text-cream/60">{i + 1}</span>
                   <span className="font-display text-2xl text-cream group-hover:text-amber-200">{chordSymbol(c)}</span>
                   <span className="mt-1 flex h-3 items-center gap-1">
                     {isNext ? <span className="label-mono text-[9px] text-amber-300">Next</span> : <StatusDot status={status} />}
@@ -137,11 +137,11 @@ export default function ChordSelector({ onSelect, disabled, chordStatuses = {} }
           <table className="w-full min-w-[560px] border-collapse text-sm">
             <thead>
               <tr>
-                <th scope="col" className="label-mono w-12 p-2 text-left text-cream/35">
+                <th scope="col" className="label-mono w-12 p-2 text-left text-cream/60">
                   <span className="sr-only">Root</span>
                 </th>
                 {QUALITIES.map((q) => (
-                  <th key={q.key} scope="col" className="label-mono p-2 text-cream/45">
+                  <th key={q.key} scope="col" className="label-mono p-2 text-cream/60">
                     {q.label}
                   </th>
                 ))}

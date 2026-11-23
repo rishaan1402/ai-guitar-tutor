@@ -42,7 +42,7 @@ function Placement() {
             <p className="label-mono text-amber-400">Find your level</p>
             <h1 className="truncate font-display text-xl uppercase text-cream">{track.title}</h1>
           </div>
-          {probe && <span className="label-mono text-cream/45">Level {i + 1} / {probes.length}</span>}
+          {probe && <span className="label-mono text-cream/60">Level {i + 1} / {probes.length}</span>}
         </div>
 
         <div className="mt-5">
@@ -83,7 +83,7 @@ function Placement() {
                   </div>
                 </div>
               )}
-              <button onClick={fail} className="w-full text-center text-sm text-cream/45 underline-offset-4 hover:underline">Start me here</button>
+              <button onClick={fail} className="w-full text-center text-sm text-cream/60 underline-offset-4 hover:underline">Start me here</button>
             </div>
           )}
 

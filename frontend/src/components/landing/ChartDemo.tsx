@@ -61,7 +61,7 @@ export default function ChartDemo() {
         <div className="mt-5 space-y-4">
           {shown.sections.map((s) => (
             <div key={s.label}>
-              <p className="label-mono text-cream/40">{s.label}</p>
+              <p className="label-mono text-cream/60">{s.label}</p>
               {s.lines.map((line: Line, li) =>
                 line.type === "bars" ? (
                   <div key={li} className="mt-1.5 grid grid-cols-4 overflow-hidden rounded-xl border border-cream/10">
@@ -99,7 +99,7 @@ export default function ChartDemo() {
         ) : (
           <p className="mt-3 text-sm text-cream/50">{fing === undefined ? "Loading the shape…" : "Pick another chord to see its tab."}</p>
         )}
-        <p className="mt-4 text-xs text-cream/40">Tabs follow transpose, capo and simplify — tap a chord in the chart.</p>
+        <p className="mt-4 text-xs text-cream/60">Tabs follow transpose, capo and simplify — tap a chord in the chart.</p>
       </div>
     </div>
   );

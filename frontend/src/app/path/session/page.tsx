@@ -125,7 +125,7 @@ function Session({ session, isSong, isReview = false }: { session: PathSession; 
           <p className="label-mono truncate text-amber-400">{isSong ? "Song lesson" : isReview ? "Daily review" : `${track?.title ?? ""} · ${level?.title ?? ""}`}</p>
           <h1 className="truncate font-display text-xl uppercase text-cream">{session.title}</h1>
         </div>
-        <span className="label-mono shrink-0 text-cream/45">{Math.min(i + 1, total)}/{total}</span>
+        <span className="label-mono shrink-0 text-cream/60">{Math.min(i + 1, total)}/{total}</span>
       </div>
       <div className="mx-auto mt-3 flex max-w-5xl gap-1" aria-label={`Step ${i + 1} of ${total}`}>
         {Array.from({ length: total }, (_, k) => (
@@ -144,7 +144,7 @@ function Session({ session, isSong, isReview = false }: { session: PathSession; 
                 setSkipped(true);
                 finish(i, null);
               }}
-              className="w-full text-center text-sm text-cream/45 underline-offset-4 hover:underline"
+              className="w-full text-center text-sm text-cream/60 underline-offset-4 hover:underline"
             >
               Skip for now (no mic, or a noisy room)
             </button>

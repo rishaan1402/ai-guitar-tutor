@@ -114,7 +114,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
           className="glass-card p-8 text-center animate-quiz-correct"
           style={{ border: "1px solid rgba(var(--sage-rgb),0.4)" }}
         >
-          <div className="text-4xl mb-3">🎉</div>
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-sage-300/20 text-2xl text-sage-200" aria-hidden="true">✓</div>
           <p className="text-lg font-bold" style={{ color: "rgb(var(--ok-300))" }}>
             Well done! Unlocking Practice…
           </p>
@@ -135,7 +135,7 @@ export default function LessonQuiz({ lessonId, onPass, onSkip }: LessonQuizProps
     <div className="w-full max-w-2xl mx-auto fade-in-up space-y-4">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold" style={{ color: "rgba(var(--cream-rgb),0.7)" }}>
-          🧠 Knowledge Check — {questions.length} Questions
+          Knowledge check: {questions.length} questions
         </h3>
         {submitted && (
           <span

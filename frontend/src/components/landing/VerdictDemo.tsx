@@ -86,7 +86,7 @@ export default function VerdictDemo() {
         <div className="mt-5 space-y-3" aria-hidden="true">
           {NAMES.map((n, s) => (
             <div key={n + s} className="flex items-center gap-3">
-              <span className="label-mono w-4 text-cream/40">{n}</span>
+              <span className="label-mono w-4 text-cream/60">{n}</span>
               <div className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-cream/10">
                 <div
                   className={`absolute inset-0 rounded-full transition-all duration-base ease-out-expo ${STRING[t.state[s]]} ${

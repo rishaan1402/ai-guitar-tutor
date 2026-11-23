@@ -201,7 +201,7 @@ export default function Tuner({ analyser, sampleRate, onDone, free = false }: Pr
             <p className={`font-display text-7xl leading-none short:text-5xl ${inTune ? "text-sage-300" : "text-cream"}`} aria-live="polite">
               {current ? current.name : "–"}
             </p>
-            <p className="label-mono text-[11px] text-cream/45">{heardHz ? `${noteOf(heardHz)} · ${heardHz.toFixed(1)} Hz` : "\u00a0"}</p>
+            <p className="label-mono text-[11px] text-cream/60">{heardHz ? `${noteOf(heardHz)} · ${heardHz.toFixed(1)} Hz` : "\u00a0"}</p>
             <div className="w-[240px] max-w-full short:w-[180px]">{dial}</div>
           </div>
           <StringColumn strings={strings} idx={[3, 4, 5]} st={st} onPick={pick} onHear={reference} />

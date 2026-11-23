@@ -89,7 +89,7 @@ export default function PathPage() {
                 <span className="mt-1 block h-1 overflow-hidden rounded-full bg-cream/10">
                   <span className="block h-full rounded-full bg-amber-400" style={{ width: `${(n / list.length) * 100}%` }} />
                 </span>
-                <span className="label-mono mt-1 block text-[10px] text-cream/45">{n}/{list.length}</span>
+                <span className="label-mono mt-1 block text-[10px] text-cream/60">{n}/{list.length}</span>
               </button>
             );
           })}

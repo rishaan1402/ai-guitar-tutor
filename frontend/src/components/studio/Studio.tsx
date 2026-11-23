@@ -335,6 +335,7 @@ export default function Studio() {
       onPointerLeave={(e) => e.pointerType === "mouse" && !drag.current && setHover(null)}
       data-testid="studio"
     >
+      <h1 className="sr-only">Your practice room</h1>
       {vp.w > 0 && (
         <div
           className="absolute left-0 top-0 origin-top-left will-change-transform"
@@ -366,8 +367,9 @@ export default function Studio() {
             active={focus ?? hover}
             state={{ mastered, streak, sheet, recheckDue: due > 0, upgrades: game?.upgrades.filter((u) => u.unlocked).map((u) => u.id) }}
           />
-          {/* keyboard / screen-reader targets over each object (the pick handles pointers) */}
-          {OBJECTS.map((o) => (
+          {/* keyboard / screen-reader targets over each object (the pick handles pointers).
+              Upright the room is a picture above the list, which does this job with big targets. */}
+          {wide && OBJECTS.map((o) => (
             <button
               key={o.id}
               type="button"

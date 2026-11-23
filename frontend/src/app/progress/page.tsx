@@ -164,14 +164,7 @@ export default function ProgressPage() {
   if (!user) {
     return (
       <AppShell>
-        <div className="max-w-6xl mx-auto space-y-4">
-          <ErrorState message="Please log in to view your progress" />
-          <div className="text-center">
-            <Link href="/dashboard" className="text-purple-300 hover:text-purple-200 transition-colors">
-              Go to Dashboard →
-            </Link>
-          </div>
-        </div>
+        <GuestProgress />
       </AppShell>
     );
   }
@@ -249,4 +242,36 @@ function ProgressContent() {
   if (!data) return <LoadingSkeleton />;
 
   return <ChordMasteryMatrix chords={data.chords} />;
+}
+
+
+/** Signed out: what this page keeps for you, and how to start keeping it. Not an error. */
+function GuestProgress() {
+  const items = [
+    { title: "Your record wall", body: "Every chord you master goes up: three clean days each, then a re-check now and then." },
+    { title: "Practice calendar", body: "Which days you played, your streak, and the week at a glance." },
+    { title: "Chord by chord", body: "Every take you graded, which strings rang, and what changed since last time." },
+  ];
+  return (
+    <div className="mx-auto max-w-3xl">
+      <p className="label-mono text-amber-300">Your progress</p>
+      <h1 className="mt-2 font-display text-h2 uppercase text-cream">Keep a record of your playing</h1>
+      <p className="mt-3 max-w-prose text-cream/75">
+        Sign in and every chord you play is kept here, on any device. You can practise without an account; it just
+        isn&apos;t saved.
+      </p>
+      <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {items.map((i) => (
+          <li key={i.title} className="rounded-2xl border border-cream/10 bg-ink-900/60 p-4">
+            <p className="font-semibold text-cream">{i.title}</p>
+            <p className="mt-1 text-sm text-cream/70">{i.body}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link href="/signup?next=/progress" className="rounded-full bg-amber-400 px-5 py-2.5 font-semibold text-ink-950">Create a free account</Link>
+        <Link href="/login?next=/progress" className="rounded-full border border-cream/20 px-5 py-2.5 text-cream">Log in</Link>
+      </div>
+    </div>
+  );
 }

@@ -32,6 +32,7 @@ const body = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ai-guitar-tutor.vercel.app"),
   title: { default: "Open Strings — the guitar practice room that listens", template: "%s · Open Strings" },
   description: "Play a chord. Open Strings listens to every string and tells you exactly what to fix — then turns any song into a chord chart, tabs and lessons.",
   applicationName: "Open Strings",
@@ -40,6 +41,14 @@ export const metadata: Metadata = {
   // installed on an iPhone / iPad home screen: full screen, dark status bar
   appleWebApp: { capable: true, title: "Open Strings", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
+  openGraph: {
+    type: "website",
+    siteName: "Open Strings",
+    title: "Open Strings — the guitar practice room that listens",
+    description: "Play a chord and it hears every string. Any chord, any song, lessons from day one to pro.",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "The Open Strings practice room: a guitar, an amp and a record player under stage lights" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

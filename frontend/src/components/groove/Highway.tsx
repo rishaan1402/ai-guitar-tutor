@@ -82,7 +82,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
         [6, 5, 4, 3, 2, 1].map((st, k) => (
           <div key={st} className="absolute inset-y-0 border-l border-cream/[0.06]" style={{ left: `${10 + k * 14.5}%`, width: "14.5%" }}>
             <div className="absolute inset-y-0 left-1/2 w-px" style={{ background: LANE_COLORS[st], opacity: 0.25 }} />
-            <span className="label-mono absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-cream/40">{STRING_NAMES[st]}</span>
+            <span className="label-mono absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-cream/60">{STRING_NAMES[st]}</span>
           </div>
         ))
       ) : (
@@ -96,7 +96,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
         {/* bar lines */}
         {Array.from({ length: Math.ceil(totalBeats / beatsPerBar) + 1 }, (_, bar) => (
           <div key={`bar${bar}`} className="absolute left-[8%] right-[4%] h-px bg-cream/10" style={{ top: y(bar * beatsPerBar) }}>
-            <span className="label-mono absolute -top-2 left-0 -translate-x-full pr-1 text-[10px] text-cream/30">{bar + 1}</span>
+            <span className="label-mono absolute -top-2 left-0 -translate-x-full pr-1 text-[10px] text-cream/60">{bar + 1}</span>
           </div>
         ))}
         {/* chord boxes */}
@@ -168,7 +168,7 @@ export default function Highway({ segments, changes, totalBeats, strum, getPosit
           return (
             <span
               key={`s${e}`}
-              className={`absolute right-[4%] flex w-[22%] -translate-y-1/2 items-center justify-center font-semibold ${s === "D" ? "text-cream/80" : "text-cream/45"}`}
+              className={`absolute right-[4%] flex w-[22%] -translate-y-1/2 items-center justify-center font-semibold ${s === "D" ? "text-cream/80" : "text-cream/60"}`}
               style={{ top: y(e / 2), fontSize: Math.min(26, ppb * 0.42) }}
               aria-hidden="true"
             >

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LegalPage, H2 } from "@/components/legal/LegalPage";
 import { SITE, contactLine } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Privacy policy · ${SITE.name}` };
+export const metadata: Metadata = { title: "Privacy policy" };
 
 export default function PrivacyPage() {
   return (

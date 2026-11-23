@@ -20,7 +20,7 @@ export function SectionHeader({ title, subtitle, kicker, action, className, as: 
   return (
     <div className={cn("mb-6 flex items-start justify-between gap-4", className)}>
       <div className="min-w-0">
-        {kicker && <p className={cn("label-mono", page ? "text-amber-300" : "text-cream/45")}>{kicker}</p>}
+        {kicker && <p className={cn("label-mono", page ? "text-amber-300" : "text-cream/60")}>{kicker}</p>}
         <Tag
           className={cn(
             "font-display uppercase text-cream",

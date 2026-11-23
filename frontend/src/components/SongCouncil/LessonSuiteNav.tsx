@@ -10,12 +10,12 @@ interface LessonSuiteNavProps {
   onStageChange: (s: Stage) => void;
 }
 
-const STAGES: { key: Stage; label: string; emoji: string }[] = [
-  { key: "study", label: "Study", emoji: "📖" },
-  { key: "chart", label: "Chart", emoji: "🎼" },
-  { key: "quiz", label: "Quiz", emoji: "🧠" },
-  { key: "practice", label: "Practice", emoji: "🎸" },
-  { key: "perform", label: "Perform", emoji: "🎮" },
+const STAGES: { key: Stage; label: string }[] = [
+  { key: "study", label: "Study" },
+  { key: "chart", label: "Chart" },
+  { key: "quiz", label: "Quiz" },
+  { key: "practice", label: "Practice" },
+  { key: "perform", label: "Perform" },
 ];
 
 export default function LessonSuiteNav({
@@ -73,7 +73,6 @@ export default function LessonSuiteNav({
                 cursor: "pointer",
               }}
             >
-              <span>{s.emoji}</span>
               <span>{s.label}</span>
               {isDone && !isActive && (
                 <span style={{ color: "rgb(var(--ok-300))", marginLeft: "2px" }}>✓</span>
