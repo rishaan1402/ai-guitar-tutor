@@ -46,9 +46,29 @@ Council endpoints return 503. The model defaults to `openai/gpt-oss-120b`
 env var. Reasoning models get low reasoning effort and extra token headroom
 (`feedback_engine/generator.py:llm_params`).
 
-To lock CORS to the frontend, set `ALLOWED_ORIGINS=https://<your-vercel-domain>`
-(comma-separated for several). Unset, any origin may call the API without
-credentials (auth uses Bearer tokens, not cookies).
+### CORS
+
+Production sets `ALLOWED_ORIGINS` to the website and the two app origins
+(`https://ai-guitar-tutor.vercel.app,https://localhost,capacitor://localhost`)
+and `ALLOWED_ORIGIN_REGEX` to this project's Vercel preview URLs
+(`^https://ai-guitar-tutor-[a-z0-9-]+-deathwish007\.vercel\.app$`).
+Unset, any origin may call the API (auth uses Bearer tokens, not cookies), so
+always set it in production. Commas in a value need gcloud's delimiter syntax:
+`--update-env-vars='^##^ALLOWED_ORIGINS=a,b,c##ALLOWED_ORIGIN_REGEX=...'`.
+
+### Password reset email
+
+Reset links are sent with [Resend](https://resend.com). Production needs:
+
+| Name | Kind | Value |
+|---|---|---|
+| `RESEND_API_KEY` | secret (Secret Manager) | API key from a Resend account with a verified sending domain |
+| `MAIL_FROM` | env var | e.g. `Open Strings <no-reply@your-domain>` (must be on the verified domain) |
+| `FRONTEND_URL` | env var | `https://ai-guitar-tutor.vercel.app` (where the reset link points) |
+
+Without `RESEND_API_KEY` and `FRONTEND_URL`, `POST /api/auth/password-reset/request`
+answers 503 ("isn't available right now") for every email, and nothing about
+the message is ever logged in production: a reset link works like a password.
 
 ## Lesson assets
 

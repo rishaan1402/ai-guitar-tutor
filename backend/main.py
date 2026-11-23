@@ -100,7 +100,9 @@ _allowed_origins: list[str] = (
     if _raw_origins.strip()
     else ["*"]
 )
-logger.info("CORS allowed origins: %s", _allowed_origins)
+# Optional pattern for preview deployments, e.g. ^https://ai-guitar-tutor-[a-z0-9-]+\.vercel\.app$
+_origin_regex = os.environ.get("ALLOWED_ORIGIN_REGEX", "").strip() or None
+logger.info("CORS allowed origins: %s (pattern: %s)", _allowed_origins, _origin_regex)
 
 # Body caps enforced while streaming (before multipart spooling to /tmp).
 # Added before CORS so CORS is the outer layer and decorates our 413s too.
@@ -113,6 +115,7 @@ app.add_middleware(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
+    allow_origin_regex=_origin_regex if _allowed_origins != ["*"] else None,
     # Auth uses Bearer tokens, not cookies; never combine credentials with "*".
     allow_credentials=_allowed_origins != ["*"],
     allow_methods=["*"],
