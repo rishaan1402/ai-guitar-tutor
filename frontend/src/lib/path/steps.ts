@@ -55,7 +55,7 @@ export type Step =
   | { kind: "quiz"; title: string; questions: Question[] }
   | { kind: "play"; title: string; prompt: string; targets: Target[]; figure?: Figure }
   | { kind: "ear"; title: string; mode: EarMode; options: string[]; rounds: number }
-  | { kind: "rhythm"; title: string; prompt: string; pattern: string; bpm: number; bars: number; input?: "tap" | "strum" }
+  | { kind: "rhythm"; title: string; prompt: string; pattern: string; bpm: number; bars: number; input?: "tap" | "strum"; strokes?: string }
   /** The app plays a phrase; you play it back (the mic checks it, any octave). */
   | { kind: "echo"; title: string; prompt: string; phrases: Target[][]; showNotes?: boolean }
   /** A riff or change that gets faster each time you play it cleanly. */

@@ -157,3 +157,37 @@ def lesson_for_learner(song: SongLesson) -> tuple[SongObject, LessonDocument]:
         }
     )
     return song_obj, lesson
+
+
+def page_slug(title: str, artist: str) -> str:
+    """A song's public page address: "let-it-be-the-beatles"."""
+    words = f"{_norm(title)} {_norm(artist)}".split()
+    return "-".join(words)[:120] or "song"
+
+
+def public_facts(song: SongLesson) -> Optional[dict]:
+    """What a song's public page may show: facts about the song (key, chords, form), never lyrics
+    or the full chart, and only when the chords are trusted: the AI knew the song well, or a
+    reviewed correction was published."""
+    data = song.song_data or {}
+    if not (song.edited_at or data.get("chord_confidence") == "high"):
+        return None
+    if (song.reports or 0) > 0 and not song.edited_at:
+        return None  # learners flagged it: off the public pages until it's checked
+    chords = [c.get("symbol") for c in data.get("chords", []) if c.get("symbol")]
+    return {
+        "slug": page_slug(song.song_title, song.artist),
+        "song_id": str(song.id),
+        "title": song.song_title,
+        "artist": song.artist,
+        "key": data.get("key", ""),
+        "time_signature": data.get("time_signature", ""),
+        "difficulty": data.get("overall_difficulty", ""),
+        "tempo_bpm": data.get("tempo_bpm"),
+        "capo": data.get("capo", 0),
+        "strumming": data.get("strumming", ""),
+        "chords": list(dict.fromkeys(chords)),
+        "sections": [s.get("name") for s in data.get("sections", []) if s.get("name")],
+        "techniques": data.get("techniques", [])[:6],
+        "corrected": song.edited_at is not None,
+    }

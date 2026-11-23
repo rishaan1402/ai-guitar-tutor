@@ -68,6 +68,10 @@ class User(Base):
     token_version: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
+    # daily practice reminder: local hour (0-23) in reminder_tz, or None for off
+    reminder_hour: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    reminder_tz: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    reminder_sent_on: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now
     )
@@ -601,3 +605,36 @@ class RateCounter(Base):
     # start of the bucket, unix seconds
     bucket: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class PushSubscription(Base):
+    """A browser that agreed to practice reminders (Web Push)."""
+
+    __tablename__ = "push_subscriptions"
+    __table_args__ = (Index("idx_push_user", "user_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    endpoint: Mapped[str] = mapped_column(String(1000), unique=True, nullable=False)
+    p256dh: Mapped[str] = mapped_column(String(200), nullable=False)
+    auth: Mapped[str] = mapped_column(String(100), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class PricingEvent(Base):
+    """The pricing experiment: a visit to the pricing page, or someone saying they'd want Pro."""
+
+    __tablename__ = "pricing_events"
+    __table_args__ = (Index("idx_pricing_variant", "variant", "kind"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=_uuid)
+    kind: Mapped[str] = mapped_column(String(12), nullable=False)  # "view" | "interest"
+    variant: Mapped[str] = mapped_column(String(8), nullable=False)
+    plan: Mapped[str | None] = mapped_column(String(12), nullable=True)  # "monthly" | "yearly"
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

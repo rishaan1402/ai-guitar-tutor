@@ -46,8 +46,18 @@ export default function SongCouncil({ onPracticeChord }: SongCouncilProps) {
   const restored = useRef(false);
   useEffect(() => {
     const w = loadCurrentSong();
-    if (w?.lesson?.lesson_id) restore(w);
+    // a song page's "Learn it" link: ?q=<song by artist> opens that song (instantly when it's stored)
+    let q: string | null = null;
+    try {
+      q = new URLSearchParams(window.location.search).get("q");
+    } catch {
+      /* no URL */
+    }
+    const already = w?.lesson && q && q.toLowerCase().startsWith((w.lesson.song_title || "").toLowerCase());
+    if (w?.lesson?.lesson_id && (!q || already)) restore(w);
     restored.current = true;
+    if (q && !already) void handleSearch(q.slice(0, 120));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function restore(w: SongWork) {

@@ -169,7 +169,9 @@ export async function submitAudio(
   }
   const opts: RequestInit = { method: "POST", body: form };
   try {
-    return await request("/submit_audio", opts, { auth: "optional" });
+    const graded = await request<Record<string, unknown>>("/submit_audio", opts, { auth: "optional" });
+    import("./reminders").then((r) => r.notePracticed()).catch(() => {});
+    return graded;
   } catch (err) {
     if (err instanceof AuthExpiredError) {
       // Signed out under us (revoked / expired refresh): still grade the take,
@@ -1117,6 +1119,7 @@ export interface GrooveRunIn {
 }
 
 export function saveGrooveRun(run: GrooveRunIn): Promise<unknown> {
+  import("./reminders").then((r) => r.notePracticed()).catch(() => {});
   return request("/api/grooves/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(run) });
 }
 

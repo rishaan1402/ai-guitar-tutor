@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import get_current_user
 from db.engine import get_db
-from db.models import ChordAttempt, QuizResult, TransitionDrill, User
+from db.models import ChordAttempt, GrooveRun, QuizResult, TransitionDrill, User
 from lesson_service import validate_chord_name
 from personalization.planner import _key_to_symbol
 from personalization.mastery import REQUIRED_DAYS, status_of, user_mastery
@@ -50,6 +50,8 @@ class ProgressResponse(BaseModel):
     mastered_count: int
     total_attempted: int
     practice_streak: int
+    # rest days banked: each covers one missed day (one earned per 7 days in a row)
+    rest_days: int = 0
 
 
 class TransitionResultIn(BaseModel):
@@ -127,22 +129,50 @@ def _local_date(ts: datetime, zone: ZoneInfo) -> date:
     return ts.astimezone(zone).date()
 
 
-def _streak_from_dates(dates: list[date], today: date | None = None) -> int:
-    """Consecutive practice days ending today — or yesterday, so a streak
-    isn't shown as broken until the learner has missed a whole day."""
+REST_EVERY = 7   # practise 7 days in a row: earn a rest day
+REST_MAX = 2     # banked at most
+
+
+def streak_with_rest(dates: list[date], today: date | None = None) -> tuple[int, int]:
+    """(streak, rest days banked). Consecutive practice days, where every 7 in a
+    row earns a rest day (up to 2) that covers one missed day. A streak isn't
+    broken until the learner has missed a whole day without a rest day left."""
     if not dates:
-        return 0
+        return 0, 0
     today = today or date.today()
-    unique = sorted(set(dates), reverse=True)
-    if (today - unique[0]).days > 1:
-        return 0
-    streak = 1
-    for i in range(1, len(unique)):
-        if (unique[i - 1] - unique[i]).days == 1:
+    days = sorted(set(dates))
+    streak, rest, prev = 0, 0, None
+    for d in days:
+        gap = (d - prev).days if prev else 1
+        if gap == 1:
+            streak += 1
+        elif gap == 2 and rest > 0:
+            rest -= 1
             streak += 1
         else:
-            break
-    return streak
+            streak, rest = 1, 0
+        if streak % REST_EVERY == 0:
+            rest = min(REST_MAX, rest + 1)
+        prev = d
+    gap = (today - prev).days
+    if gap <= 1:
+        return streak, rest
+    if gap == 2 and rest > 0:
+        return streak, rest - 1  # yesterday was a rest day
+    return 0, 0
+
+
+def _streak_from_dates(dates: list[date], today: date | None = None) -> int:
+    return streak_with_rest(dates, today)[0]
+
+
+async def practice_days(db: AsyncSession, user_id: Any, zone: ZoneInfo, days: int = 400) -> list[date]:
+    """Local dates the learner practised: graded chord takes and Grooves played."""
+    times = await _attempt_times(db, user_id, days=days)
+    grooves = (await db.execute(
+        select(GrooveRun.created_at).where(GrooveRun.user_id == user_id, GrooveRun.created_at >= datetime.now(timezone.utc) - timedelta(days=days + 1))
+    )).scalars().all()
+    return [_local_date(t, zone) for t, _ in times] + [_local_date(t, zone) for t in grooves if t]
 
 
 async def _attempt_times(db: AsyncSession, user_id: Any, days: int) -> list[tuple[datetime, float]]:
@@ -179,10 +209,8 @@ async def get_progress(
     stats = rows.all()
 
     zone = _zone(tz)
-    times = await _attempt_times(db, user.id, days=400)
-    parsed_dates = [_local_date(t, zone) for t, _ in times]
     today_local = datetime.now(zone).date()
-    streak = _streak_from_dates(parsed_dates, today=today_local)
+    streak, rest_days = streak_with_rest(await practice_days(db, user.id, zone), today=today_local)
 
     mastery = await user_mastery(db, user.id, zone, today_local)
     chords = []
@@ -221,6 +249,7 @@ async def get_progress(
         mastered_count=mastered,
         total_attempted=len(stats),
         practice_streak=streak,
+        rest_days=rest_days,
     )
 
 

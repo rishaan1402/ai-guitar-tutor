@@ -163,6 +163,19 @@ async def generate_lesson(
     return lesson
 
 
+@router.get("/songs/public")
+async def public_songs(db: AsyncSession = Depends(get_db)) -> dict:
+    """Songs that get a public page: trusted chords only, most requested first (facts, no lyrics)."""
+    rows = (await db.execute(select(SongLesson).order_by(SongLesson.hits.desc()).limit(1000))).scalars().all()
+    songs, seen = [], set()
+    for row in rows:
+        facts = library.public_facts(row)
+        if facts and facts["slug"] not in seen:
+            seen.add(facts["slug"])
+            songs.append(facts)
+    return {"songs": songs[:500]}
+
+
 @router.post("/session/resume")
 async def resume_session(
     body: ResumeRequest,

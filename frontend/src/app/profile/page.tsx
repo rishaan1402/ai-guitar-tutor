@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { updateProfile, getProgress, deleteAccount, type ProgressResponse } from "@/lib/api";
+import ReminderSettings from "@/components/ReminderSettings";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { formatChord } from "@/lib/chordName";
 import StageChip from "@/components/StageChip";
@@ -196,6 +197,8 @@ export default function ProfilePage() {
             )}
           </div>
         )}
+        <ReminderSettings />
+
         {/* Danger zone */}
         <div className="glass-card border border-red-500/20">
           <h2 className="text-lg font-semibold text-white mb-1">Delete account</h2>

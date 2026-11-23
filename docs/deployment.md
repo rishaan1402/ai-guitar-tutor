@@ -95,6 +95,20 @@ feedback and a 503 for new song lessons (stored songs keep working). Each
 attempt that has another option after it gets `LLM_ATTEMPT_TIMEOUT` seconds
 (default 12).
 
+### Practice reminders
+
+The Android app schedules its own (on the phone). Browsers get Web Push:
+
+| Name | Kind | Value |
+|---|---|---|
+| `VAPID_PRIVATE_KEY` | secret | P-256 private key, base64url of the raw 32 bytes (the public key is derived and served at `/api/reminders/vapid-key`) |
+| `REMINDER_CRON_SECRET` | secret | random string; the hourly job sends it as `X-Reminder-Secret` |
+
+A Cloud Scheduler job calls `POST /api/reminders/run` every hour with that
+header. Each learner is reminded at most once a day, at their hour in their
+time zone, and only if they haven't played that day; subscriptions the
+browser cancelled (404/410) are removed.
+
 ### Monitoring
 
 - **Errors (Sentry):** set `SENTRY_DSN` on Cloud Run for the backend, and

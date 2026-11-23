@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 const APK_URL = "https://storage.googleapis.com/guitar-tutor-prod-2-lessons/app/open-strings-debug.apk";
-const BUILD = { version: "3.6.0", code: 19, size: "39 MB", date: "23 Nov 2026" };
+const BUILD = { version: "3.7.0", code: 20, size: "39 MB", date: "24 Nov 2026" };
 
 const STEPS = [
   "Tap Download for Android above, on your Android phone (about 39 MB).",

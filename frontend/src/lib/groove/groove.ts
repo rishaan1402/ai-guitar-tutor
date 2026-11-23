@@ -139,3 +139,15 @@ export const PRESET_GROOVES: Groove[] = [
 export function presetById(id: string | null | undefined, extra: Groove[] = []): Groove | undefined {
   return [...PRESET_GROOVES, ...extra].find((g) => g.id === id);
 }
+
+
+/** The same Groove moved by `steps` semitones (chords only; a lead line keeps its frets). */
+export function transposeGroove<G extends Groove>(g: G, steps: number, shift: (chord: string, steps: number) => string): G {
+  if (!steps || g.kind === "lead") return g;
+  const move = (c: string) => (c === "-" || c === "" ? c : shift(c, steps));
+  return {
+    ...g,
+    bars: g.bars.map((bar) => bar.map(move)),
+    focus: g.focus ? [move(g.focus[0]), move(g.focus[1])] : undefined,
+  };
+}
